@@ -12,14 +12,14 @@
 #  ----------------------------------------------------------------------
 #
 # Exemplo:
-#	$ ./backup-usb.sh
-#		- {Irá montar o disco externo para realização de backups}
+#	        $ ./backup-usb.sh
+#		           - {Irá montar o disco externo para realização de backups}
 #
 # Histórico:
-#	v2.0 2023-01-18, Hugllas R S Lima
-#		- Versão melhorada no quesito:
-#			- Cabeçalho
-#			- Discrição
+#	        v2.0 2023-01-18, Hugllas R S Lima
+#	           	- Versão melhorada no quesito:
+#		          	- Cabeçalho
+#		          	- Discrição
 #
 # Licença: GPL
 #
@@ -31,7 +31,7 @@
 
 mount /dev/sdc1 /mnt/backup-usb
 
-sleep 3
+  sleep 3
 
  df -h
 
