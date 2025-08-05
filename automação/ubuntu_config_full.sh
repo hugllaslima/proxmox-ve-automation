@@ -16,7 +16,7 @@
 # Licença: GPL-3.0
 #
 
-set -e
+set -euo pipefail
 
 #=> Funções auxiliares
 
