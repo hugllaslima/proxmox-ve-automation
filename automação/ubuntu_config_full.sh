@@ -1,31 +1,20 @@
 #!/bin/bash
 #
-# ubuntu_config_full.sh - Script de Configuração Inicial de VM para Ubuntu Server
+# ubuntu_config_full.sh - Configuração Inicial para Ubuntu Server (Proxmox VE)
 #
-# Autor: Hugllas R S Lima <hugllaslima@gmail.com>
-# Date: 04.08.2025
+# Autor.......: Hugllas R S Lima 
+# Data........: 2025-08-04
+# Versão......: 1.0
 #
-# -------------------------------------------------------------------------------
-# Este script prepara o servidor Ubuntu Server para o ambiente Proxmox VE.
-# Inclui a configuração SSH para o usuário "ubuntu" e opcionalmente realiza a
-# instalação do Docker e Docker Compose e SSH para o usuário "ubuntu".
-# -------------------------------------------------------------------------------
+# Descrição:
+#   Prepara VM Ubuntu Server para Proxmox VE.
+#   Ajusta timezone, sudo, SSH e instala Docker/Compose.
 #
-# Exemplo:
-#       $ ./ubuntu_config_full.sh
-#               - {Funções Auxiliares}
-#               - {Configuração Inicial}
-#               - {Configuração SSH para Ubuntu}
-#               - {Ajustes no SSHD}
-#               - {Instalação Docker e Docker Compose para "ubuntu"}
+# Uso:
+#   sudo ./ubuntu_config_full.sh
 #
-# Histórico:
-#       v1.0 2025-08-04, Hugllas R S Lima
-#               - Cabeçalho
-#               - Discrição
-#               - Funções
+# Licença: GPL-3.0
 #
-# Licença: GPL
 
 set -e
 
@@ -47,20 +36,25 @@ reiniciar() {
 
 #=> FUNÇÃO: Configuração Inicial (Root)
 configuracao_inicial() {
-    echo "[Configuração Inicial - Root]"
-
-    echo "Ajustando o timezone..."
+echo "[Configuração Inicial - Root]"
+echo "Ajustando o timezone..."
     timedatectl set-timezone America/Sao_Paulo
     echo "Timezone configurado para: $(timedatectl show --property=Timezone --value)"
-    sleep 1
-    echo "Adicionando usuário 'ubuntu' ao grupo sudo..."
+sleep 1
+
+echo "Adicionando usuário 'ubuntu' ao grupo sudo..."
     usermod -aG sudo ubuntu
-    echo "Enable sudo sem senha para ubuntu..."
-    echo "ubuntu ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/ubuntu
-    echo "Atualizando pacotes..."
-    apt update
-    apt upgrade -y
-    echo "Instalando qemu-guest-agent..."
+    sleep 1
+
+echo "Enable sudo sem senha para ubuntu..."
+    echo "ubuntu ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/ubuntu    
+    sleep 1
+
+echo "Atualizando pacotes..."
+    apt update && apt upgrade -y    
+    sleep 1
+
+echo "Instalando qemu-guest-agent..."
     apt install qemu-guest-agent -y
     systemctl start qemu-guest-agent
     systemctl enable qemu-guest-agent
