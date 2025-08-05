@@ -85,6 +85,15 @@ configura_ssh_ubuntu() {
     sudo -u ubuntu ssh-keygen -y -f $ID_RSA | sudo tee $ID_PUB > /dev/null
     sudo chmod 644 $ID_PUB
 
+    # >>> NOVO BLOCO AQUI <<<
+    read -p "Deseja apagar a chave privada ($ID_RSA) por segurança? [s/n]: " RESP_APAGA_CHAVE
+    if [[ "$RESP_APAGA_CHAVE" =~ ^([sS][iI][mM]|[sS])$ ]]; then
+        sudo shred -u $ID_RSA
+        echo "Chave privada $ID_RSA removida com segurança!"
+    else
+        echo "Atenção: A chave privada foi mantida em $ID_RSA."
+    fi
+
     # Adiciona a chave pública ao authorized_keys
     sudo -u ubuntu touch $AUTH_KEYS
     if ! grep -q "$(sudo cat $ID_PUB)" $AUTH_KEYS; then
