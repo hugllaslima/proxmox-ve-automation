@@ -2,27 +2,28 @@
 #
 # create_user_lxc.sh - Script de Configuracao Inicial para Container LXC
 #
-# Autor: Hugllas R S Lima <hugllaslima@gmail.com>
-# Date: 05.08.2025
-#
-# -------------------------------------------------------------------------------
-# Este script adiciona e configura um novo usuário para manutenção.
-# -------------------------------------------------------------------------------
+# - Autor...........: Hugllas R S Lima 
+# - Data............: 2025-08-04
+# - Versão..........: 1.0.0
 #
 # Etapas:
-#       $ ./create_user_lxc.sh
-#               - {Ataualizando e Configurando o Sistema}
-#               - {Instalando "sudo" e "openssh client"}
-#               - {Criando e Configurando  Usuario}
-#               - {Reinicia o Container LXC}
+#    - $ ./create_user_lxc.sh
+#        - {Ataualizando e Configurando o Sistema}
+#        - {Instalando "sudo" e "openssh client"}
+#        - {Criando e Configurando  Usuario}
+#        - {Reinicia o Container LXC}
 #
-# Hist  rico:
-#       v1.0 2025-08-05, Hugllas R S Lima
-#               - Cabeçalho
-#               - Discrição
-#               - Funções
+# Histórico:
+#    - v1.0.0 2025-08-05, Hugllas Lima
+#        - Cabeçalho
+#        - Discrição
+#        - Funções
 #
-# Licença: GPL
+# Uso:
+#   - sudo ./create_user_lxc.sh
+#
+# Licença: GPL-3.0
+#
 
 # ------------------------------------------------------------------------------
 # Ataualizando e Configurando o Template
