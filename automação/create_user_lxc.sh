@@ -32,7 +32,7 @@ echo "Ajustando o timezone..."
     timedatectl set-timezone America/Sao_Paulo
     echo "Timezone configurado para: $(timedatectl show --property=Timezone --value)"
     sleep 1
-
+echo " "
 echo "Atualizando o sistema operacional... "
         apt update && apt upgrade -y
 echo " "
