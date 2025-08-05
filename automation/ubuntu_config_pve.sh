@@ -11,7 +11,7 @@
 #   - Ajusta timezone, sudo, SSH e instala Docker/Compose.
 #
 # Uso:
-#   - sudo ./ubuntu_config_full.sh
+#   - sudo ./ubuntu_config_pve.sh
 #
 # Licença: GPL-3.0
 #
