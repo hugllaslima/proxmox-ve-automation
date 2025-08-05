@@ -1,67 +1,72 @@
-ubuntuconfigpve.sh
-Configuração automatizada para Ubuntu Server focada em ambientes Proxmox VE.
+# Modelo README.md para Coleção de Scripts
+Ubuntu Automation Scripts for Proxmox VE
 
-📜 Descrição
-Este script realiza configurações iniciais essenciais para VMs Ubuntu Server preparadas para uso em hosts Proxmox VE, incluindo ajuste de timezone, sudo, SSH seguro, instalação de Docker e Docker Compose.
+Scripts de automação para facilitar e padronizar a configuração inicial de VMs Ubuntu Server em ambientes Proxmox VE e virtualização em geral.
 
-:rocket: Recursos
-Define fuso horário (America/Sao_Paulo)
-Habilita sudo sem senha para o usuário padrão
-Configura acesso SSH seguro com chaves
-Permite (opcionalmente) instalar Docker e Docker Compose
-Otimizações para ambiente virtualizado (qemu-guest-agent)
-Ajustes de segurança no SSH
+📋 Descrição
+Este repositório reúne diversos scripts para automação de tarefas administrativas no Ubuntu Server, especialmente ajustados para ambientes virtualizados com Proxmox VE.
+
+Entre os recursos, você encontrará automações para configuração de timezone, SSH, sudo, instalação de Docker/Compose, hardening e outros utilitários para acelerar a preparação de servidores.
+
+:file_folder: Scripts Disponíveis
+Script	Descrição resumida
+ubuntu_config_pve.sh	Configuração inicial: timezone, SSH seguro, sudo, Docker
+instala_zabbix_agent.sh	Automatiza instalação e configuração do Zabbix Agent
+hardening_basico.sh	Aplica medidas básicas de segurança no Ubuntu
+firewall_padrao.sh	Cria regras padrão de firewall usando UFW
+backup_config_ssh.sh	Faz backup e restauração de arquivos de configuração SSH
+…	(Inclua todos os scripts adicionados)
+ Baixar
+ Copiar
+
 ⚙️ Pré-requisitos
 VM Ubuntu Server (recomendado Ubuntu 22.04 LTS ou superior)
-Acesso ROOT (ou via sudo su)
-Conexão à internet
+Permissão root ou sudo
+Conexão à internet (para scripts que requerem downloads)
 🛠️ Instalação
-Clone este repositório em sua VM Ubuntu Server:
+Clone este repositório:
 
 bash
 Copiar
 
 git clone https://github.com/seu-usuario/seu-repo.git
 cd seu-repo
-chmod +x ubuntu_config_pve.sh
-DICA: Sempre revise os scripts antes de executar!
+chmod +x *.sh
 
 🚀 Uso
-Execute o script como root:
+Cada script possui instruções e parâmetros próprios. Execute, por exemplo:
 
 bash
 Copiar
 
 sudo ./ubuntu_config_pve.sh
-Durante a execução:
+Consulte o início de cada script para detalhes de uso, pré-requisitos específicos e recomendações.
 
-Será solicitado o fornecimento da chave privada SSH (copie/cole no terminal)
-Uma chave pública será gerada automaticamente
-Você pode optar por apagar a chave privada após a configuração
-Poderá instalar Docker e Docker Compose (opcional)
-Ao final, recomenda-se testar o acesso SSH em outra aba/terminal antes de reiniciar.
+Muitos scripts exibem prompts customizados para evitar configurações automáticas sem supervisão.
+Teste sua conexão SSH após alterações de segurança, especialmente ao modificar autenticação SSH ou firewall.
+💡 Organização Recomendada
+Coloque cada script na raiz ou em sub-pastas temáticas (proxmox/, monitoramento/, etc).
+Mantenha cabeçalhos de autoria, versão, data e descrição em cada script.
+Um breve README em cada sub-pasta pode detalhar scripts semelhantes.
+📝 Contribuição
+Contribuições são muito bem-vindas!
 
-🔒 Segurança
-Chaves privadas nunca devem ser mantidas no servidor após o uso (script oferece opção de exclusão).
-Apenas forneça a chave privada se realmente for necessário!
-🤝 Contribuindo
-Contribuições, issues e sugestões são bem-vindas!
-
-Veja CONTRIBUTING.md para detalhes sobre o processo de contribuição.
-
+Envie Pull Requests com novos scripts, melhorias ou correções.
+Abra uma Issue para sugerir scripts, melhorias ou reportar bugs.
+Siga as diretrizes em CONTRIBUTING.md.
 📄 Licença
-Distribuído sob licença GPL-3.0.
+Distribuído sob a licença GPL-3.0.
 
-Veja LICENSE para mais informações.
+Consulte o arquivo LICENSE para detalhes.
 
-📬 Contato
-Autor: Hugllas R S Lima
+👤 Autor Principal
+Hugllas R S Lima
 
-LinkedIn/Email: [Seu LinkedIn ou email aqui]
+[Seu LinkedIn ou email]
 
-Atenção: Este script é destinado ao uso em ambiente controlado e para fins de automação. Sempre revise antes e adapte conforme necessário para seu cenário!
+Atenção: Utilize os scripts por sua conta e risco. Revise cuidadosamente antes de executar em ambientes de produção!
 
 
-Esse modelo é bem flexível e elegante, pronto para editar e complementar com seus links, badges, prints, contribuições e detalhes técnicos!
+Dica final:
 
-Quer uma versão ainda mais enxuta ou com exemplos práticos de execução/output?
+Você pode adicionar badges, exemplos de shell, prints, e links para documentação dos scripts conforme o repositório for crescendo!
