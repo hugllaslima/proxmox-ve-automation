@@ -53,17 +53,13 @@ configuracao_inicial() {
     timedatectl set-timezone America/Sao_Paulo
     echo "Timezone configurado para: $(timedatectl show --property=Timezone --value)"
     sleep 1
-
     echo "Adicionando usuário 'ubuntu' ao grupo sudo..."
     usermod -aG sudo ubuntu
-
     echo "Enable sudo sem senha para ubuntu..."
     echo "ubuntu ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/ubuntu
-
     echo "Atualizando pacotes..."
     apt update
     apt upgrade -y
-
     echo "Instalando qemu-guest-agent..."
     apt install qemu-guest-agent -y
     systemctl start qemu-guest-agent
