@@ -2,16 +2,16 @@
 #
 # ubuntu_config_full.sh - Configuração Inicial para Ubuntu Server (Proxmox VE)
 #
-# Autor.......: Hugllas R S Lima 
-# Data........: 2025-08-04
-# Versão......: 1.0
+# - Autor...........: Hugllas R S Lima 
+# - Data............: 2025-08-04
+# - Versão..........: 1.0.0
 #
 # Descrição:
-#   Prepara VM Ubuntu Server para Proxmox VE.
-#   Ajusta timezone, sudo, SSH e instala Docker/Compose.
+#   - Prepara VM Ubuntu Server para Proxmox VE.
+#   - Ajusta timezone, sudo, SSH e instala Docker/Compose.
 #
 # Uso:
-#   sudo ./ubuntu_config_full.sh
+#   - sudo ./ubuntu_config_full.sh
 #
 # Licença: GPL-3.0
 #
