@@ -8,9 +8,9 @@
 #
 # Etapas:
 #    - $ ./create_user_lxc.sh
-#        - {Ataualizando e Configurando o Sistema}
+#        - {Ataualizando e Configurando o Template}
 #        - {Instalando "sudo" e "openssh client"}
-#        - {Criando e Configurando  Usuario}
+#        - {Criando e Configurando Novo Usuário}
 #        - {Reinicia o Container LXC}
 #
 # Histórico:
