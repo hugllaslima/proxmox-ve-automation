@@ -1,5 +1,4 @@
-# Modelo README.md para Coleção de Scripts
-Ubuntu Automation Scripts for Proxmox VE
+# Ubuntu Automation Scripts for Proxmox VE
 
 Scripts de automação para facilitar e padronizar a configuração inicial de VMs Ubuntu Server em ambientes Proxmox VE e virtualização em geral.
 
