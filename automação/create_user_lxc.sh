@@ -2,9 +2,9 @@
 #
 # create_user_lxc.sh - Script de Configuracao Inicial para Container LXC
 #
-# - Autor...........: Hugllas R S Lima 
-# - Data............: 2025-08-04
-# - Versão..........: 1.0.0
+# - Autor....................: Hugllas R S Lima 
+# - Data.....................: 2025-08-04
+# - Versão...................: 1.0.0
 #
 # Etapas:
 #    - $ ./create_user_lxc.sh
