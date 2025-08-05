@@ -25,11 +25,16 @@
 # Licença: GPL
 
 # ------------------------------------------------------------------------------
-# Ataualizando e Configurando o Sistema
+# Ataualizando e Configurando o Template
 # ------------------------------------------------------------------------------
 
+echo "Ajustando o timezone..."
+    timedatectl set-timezone America/Sao_Paulo
+    echo "Timezone configurado para: $(timedatectl show --property=Timezone --value)"
+    sleep 1
+
 echo "Atualizando o sistema operacional... "
-        dpkg-reconfigure tzdata && apt update && apt upgrade -y
+        apt update && apt upgrade -y
 echo " "
 
 # ------------------------------------------------------------------------------
