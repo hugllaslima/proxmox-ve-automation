@@ -116,7 +116,7 @@ read -r CHAVE_PUB
 echo "Preparando ambiente SSH para $USUARIO ($TIPOTXT) em $HOME_USER/.ssh ..."
 
     sudo mkdir -p "$HOME_USER/.ssh"
-    echo "$CHAVE_PUB" | sudo tee "$HOME_USER/.ssh/authorized_keys" > /dev/null
+    echo "$CHAVE_PUB" | sudo tee -a /home/$USUARIO/.ssh/authorized_keys > /dev/null
     sudo chown $USUARIO:$USUARIO "$HOME_USER/.ssh/authorized_keys"
     sudo chmod 600 "$HOME_USER/.ssh/authorized_keys"
     sudo chmod 700 "$HOME_USER/.ssh"
