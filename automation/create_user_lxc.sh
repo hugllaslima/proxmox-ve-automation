@@ -50,10 +50,10 @@ garante_sudo_e_openssh() {
     fi
     if ! command -v ssh-keygen >/dev/null 2>&1; then
         echo "[INFO] 'ssh-keygen' (openssh-client) n  o encontrado. Instalando..."
-        sudo apt update && sudo apt install openssh-client -y
+        apt update && apt install openssh-client -y
         echo "[INFO] 'openssh-client' instalado!"
     else
-        echo "[INFO] 'openssh-client' j   instalado."
+        echo "[INFO] 'openssh-client' já instalado."
     fi
 }
 
@@ -77,7 +77,7 @@ echo " "
         sudo usermod -aG lxd $USUARIO
         echo "Usu  rio $USUARIO adicionado ao grupo lxd."
     else
-        echo "Aten    o: N  o foi encontrado o grupo 'lxc' nem 'lxd'. Verifique se LXC/LXD est  o corretamente instalados."
+        echo "Atenção: N  o foi encontrado o grupo 'lxc' nem 'lxd'. Verifique se LXC/LXD est  o corretamente instalados."
     fi
 # Permite sudo sem senha para o usuário (opcional, recomendado para manutenção de containers LXC)
         echo "$USUARIO ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/$USUARIO
