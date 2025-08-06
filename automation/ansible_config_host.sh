@@ -110,7 +110,7 @@ echo
     [ "$OPCAO_TIPO" == "2" ] && TIPOTXT="Container LXC"
 
 echo
-echo "Cole a chave pública do usuário "ansible" (linha   nica):"
+echo "Cole a chave pública do usuário "ansible" (linha única):"
 read -r CHAVE_PUB
 
 echo "Preparando ambiente SSH para $USUARIO ($TIPOTXT) em $HOME_USER/.ssh ..."
