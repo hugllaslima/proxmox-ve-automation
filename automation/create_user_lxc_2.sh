@@ -1,19 +1,42 @@
 #!/bin/bash
 #
-# create_user_lxc.sh - Script de Configuração Inicial para Container LXC
+# create_user_lxc.sh - Script de Configuracao Inicial para Container LXC
 #
-# - Autor: Hugllas R S Lima
-# - Data: 2025-08-06
-# - Versão: 1.1.0
+# - Autor....................: Hugllas R S Lima 
+# - Data.....................: 2025-08-04
+# - Versão...................: 1.0.0
 #
+# Etapas:
+#    - $ ./create_user_lxc.sh
+#        - {Ataualizando e Configurando o Template}
+#        - {Instalando "sudo" e "openssh client"}
+#        - {Criando e Configurando Novo Usuário}
+#        - {Reinicia o Container LXC}
+#
+# Histórico:
+#    - v1.0.0 2025-08-05, Hugllas Lima
+#        - Cabeçalho
+#        - Discrição
+#        - Funções
+#
+# Uso:
+#   - sudo ./create_user_lxc.sh
+#
+# Licença: GPL-3.0
 
 # ------------------------------------------------------------------------------
+# Ajustando o Timezone
+# ------------------------------------------------------------------------------
+
 echo "Ajustando o timezone..."
 timedatectl set-timezone America/Sao_Paulo
 echo "Timezone configurado para: $(timedatectl show --property=Timezone --value)"
 echo
 
 # ------------------------------------------------------------------------------
+# Atuializando o Sistema Operacional
+# ------------------------------------------------------------------------------
+
 read -p "Deseja atualizar o sistema operacional? (s/n): " ATUALIZAR
 if [[ "$ATUALIZAR" =~ ^[sS]$ ]]; then
   echo "Atualizando o sistema operacional..."
@@ -25,6 +48,9 @@ fi
 echo
 
 # ------------------------------------------------------------------------------
+# Instalando o Pacote "sudo"
+# ------------------------------------------------------------------------------
+
 read -p "Deseja instalar o pacote 'sudo'? (s/n): " INSTALAR_SUDO
 if [[ "$INSTALAR_SUDO" =~ ^[sS]$ ]]; then
   if ! command -v sudo >/dev/null 2>&1; then
@@ -40,6 +66,9 @@ fi
 echo
 
 # ------------------------------------------------------------------------------
+# Instalando o Pacote "openssh-client"
+# ------------------------------------------------------------------------------
+
 read -p "Deseja instalar o pacote 'openssh-client'? (s/n): " INSTALAR_OPENSSH
 if [[ "$INSTALAR_OPENSSH" =~ ^[sS]$ ]]; then
   if ! command -v ssh-keygen >/dev/null 2>&1; then
@@ -55,6 +84,9 @@ fi
 echo
 
 # ------------------------------------------------------------------------------
+# Adicionando e configurando o Usuário
+# ------------------------------------------------------------------------------
+
 read -p "Digite o nome do usuário que deseja criar: " USUARIO
 echo
 
@@ -97,3 +129,5 @@ if [[ "$REINICIAR" =~ ^[sS]$ ]]; then
 else
   echo "Reinicialização cancelada. Você pode reiniciar manualmente se necessário."
 fi
+
+# fim_script
