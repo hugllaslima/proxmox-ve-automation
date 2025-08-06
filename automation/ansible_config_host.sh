@@ -89,7 +89,7 @@ echo "Continue com a configuração do SSH agora..."
 # Adição da Key Publica "Usuário Ansible"
 # ------------------------------------------------------------------------------
 
-echo "Digite o nome do usuário para configurar acesso SSH (ex: ubuntu, debian, ansible, root):"
+echo "Informe o usuário do HOST que irá receber a chave pública para acesso via SSH (ex: ubuntu, debian, ansible, root)."
 read USUARIO
 
 # Determina o home do usu  rio, independente de /home, /root, /srv, etc
