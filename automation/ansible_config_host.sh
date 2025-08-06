@@ -135,7 +135,6 @@ echo "Caso haja alguma alteração nos arquivos de configuração do SSH, reinic
 echo "sudo systemctl restart ssh"
 echo " "
 
-echo
 echo " ---------- Pronto! ---------- "
 
 echo
