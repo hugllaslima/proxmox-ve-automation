@@ -62,7 +62,7 @@ garante_sudo_e_openssh() {
 # -----------------------------------------------------------------------------
 
 # Pergunta o nome do usuário
-        read -p "Digite o nome do usu  rio que deseja criar: " USUARIO
+        read -p "Digite o nome do usuário que deseja criar: " USUARIO
 echo " "
 # Cria o usuáriO
         sudo adduser $USUARIO
