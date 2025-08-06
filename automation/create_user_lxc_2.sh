@@ -117,6 +117,10 @@ else
   fi
 fi
 
+# ------------------------------------------------------------------------------
+# Reiniciando o Servidor
+# ------------------------------------------------------------------------------
+
 echo
 read -p "Deseja reiniciar o servidor agora? (s/n): " REINICIAR
 if [[ "$REINICIAR" =~ ^[sS]$ ]]; then
