@@ -53,10 +53,10 @@ echo " "
 
 # 3. Baixar e extrair o Node Exporter
 echo "Baixando Node Exporter de ${NODE_EXPORTER_URL}..."
-TEMP_DIR=$(mktemp -d)
-wget -q "${NODE_EXPORTER_URL}" -O "${TEMP_DIR}/node_exporter.tar.gz" || error_exit "Falha ao baixar o Node Exporter."
-echo "Download concluído. Extraindo..."
-tar xvfz "${TEMP_DIR}/node_exporter.tar.gz" -C "${TEMP_DIR}" || error_exit "Falha ao extrair o Node Exporter."
+    TEMP_DIR=$(mktemp -d)
+    wget -q "${NODE_EXPORTER_URL}" -O "${TEMP_DIR}/node_exporter.tar.gz" || error_exit "Falha ao baixar o Node Exporter."
+    echo "Download concluído. Extraindo..."
+    tar xvfz "${TEMP_DIR}/node_exporter.tar.gz" -C "${TEMP_DIR}" || error_exit "Falha ao extrair o Node Exporter."
 echo " "
 
 # Encontrar o diretório extraído (ex: node_exporter-1.7.0.linux-amd64)
@@ -70,8 +70,8 @@ echo " "
 # 4. Mover o binário e definir permissões
 echo " "
 echo "Movendo o binário 'node_exporter' para ${INSTALL_DIR}..."
-sudo mv "${EXTRACTED_DIR}/node_exporter" "${INSTALL_DIR}/node_exporter" || error_exit "Falha ao mover o binário."
-sudo chown "${NODE_EXPORTER_USER}:${NODE_EXPORTER_USER}" "${INSTALL_DIR}/node_exporter" || error_exit "Falha ao definir permissões para o binário."
+    sudo mv "${EXTRACTED_DIR}/node_exporter" "${INSTALL_DIR}/node_exporter" || error_exit "Falha ao mover o binário."
+    sudo chown "${NODE_EXPORTER_USER}:${NODE_EXPORTER_USER}" "${INSTALL_DIR}/node_exporter" || error_exit "Falha ao definir permissões para o binário."
 echo "Binário movido e permissões definidas."
 echo " "
 
@@ -99,16 +99,16 @@ echo " "
 # 6. Recarregar systemd, habilitar e iniciar o serviço
 echo " "
 echo "Recarregando systemd, habilitando e iniciando o serviço Node Exporter..."
-sudo systemctl daemon-reload || error_exit "Falha ao recarregar o daemon systemd."
-sudo systemctl enable node_exporter || error_exit "Falha ao habilitar o serviço node_exporter."
-sudo systemctl start node_exporter || error_exit "Falha ao iniciar o serviço node_exporter."
-echo "Serviço Node Exporter habilitado e iniciado."
+    sudo systemctl daemon-reload || error_exit "Falha ao recarregar o daemon systemd."
+    sudo systemctl enable node_exporter || error_exit "Falha ao habilitar o serviço node_exporter."
+    sudo systemctl start node_exporter || error_exit "Falha ao iniciar o serviço node_exporter."
+    echo "Serviço Node Exporter habilitado e iniciado."
 echo " "
 
 # 7. Verificar o status do Node Exporter
 echo " "
 echo "Verificando o status do Node Exporter..."
-sudo systemctl status node_exporter | grep "Active:"
+    sudo systemctl status node_exporter | grep "Active:"
 echo " "
 
 # 8. Configurar o Firewall (UFW)
