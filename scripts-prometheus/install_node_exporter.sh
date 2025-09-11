@@ -132,6 +132,6 @@ echo " "
 
 # 10. Final da Instalação
 echo "Instalação do Node Exporter concluída com sucesso!"
-echo "Você pode verificar as métricas em http://localhost:${NODE_EXPORTER_PORT}/metrics"
-echo "Lembre-se de configurar seu Prometheus para raspar as métricas desta máquina na porta ${NODE_EXPORTER_PORT}."
+echo "Você pode verificar as métricas em http://ip_do_host:${NODE_EXPORTER_PORT}/metrics"
+echo "Lembre-se de configurar o 'scrape_configs' no Prometheus com o IP na ${NODE_EXPORTER_PORT}."
 echo " "
