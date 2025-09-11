@@ -52,7 +52,6 @@ echo "Criando usuário '${NODE_EXPORTER_USER}' para o Node Exporter..."
 echo " "
 
 # 3. Baixar e extrair o Node Exporter
-echo " "
 echo "Baixando Node Exporter de ${NODE_EXPORTER_URL}..."
 TEMP_DIR=$(mktemp -d)
 wget -q "${NODE_EXPORTER_URL}" -O "${TEMP_DIR}/node_exporter.tar.gz" || error_exit "Falha ao baixar o Node Exporter."
@@ -128,8 +127,10 @@ echo " "
 echo " "
 echo "Limpando arquivos temporários..."
 sudo rm -rf "${TEMP_DIR}"
-echo "Limpeza concluída."
+echo " A Limpeza foi concluída com sucesso!"
 echo " "
+
+# 10. Final da Instalação
 echo "Instalação do Node Exporter concluída com sucesso!"
 echo "Você pode verificar as métricas em http://localhost:${NODE_EXPORTER_PORT}/metrics"
 echo "Lembre-se de configurar seu Prometheus para raspar as métricas desta máquina na porta ${NODE_EXPORTER_PORT}."
