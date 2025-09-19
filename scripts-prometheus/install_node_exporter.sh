@@ -24,7 +24,6 @@ command_exists() {
 }
 
 # --- Início da Instalação ---
-echo " "
 echo "Iniciando a instalação do Prometheus Node Exporter v${NODE_EXPORTER_VERSION}..."
 echo " "
 
@@ -39,9 +38,9 @@ echo "Verificando pré-requisitos..."
         echo "tar não encontrado. Instalando tar..."
         sudo apt update && sudo apt install -y tar || error_exit "Falha ao instalar tar."
     fi
+echo " "
 
 # 2. Criação do usuário node_exporter
-echo " "
 echo "Criando usuário '${NODE_EXPORTER_USER}' para o Node Exporter..."
     if ! id -u "${NODE_EXPORTER_USER}" >/dev/null 2>&1; then
         sudo useradd -rs /bin/false "${NODE_EXPORTER_USER}" || error_exit "Falha ao criar o usuário '${NODE_EXPORTER_USER}'."
@@ -57,10 +56,8 @@ echo "Baixando Node Exporter de ${NODE_EXPORTER_URL}..."
     wget -q "${NODE_EXPORTER_URL}" -O "${TEMP_DIR}/node_exporter.tar.gz" || error_exit "Falha ao baixar o Node Exporter."
     echo "Download concluído. Extraindo..."
     tar xvfz "${TEMP_DIR}/node_exporter.tar.gz" -C "${TEMP_DIR}" || error_exit "Falha ao extrair o Node Exporter."
-echo " "
 
 # Encontrar o diretório extraído (ex: node_exporter-1.7.0.linux-amd64)
-echo " "
 EXTRACTED_DIR=$(find "${TEMP_DIR}" -maxdepth 1 -type d -name "node_exporter-*.linux-amd64" | head -n 1)
     if [ -z "${EXTRACTED_DIR}" ]; then
         error_exit "Não foi possível encontrar o diretório extraído do Node Exporter."
@@ -68,7 +65,6 @@ EXTRACTED_DIR=$(find "${TEMP_DIR}" -maxdepth 1 -type d -name "node_exporter-*.li
 echo " "
 
 # 4. Mover o binário e definir permissões
-echo " "
 echo "Movendo o binário 'node_exporter' para ${INSTALL_DIR}..."
     sudo mv "${EXTRACTED_DIR}/node_exporter" "${INSTALL_DIR}/node_exporter" || error_exit "Falha ao mover o binário."
     sudo chown "${NODE_EXPORTER_USER}:${NODE_EXPORTER_USER}" "${INSTALL_DIR}/node_exporter" || error_exit "Falha ao definir permissões para o binário."
@@ -76,7 +72,6 @@ echo "Binário movido e permissões definidas."
 echo " "
 
 # 5. Criar o arquivo de serviço systemd
-echo " "
 echo "Criando o arquivo de serviço systemd em ${SERVICE_FILE}..."
 sudo bash -c "cat > ${SERVICE_FILE} <<EOF
 [Unit]
@@ -97,7 +92,6 @@ echo "Arquivo de serviço systemd criado."
 echo " "
 
 # 6. Recarregar systemd, habilitar e iniciar o serviço
-echo " "
 echo "Recarregando systemd, habilitando e iniciando o serviço Node Exporter..."
     sudo systemctl daemon-reload || error_exit "Falha ao recarregar o daemon systemd."
     sudo systemctl enable node_exporter || error_exit "Falha ao habilitar o serviço node_exporter."
@@ -106,13 +100,11 @@ echo "Recarregando systemd, habilitando e iniciando o serviço Node Exporter..."
 echo " "
 
 # 7. Verificar o status do Node Exporter
-echo " "
 echo "Verificando o status do Node Exporter..."
     sudo systemctl status node_exporter | grep "Active:"
 echo " "
 
 # 8. Configurar o Firewall (UFW)
-echo " "
 echo "Configurando o firewall (UFW) para permitir a porta ${NODE_EXPORTER_PORT}..."
     if command_exists ufw; then
         sudo ufw allow "${NODE_EXPORTER_PORT}/tcp" || echo "Aviso: Falha ao adicionar regra UFW. Verifique manualmente."
@@ -124,7 +116,6 @@ echo "Configurando o firewall (UFW) para permitir a porta ${NODE_EXPORTER_PORT}.
 echo " "
 
 # 9. Limpar arquivos temporários
-echo " "
 echo "Limpando arquivos temporários..."
 sudo rm -rf "${TEMP_DIR}"
 echo " A Limpeza foi concluída com sucesso!"
