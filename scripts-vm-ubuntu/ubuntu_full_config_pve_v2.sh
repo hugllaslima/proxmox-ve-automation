@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# ubuntu_config_pve.sh - Configuração Inicial para Ubuntu Server (Proxmox VE)
+# ubuntu_full_config_pve_v2.sh - Configuração Inicial para Ubuntu Server (Proxmox VE)
 #
 # - Autor...........: Hugllas R S Lima 
 # - Data............: 2025-08-04
@@ -11,7 +11,7 @@
 #   - Ajusta timezone, sudo, SSH e instala Docker/Compose.
 #
 # Uso:
-#   - sudo ./ubuntu_config_pve.sh
+#   - sudo ./ubuntu_full_config_pve_v2.sh
 #
 # Licença: GPL-3.0
 #
