@@ -33,6 +33,7 @@ reiniciar() {
         echo "Por favor, execute 'sudo reboot' manualmente quando estiver pronto."
     fi
 }
+echo " "
 
 #=> FUNÇÃO: Configuração Inicial (Root)
 configuracao_inicial() {
@@ -59,6 +60,7 @@ echo "Instalando qemu-guest-agent..."
     systemctl start qemu-guest-agent
     systemctl enable qemu-guest-agent
 }
+echo " "
 
 #=> FUNÇÃO: Configuração SSH para Ubuntu
 configura_ssh_ubuntu() {
@@ -86,8 +88,9 @@ configura_ssh_ubuntu() {
         rm -f /tmp/temp_pubkey
         exit 1
     fi
+echo " "
 
-    # Cria ou atualiza o authorized_keys sem apagar chaves existentes
+# Cria ou atualiza o authorized_keys sem apagar chaves existentes
     sudo -u ubuntu touch $AUTH_KEYS
     
     # Verifica se a chave já existe para evitar duplicatas
@@ -106,6 +109,7 @@ configura_ssh_ubuntu() {
 
     echo "Chave SSH configurada para o usuário ubuntu (chaves existentes preservadas)."
 }
+echo " "
 
 #=> FUNÇÃO: Ajustes no SSHD
 ajusta_sshd() {
@@ -138,6 +142,7 @@ ajusta_sshd() {
 
     echo "Ajustes SSH aplicados. Teste o acesso via SSH em outra janela antes de sair desta sessão!"
 }
+echo " "
 
 #=> FUNÇÃO: Instalação Docker e Docker Compose (para ubuntu)
 instala_docker() {
