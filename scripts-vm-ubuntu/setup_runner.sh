@@ -13,6 +13,10 @@ echo "✅ Múltiplos métodos de fallback: Se um método falhar, tenta alternati
 echo "✅ Verificações de status melhoradas: Múltiplas formas de verificar o serviço"
 echo "✅ Aguardos apropriados: Sleeps estratégicos para processos estabilizarem"
 echo "✅ Melhor tratamento de erros: Mais tolerante a falhas e com recuperação"
+echo "✅ Captura de Ctrl+C - Script continua automaticamente após interrupção"
+echo "✅ Verificações robustas - Múltiplos métodos de verificação de status"
+echo "✅ Feedback visual aprimorado - Separadores e emojis para clareza"
+echo "✅ Tratamento de erros melhorado - Métodos alternativos quando necessário"
 echo "=================================================================================="
 echo " "
 
