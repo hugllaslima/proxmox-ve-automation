@@ -143,7 +143,7 @@ echo -e "${GREEN}  Cleanup concluído!${NC}"
 echo -e "${GREEN}========================================${NC}"
 echo
 echo -e "${BLUE}Agora você pode rodar o script de setup novamente:${NC}"
-echo "sudo ./setup_self_hosted_runner.sh"
+echo "sudo ./setup_runner.sh"
 echo
 
 echo -e "${YELLOW}Nota: Se algum item apareceu como ❌ acima,${NC}"
