@@ -1,14 +1,14 @@
 #!/bin/bash
 # Script para configurar Self-Hosted Runner com usuário dedicado
-# Autor: Hugllas Lima <>
+# Autor: Hugllas Lima <hugllas.lima@hlcloud.com.br>
 # Data: 15/03/2025
-# Versão: 6.0 - Com tratamento avançado de erros
+# Versão: 2.0 - Com tratamento avançado de erros
 
 # ============================================================================
 # CONFIGURAÇÕES INICIAIS
 # ============================================================================
 
-set +e  # NÃO parar em erros - vamos tratá-los manualmente
+set +e  
 trap 'handle_interrupt' INT TERM
 
 # Cores para output
