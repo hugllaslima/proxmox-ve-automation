@@ -1,15 +1,14 @@
 #!/bin/bash
 # Script para configurar Self-Hosted Runner com usuário dedicado
-# Autor: Hugllas Lima <hugllas.lima@hlcloud.com.br>
+# Autor: Hugllas Lima <>
 # Data: 15/03/2025
-# Versão: 2.0 - Com tratamento avançado de erros
+# Versão: 2.0 - Correções de validação e fluxo
 
 # ============================================================================
 # CONFIGURAÇÕES INICIAIS
 # ============================================================================
 
 set +e  
-trap 'handle_interrupt' INT TERM
 
 # Cores para output
 RED='\033[0;31m'
@@ -24,6 +23,9 @@ NC='\033[0m'
 STATE_FILE="/tmp/runner_setup_state"
 LOG_FILE="/tmp/runner_setup_$(date +%Y%m%d_%H%M%S).log"
 BACKUP_DIR="/tmp/runner_backup_$(date +%Y%m%d_%H%M%S)"
+
+# Variável para controlar se estamos em teste
+IN_RUNNER_TEST=false
 
 # ============================================================================
 # FUNÇÕES DE UTILIDADE
@@ -89,11 +91,24 @@ run_as_runner() {
 
 # Tratar interrupção (Ctrl+C)
 handle_interrupt() {
-    echo -e "\n${YELLOW}⚠️  Script interrompido pelo usuário${NC}"
-    echo -e "${CYAN}Estado atual salvo. Você pode retomar executando o script novamente.${NC}"
-    log "Script interrompido pelo usuário"
-    exit 130
+    if [ "$IN_RUNNER_TEST" = true ]; then
+        # Se estamos no teste do runner, apenas continua
+        echo
+        print_info "Teste do runner interrompido"
+        log "Teste do runner interrompido com Ctrl+C"
+        IN_RUNNER_TEST=false
+        return 0
+    else
+        # Caso contrário, salva estado e sai
+        echo -e "\n${YELLOW}⚠️  Script interrompido pelo usuário${NC}"
+        echo -e "${CYAN}Estado atual salvo. Você pode retomar executando o script novamente.${NC}"
+        log "Script interrompido pelo usuário"
+        exit 130
+    fi
 }
+
+# Configurar trap para capturar Ctrl+C
+trap 'handle_interrupt' INT TERM
 
 # Validar formato de comando
 validate_command() {
@@ -159,7 +174,6 @@ create_backup() {
 restore_backup() {
     if [ -d "$BACKUP_DIR" ]; then
         print_info "Restaurando configurações anteriores..."
-        # Implementar restauração se necessário
         log "Backup disponível em: $BACKUP_DIR"
     fi
 }
@@ -168,7 +182,7 @@ restore_backup() {
 # VERIFICAÇÕES INICIAIS
 # ============================================================================
 
-print_header "Self-Hosted Runner Setup Script v6.0"
+print_header "Self-Hosted Runner Setup Script v6.1"
 echo -e "${GREEN}✅ Tratamento avançado de erros${NC}"
 echo -e "${GREEN}✅ Validação de comandos antes de executar${NC}"
 echo -e "${GREEN}✅ Possibilidade de correção sem recomeçar${NC}"
@@ -176,6 +190,8 @@ echo -e "${GREEN}✅ Sistema de checkpoints de progresso${NC}"
 echo -e "${GREEN}✅ Rollback automático em caso de erro${NC}"
 echo -e "${GREEN}✅ Logs detalhados para debug${NC}"
 echo -e "${GREEN}✅ Modo de recuperação de instalação parcial${NC}"
+echo -e "${GREEN}✅ Suporte a sha256sum e shasum${NC}"
+echo -e "${GREEN}✅ Fluxo de teste corrigido (Ctrl+C não interrompe)${NC}"
 echo
 
 log "Iniciando script de instalação"
@@ -225,7 +241,6 @@ if [ "$current_state" -lt "1" ]; then
         
         if [ "$user_choice" == "2" ]; then
             print_info "Removendo usuário existente..."
-            # Parar serviços do runner se existirem
             systemctl stop actions.runner.* 2>/dev/null || true
             userdel -r runner 2>/dev/null || true
             useradd -m -s /bin/bash runner
@@ -417,23 +432,57 @@ if [ "$current_state" -lt "5" ]; then
     
     if [ ! -z "$hash_command" ]; then
         while true; do
-            if validate_command "$hash_command" "^echo.*sha256sum" "validação de hash"; then
+            # Validar se o comando contém echo e (sha256sum OU shasum)
+            if [[ "$hash_command" =~ ^echo.*\|[[:space:]]*(sha256sum|shasum) ]]; then
                 print_info "Validando hash..."
                 if run_as_runner "cd /home/runner/actions-runner && $hash_command"; then
                     print_success "Hash validado com sucesso"
                     break
                 else
                     print_error "Validação de hash falhou"
-                    if ! ask_retry "validação de hash"; then
-                        break
-                    fi
+                    print_warning "Possíveis causas:"
+                    echo "  - Hash não corresponde ao arquivo baixado"
+                    echo "  - Arquivo corrompido durante download"
+                    echo "  - Comando de validação incorreto"
+                    echo
+                    echo "Opções:"
+                    echo "1. Tentar novamente"
+                    echo "2. Ignorar validação e continuar (não recomendado)"
+                    echo "3. Voltar para re-fazer o download"
+                    read -p "Escolha [1-3]: " hash_choice
+                    
+                    case $hash_choice in
+                        1) continue ;;
+                        2) 
+                            print_warning "Validação de hash ignorada"
+                            break
+                            ;;
+                        3)
+                            print_info "Voltando para etapa de download..."
+                            save_state "3"
+                            exec "$0" "$@"
+                            ;;
+                        *)
+                            print_error "Opção inválida"
+                            continue
+                            ;;
+                    esac
                 fi
             else
                 print_warning "Comando de validação não parece correto"
-                echo "Tentar mesmo assim? (s/n)"
+                print_info "Comandos válidos incluem:"
+                echo "  • echo \"HASH  arquivo.tar.gz\" | sha256sum -c"
+                echo "  • echo \"HASH  arquivo.tar.gz\" | shasum -a 256 -c"
+                echo
+                echo "Deseja tentar mesmo assim? (s/n)"
                 read -p "> " force_hash
                 if [[ $force_hash =~ ^[Ss]$ ]]; then
-                    run_as_runner "cd /home/runner/actions-runner && $hash_command" || true
+                    print_info "Executando comando..."
+                    if run_as_runner "cd /home/runner/actions-runner && $hash_command"; then
+                        print_success "Validação executada"
+                    else
+                        print_warning "Comando falhou, mas continuando..."
+                    fi
                 fi
                 break
             fi
@@ -571,10 +620,18 @@ if [ "$current_state" -lt "8" ]; then
         read -p "Pressione ENTER para iniciar o teste..."
         
         print_info "Iniciando runner..."
-        run_as_runner "cd /home/runner/actions-runner && timeout 30 ./run.sh" || {
-            echo
-            print_success "Teste concluído"
-        }
+        
+        # Marcar que estamos no teste
+        IN_RUNNER_TEST=true
+        
+        # Executar o runner com timeout
+        run_as_runner "cd /home/runner/actions-runner && timeout 30 ./run.sh" || true
+        
+        # Desmarcar teste
+        IN_RUNNER_TEST=false
+        
+        echo
+        print_success "Teste concluído"
         
         sleep 2
         
@@ -649,6 +706,7 @@ if [ "$current_state" -lt "8" ]; then
         echo "  sudo su - runner"
         echo "  cd actions-runner"
         echo "  ./run.sh"
+        save_state "8"
     fi
 fi
 
