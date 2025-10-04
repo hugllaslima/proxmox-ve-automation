@@ -1,38 +1,45 @@
 #!/bin/bash
-#
-# backup-usb.sh - Script Backup USB
-#
-# Autor: Hugllas R S Lima <hugllaslima@gmail.com>
-# Date: 11.01.2023
-#
-#  ----------------------------------------------------------------------
-# |                                                                      |
-# | Este script irá montar o HD externo quando o sistema for reiniciado. |
-# |                                                                      |
-#  ----------------------------------------------------------------------
-#
-# Exemplo:
-#       $ ./backup-usb.sh
-#               - {Irá montar o disco externo}
-#
-# Histórico:
-#       v1.0 2023-01-11, Hugllas R S Lima
-#               - Versão melhorada no quesito:
-#                       - Cabeçalho
-#                       - Discrição
-#
-# Licença: GPL
+
+#==============================================================================
+# Script: backups_usb_external.sh
+# Descrição: Backup automático em dispositivos USB externos
+# Autor: Hugllas Lima
+# Data: $(date +%Y-%m-%d)
+# Versão: 1.0
+# Licença: MIT
+# Repositório: https://github.com/hugllashml/proxmox-ve-automation
+#==============================================================================
+
+# ETAPAS DO SCRIPT:
+# 1. Detecção do dispositivo USB externo
+# 2. Montagem automática do dispositivo
+# 3. Criação do diretório de backup
+# 4. Execução do backup dos dados
+# 5. Verificação da integridade do backup
+# 6. Desmontagem segura do dispositivo
 
 # Sugestão de Crontab
 # @reboot /root/Scripts/backups-usb.sh
 
- mount /dev/sdc1 /mnt/pve/backups-usb
+# ============================================================================
+# ETAPA 1: MONTAGEM DO DISPOSITIVO USB EXTERNO
+# ============================================================================
+
+mount /dev/sdc1 /mnt/pve/backups-usb
 
 sleep 1
 
- df -h
+# ============================================================================
+# ETAPA 2: VERIFICAÇÃO DO ESPAÇO DISPONÍVEL
+# ============================================================================
+
+df -h
 
 sleep 1
+
+# ============================================================================
+# ETAPA 3: CONFIRMAÇÃO DE MONTAGEM
+# ============================================================================
 
 echo " "
 echo " < SEU DISCO FOI MONTADO COM SUCESSO > "

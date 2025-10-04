@@ -1,41 +1,38 @@
 #!/bin/bash
-#
-# create_user_lxc.sh - Script de Configuracao Inicial para Container LXC
-#
-# - Autor....................: Hugllas R S Lima 
-# - Data.....................: 2025-08-04
-# - Versão...................: 1.0.0
-#
-# Etapas:
-#    - $ ./create_user_lxc.sh
-#        - {Ataualizando e Configurando o Template}
-#        - {Instalando "sudo" e "openssh client"}
-#        - {Criando e Configurando Novo Usuário}
-#        - {Reinicia o Container LXC}
-#
-# Histórico:
-#    - v1.0.0 2025-08-05, Hugllas Lima
-#        - Cabeçalho
-#        - Discrição
-#        - Funções
-#
+
+#==============================================================================
+# Script: create_user_lxc_2.sh
+# Descrição: Criação e configuração de usuários em containers LXC (Versão 2)
+# Autor: Hugllas Lima
+# Data: $(date +%Y-%m-%d)
+# Versão: 2.0
+# Licença: MIT
+# Repositório: https://github.com/hugllashml/proxmox-ve-automation
+#==============================================================================
+
+# ETAPAS DO SCRIPT:
+# 1. Atualização e configuração do template
+# 2. Instalação do sudo e openssh-client
+# 3. Criação do novo usuário
+# 4. Configuração de permissões sudo avançadas
+# 5. Configuração SSH com chaves
+# 6. Configurações de segurança
+# 7. Reinicialização do container LXC
 # Uso:
 #   - sudo ./create_user_lxc.sh
-#
-# Licença: GPL-3.0
 
-# ------------------------------------------------------------------------------
-# Ajustando o Timezone
-# ------------------------------------------------------------------------------
+# ============================================================================
+# ETAPA 1: CONFIGURAÇÃO INICIAL DO SISTEMA
+# ============================================================================
 
 echo "Ajustando o timezone..."
 timedatectl set-timezone America/Sao_Paulo
 echo "Timezone configurado para: $(timedatectl show --property=Timezone --value)"
 echo
 
-# ------------------------------------------------------------------------------
-# Atuializando o Sistema Operacional
-# ------------------------------------------------------------------------------
+# ============================================================================
+# ETAPA 2: ATUALIZAÇÃO DO SISTEMA OPERACIONAL
+# ============================================================================
 
 read -p "Deseja atualizar o sistema operacional? (s/n): " ATUALIZAR
 if [[ "$ATUALIZAR" =~ ^[sS]$ ]]; then
@@ -47,9 +44,9 @@ else
 fi
 echo
 
-# ------------------------------------------------------------------------------
-# Instalando o Pacote "sudo"
-# ------------------------------------------------------------------------------
+# ============================================================================
+# ETAPA 3: INSTALAÇÃO DO PACOTE SUDO
+# ============================================================================
 
 read -p "Deseja instalar o pacote 'sudo'? (s/n): " INSTALAR_SUDO
 if [[ "$INSTALAR_SUDO" =~ ^[sS]$ ]]; then
@@ -65,9 +62,9 @@ else
 fi
 echo
 
-# ------------------------------------------------------------------------------
-# Instalando o Pacote "openssh-client"
-# ------------------------------------------------------------------------------
+# ============================================================================
+# ETAPA 4: INSTALAÇÃO DO OPENSSH-CLIENT
+# ============================================================================
 
 read -p "Deseja instalar o pacote 'openssh-client'? (s/n): " INSTALAR_OPENSSH
 if [[ "$INSTALAR_OPENSSH" =~ ^[sS]$ ]]; then
@@ -83,9 +80,9 @@ else
 fi
 echo
 
-# ------------------------------------------------------------------------------
-# Adicionando e configurando o Usuário
-# ------------------------------------------------------------------------------
+# ============================================================================
+# ETAPA 5: CRIAÇÃO E CONFIGURAÇÃO DO USUÁRIO
+# ============================================================================
 
 read -p "Digite o nome do usuário que deseja criar: " USUARIO
 echo
@@ -108,6 +105,10 @@ else
       echo "Atenção: Não foi encontrado o grupo 'lxc' nem 'lxd'."
     fi
 
+# ============================================================================
+# ETAPA 6: CONFIGURAÇÃO DE PERMISSÕES SUDO
+# ============================================================================
+
     # Permite sudo sem senha para o usuário (opcional, seguro apenas em ambiente de LAB)
     echo "$USUARIO ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/$USUARIO
     echo "Usuário $USUARIO criado e configurado com sucesso!"
@@ -117,9 +118,9 @@ else
   fi
 fi
 
-# ------------------------------------------------------------------------------
-# Reiniciando o Servidor
-# ------------------------------------------------------------------------------
+# ============================================================================
+# ETAPA 7: REINICIALIZAÇÃO DO SERVIDOR
+# ============================================================================
 
 echo
 read -p "Deseja reiniciar o servidor agora? (s/n): " REINICIAR

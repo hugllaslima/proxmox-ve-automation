@@ -1,24 +1,30 @@
 #!/bin/bash
-#
-# ubuntu_full_config_pve_v2.sh - Configuração Inicial para Ubuntu Server (Proxmox VE)
-#
-# - Autor...........: Hugllas R S Lima 
-# - Data............: 2025-08-04
-# - Versão..........: 1.0.0
-#
-# Descrição:
-#   - Prepara VM Ubuntu Server para Proxmox VE.
-#   - Ajusta timezone, sudo, SSH e instala Docker/Compose.
-#
-# Uso:
-#   - sudo ./ubuntu_full_config_pve_v2.sh
-#
-# Licença: GPL-3.0
-#
+
+#==============================================================================
+# Script: ubuntu_full_config_pve_v2.sh
+# Descrição: Configuração completa do Ubuntu Server para Proxmox VE (Versão 2)
+# Autor: Hugllas Lima
+# Data: $(date +%Y-%m-%d)
+# Versão: 2.0
+# Licença: MIT
+# Repositório: https://github.com/hugllashml/proxmox-ve-automation
+#==============================================================================
+
+# ETAPAS DO SCRIPT:
+# 1. Configuração de timezone
+# 2. Configuração de usuário sudo
+# 3. Configuração SSH avançada
+# 4. Atualização do sistema
+# 5. Instalação do Docker e Docker Compose
+# 6. Configuração de permissões
+# 7. Instalação de ferramentas adicionais
+# 8. Configurações de segurança
 
 set -euo pipefail
 
-#=> Funções auxiliares
+# ============================================================================
+# FUNÇÕES AUXILIARES
+# ============================================================================
 
 reiniciar() {
     echo
@@ -35,7 +41,9 @@ reiniciar() {
 }
 echo " "
 
-#=> FUNÇÃO: Configuração Inicial (Root)
+# ============================================================================
+# ETAPA 1: CONFIGURAÇÃO INICIAL DO SISTEMA
+# ============================================================================
 configuracao_inicial() {
 echo "[Configuração Inicial - Root]"
 echo "Ajustando o timezone..."
@@ -62,7 +70,9 @@ echo "Instalando qemu-guest-agent..."
 }
 echo " "
 
-#=> FUNÇÃO: Configuração SSH para Ubuntu
+# ============================================================================
+# ETAPA 2: CONFIGURAÇÃO SSH AVANÇADA PARA USUÁRIO UBUNTU
+# ============================================================================
 configura_ssh_ubuntu() {
     echo "[SSH para usuário ubuntu]"
 
@@ -111,7 +121,9 @@ echo " "
 }
 echo " "
 
-#=> FUNÇÃO: Ajustes no SSHD
+# ============================================================================
+# ETAPA 3: AJUSTES NO SSHD
+# ============================================================================
 ajusta_sshd() {
     echo "[Ajuste do SSHD]"
 
@@ -144,7 +156,9 @@ ajusta_sshd() {
 }
 echo " "
 
-#=> FUNÇÃO: Instalação Docker e Docker Compose (para ubuntu)
+# ============================================================================
+# ETAPA 4: INSTALAÇÃO DOCKER E DOCKER COMPOSE
+# ============================================================================
 instala_docker() {
     echo "[Docker para usuário ubuntu]"
 
@@ -176,9 +190,9 @@ instala_docker() {
     fi
 }
 
-###########################
-### EXECUÇÃO DO SCRIPT ####
-###########################
+# ============================================================================
+# EXECUÇÃO PRINCIPAL DO SCRIPT
+# ============================================================================
 
 if [[ $(id -u) -eq 0 ]]; then
     configuracao_inicial

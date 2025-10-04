@@ -1,8 +1,23 @@
 #!/bin/bash
-# Script para configurar Self-Hosted Runner com usuário dedicado
-# Autor: Hugllas Lima <>
-# Data: 15/03/2025
-# Versão: 2.0 - Correções de validação e fluxo
+
+#==============================================================================
+# Script: setup_runner_v2.sh
+# Descrição: Configuração de GitHub Actions Self-hosted Runner (Versão 2)
+# Autor: Hugllas Lima
+# Data: $(date +%Y-%m-%d)
+# Versão: 2.0
+# Licença: MIT
+# Repositório: https://github.com/hugllashml/proxmox-ve-automation
+#==============================================================================
+
+# ETAPAS DO SCRIPT:
+# 1. Criação do usuário dedicado para o runner
+# 2. Download e instalação do GitHub Actions Runner
+# 3. Configuração do runner com token de autenticação
+# 4. Criação do serviço systemd
+# 5. Configuração de permissões e segurança avançada
+# 6. Validação e correções de fluxo
+# 7. Inicialização e verificação do serviço
 
 # ============================================================================
 # CONFIGURAÇÕES INICIAIS

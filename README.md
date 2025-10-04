@@ -1,25 +1,129 @@
-# REPOSITÓRIO EM CRIAÇÃO (PROXMOX-VE-AUTOMAÇÃO)
+# Proxmox VE Automation Scripts
 
-📝 Contribuição
-Contribuições são muito bem-vindas!
+Este repositório contém uma coleção de scripts de automação para Proxmox VE, desenvolvidos para facilitar a configuração, manutenção e gerenciamento de infraestruturas virtualizadas locais.
 
-Envie Pull Requests com novos scripts, melhorias ou correções.
-Abra uma Issue para sugerir scripts, melhorias ou reportar bugs.
-Siga as diretrizes em CONTRIBUTING.md.
+## 🎯 Objetivo
 
-📄 Licença
-Distribuído sob a licença GPL-3.0.
+Automatizar processos repetitivos e padronizar configurações em ambientes Proxmox VE, incluindo:
+- Configuração inicial de VMs Ubuntu
+- Instalação e configuração do Docker
+- Setup de agentes QEMU
+- Backup automatizado do Proxmox VE
+- Configuração de containers LXC
+- Preparação de hosts para Ansible
+- Monitoramento com Prometheus
+- Setup de Self-Hosted Runners
 
-Consulte o arquivo LICENSE para detalhes.
+## 📁 Estrutura do Repositório
 
-👤 Autor Principal
-Hugllas R S Lima
+### 🖥️ **scripts-vm-ubuntu/**
+Scripts para configuração completa de VMs Ubuntu Server no Proxmox VE:
+- `ubuntu_full_config_pve.sh` - Configuração inicial completa (timezone, SSH, Docker)
+- `ubuntu_full_config_pve_v2.sh` - Versão aprimorada do script de configuração
+- `install_docker_full.sh` - Instalação standalone do Docker e Docker Compose
 
-[Seu LinkedIn ou email]
+### 🔧 **scripts-ansible/**
+Scripts para preparação de hosts para automação com Ansible:
+- `ansible_config_host.sh` - Configuração de hosts para gerenciamento via Ansible
 
-Atenção: Utilize os scripts por sua conta e risco. Revise cuidadosamente antes de executar em ambientes de produção!
+### 💾 **scripts-backups/**
+Scripts para backup e proteção de dados:
+- `backup_full_proxmox_ve.sh` - Backup completo das configurações do Proxmox VE
+- `backups_usb_external.sh` - Backup para dispositivos USB externos
 
+### 📦 **scripts-container-lxc/**
+Scripts para configuração de containers LXC:
+- `create_user_lxc.sh` - Criação e configuração de usuários em containers LXC
+- `create_user_lxc_2.sh` - Versão alternativa do script de criação de usuários
 
-Dica final:
+### 📊 **scripts-prometheus/**
+Scripts para monitoramento:
+- `install_node_exporter.sh` - Instalação do Prometheus Node Exporter
 
-Você pode adicionar badges, exemplos de shell, prints, e links para documentação dos scripts conforme o repositório for crescendo!
+### 🏃 **scripts-self-hosted-runner/**
+Scripts para configuração de runners:
+- `setup_runner.sh` - Configuração de Self-Hosted Runner
+- `setup_runner_v2.sh` - Versão aprimorada do setup
+- `cleanup_runner.sh` - Limpeza e remoção de runners
+
+### 🔌 **Agentes QEMU/**
+Scripts para instalação de agentes QEMU:
+- `apt_install_agent_qemu.sh` - Instalação do agente QEMU em sistemas baseados em APT
+- `yum_install_agent_qemu.sh` - Instalação do agente QEMU em sistemas baseados em YUM
+
+## 🚀 Como Usar
+
+1. **Clone o repositório:**
+   ```bash
+   git clone https://github.com/seu-usuario/proxmox-ve-automation.git
+   cd proxmox-ve-automation
+   ```
+
+2. **Navegue até o diretório desejado:**
+   ```bash
+   cd scripts-vm-ubuntu/
+   ```
+
+3. **Torne o script executável:**
+   ```bash
+   chmod +x nome_do_script.sh
+   ```
+
+4. **Execute o script:**
+   ```bash
+   sudo ./nome_do_script.sh
+   ```
+
+## ⚠️ Pré-requisitos
+
+- Proxmox VE instalado e configurado
+- Acesso root ou sudo nos sistemas alvo
+- Conexão com a internet para download de pacotes
+- Backup dos sistemas antes de executar os scripts
+
+## 🔒 Segurança
+
+- **Sempre** faça backup antes de executar qualquer script
+- Revise o conteúdo dos scripts antes da execução
+- Execute em ambiente de teste primeiro
+- Mantenha credenciais em arquivos `.env` (nunca no código)
+
+## 📋 Funcionalidades Principais
+
+### Configuração de VMs Ubuntu
+- ✅ Ajuste de timezone para America/Sao_Paulo
+- ✅ Configuração de usuário sudo
+- ✅ Setup completo de SSH com chaves
+- ✅ Instalação do Docker e Docker Compose
+- ✅ Instalação do agente QEMU
+
+### Backup e Segurança
+- ✅ Backup completo das configurações do Proxmox
+- ✅ Backup de chaves SSH e certificados
+- ✅ Backup para dispositivos externos
+
+### Monitoramento
+- ✅ Instalação do Node Exporter para Prometheus
+- ✅ Configuração automática de serviços
+
+## 🤝 Contribuição
+
+Contribuições são bem-vindas! Por favor:
+1. Faça um fork do projeto
+2. Crie uma branch para sua feature
+3. Commit suas mudanças
+4. Abra um Pull Request
+
+## 📄 Licença
+
+Este projeto está licenciado sob a GPL-3.0 - veja o arquivo LICENSE para detalhes.
+
+## 👨‍💻 Autor
+
+**Hugllas R S Lima**
+- Email: hugllaslima@gmail.com
+- GitHub: [@seu-usuario](https://github.com/seu-usuario)
+
+## 📚 Documentação Adicional
+
+Cada diretório contém seu próprio README.md com instruções detalhadas e específicas para os scripts contidos nele.

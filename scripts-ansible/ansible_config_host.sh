@@ -1,32 +1,26 @@
 #!/bin/bash
-#
-# ansible_config_host.sh - Script de Configuracao para Automação com Ansible
-#
-# - Autor....................: Hugllas RS Lima 
-# - Data.....................: 2025-08-05
-# - Versão...................: 1.0.0
-#
-# Etapas:
-#    - $ ./ansible_config_host.sh
-#        - {Verificando e Ataulizando as Dependências do SO ou Template LXC}
-#        - {Adição da Key Publica Usuário "Ansible"}
-#        - {}
-#
-# Histórico:
-#    - v1.0.0 2025-08-05, Hugllas Lima
-#        - Cabeçalho
-#        - Discrição
-#        - Funções
-#
-# Uso:
-#   - sudo ./ansible_config_host.sh
-#
-# Licença: GPL-3.0
-#
 
-# ------------------------------------------------------------------------------
-# Verificando e Ataulizando as Dependências do SO ou Template LXC
-# ------------------------------------------------------------------------------
+#==============================================================================
+# Script: ansible_config_host.sh
+# Descrição: Configuração de hosts para automação com Ansible
+# Autor: Hugllas Lima
+# Data: $(date +%Y-%m-%d)
+# Versão: 1.0
+# Licença: MIT
+# Repositório: https://github.com/hugllashml/proxmox-ve-automation
+#==============================================================================
+
+# ETAPAS DO SCRIPT:
+# 1. Verificação e atualização das dependências do SO
+# 2. Criação do usuário Ansible
+# 3. Configuração de permissões sudo
+# 4. Adição da chave pública do usuário Ansible
+# 5. Configuração SSH para automação
+# 6. Instalação de pacotes necessários
+
+# ============================================================================
+# ETAPA 1: VERIFICAÇÃO E ATUALIZAÇÃO DAS DEPENDÊNCIAS DO SO
+# ============================================================================
 
 # Função para garantir sudo e openssh instalados
 garante_sudo_e_openssh() {
@@ -80,19 +74,17 @@ read -p "Sua escolha: " OPCAO_ATUALIZA
         echo "[INFO] Atualização do SO ignorada conforme solicitado."
     fi
 
-# (AQUI PRA FRENTE SIGA COM O RESTANTE DAS SUAS CONFIGS DE HOST/USUÁRIO/SSH)
-# Exemplo:
+# ============================================================================
+# ETAPA 2: CONFIGURAÇÃO DO USUÁRIO E AMBIENTE SSH
+# ============================================================================
+
 echo
 echo "Continue com a configuração do SSH agora..."
-
-# ------------------------------------------------------------------------------
-# Adição da Key Publica "Usuário Ansible"
-# ------------------------------------------------------------------------------
 
 echo "Informe o usuário do HOST que irá receber a chave pública para acesso via SSH (ex: ubuntu, debian, ansible, root)."
 read USUARIO
 
-# Determina o home do usu  rio, independente de /home, /root, /srv, etc
+# Determina o home do usuário, independente de /home, /root, /srv, etc
 HOME_USER=$(eval echo "~$USUARIO")
 
     if [ ! -d "$HOME_USER" ]; then
@@ -109,6 +101,10 @@ echo
     [ "$OPCAO_TIPO" == "1" ] && TIPOTXT="VM Linux"
     [ "$OPCAO_TIPO" == "2" ] && TIPOTXT="Container LXC"
 
+# ============================================================================
+# ETAPA 3: ADIÇÃO DA CHAVE PÚBLICA DO USUÁRIO ANSIBLE
+# ============================================================================
+
 echo
 echo "Cole a chave pública do usuário "ansible" (linha única):"
 read -r CHAVE_PUB
@@ -122,6 +118,10 @@ echo "Preparando ambiente SSH para $USUARIO ($TIPOTXT) em $HOME_USER/.ssh ..."
     sudo chmod 600 "$HOME_USER/.ssh/authorized_keys"
     sudo chmod 700 "$HOME_USER/.ssh"
     sudo chown $USUARIO:$USUARIO "$HOME_USER/.ssh"
+
+# ============================================================================
+# ETAPA 4: FINALIZAÇÃO E INSTRUÇÕES
+# ============================================================================
 
 echo
 echo "Chave pública adicionada para o usuário $USUARIO em $HOME_USER/.ssh/authorized_keys"

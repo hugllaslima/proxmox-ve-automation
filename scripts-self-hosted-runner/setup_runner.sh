@@ -1,9 +1,40 @@
 #!/bin/bash
 
-# Script para configurar Self-Hosted Runner com usuário dedicado 
-# Autor: Hugllas Lima <>
-# Data: 15/03/2025
+#==============================================================================
+# Script: setup_runner.sh
+# Descrição: Configuração de GitHub Actions Self-hosted Runner
+# Autor: Hugllas Lima
+# Data: $(date +%Y-%m-%d)
+# Versão: 1.0
+# Licença: MIT
+# Repositório: https://github.com/hugllashml/proxmox-ve-automation
+#==============================================================================
 
+# ETAPAS DO SCRIPT:
+# 1. Criação do usuário dedicado para o runner
+# 2. Download e instalação do GitHub Actions Runner
+# 3. Configuração do runner com token de autenticação
+# 4. Criação do serviço systemd
+# 5. Configuração de permissões e segurança
+# 6. Inicialização e verificação do serviço
+
+set -e  # Parar execução se houver erro
+
+# Cores para output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
+NC='\033[0m' # No Color
+
+# Função para executar comandos como usuário runner
+run_as_runner() {
+    sudo -u runner bash -c "$1"
+}
+
+#==============================================================================
+# ETAPA 1: APRESENTAÇÃO E VERIFICAÇÃO DE PRIVILÉGIOS
+#==============================================================================
 echo " "
 echo "=================================================================================="
 echo "✅ Permissões aprimoradas: Adicionadas permissões para kill, pkill e systemctl"
@@ -20,36 +51,30 @@ echo "✅ Tratamento de erros melhorado - Métodos alternativos quando necessár
 echo "=================================================================================="
 echo " "
 
-set -e  # Parar execução se houver erro
-
-# Cores para output
-RED='\033[0;31m'
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
 echo -e "${BLUE}========================================${NC}"
 echo -e "${BLUE}  Self-Hosted Runner Setup Script v5${NC}"
 echo -e "${BLUE}========================================${NC}"
 echo
 
 # Verificar se está rodando como sudo
-    if [ "$EUID" -ne 0 ]; then
-        echo -e "${RED}Este script precisa ser executado com sudo!${NC}"
-        echo "Execute: sudo ./setup-runner.sh"
-        exit 1
-    fi
+if [ "$EUID" -ne 0 ]; then
+    echo -e "${RED}Este script precisa ser executado com sudo!${NC}"
+    echo "Execute: sudo ./setup-runner.sh"
+    exit 1
+fi
 
+#==============================================================================
+# ETAPA 2: CRIAÇÃO E CONFIGURAÇÃO DO USUÁRIO RUNNER
+#==============================================================================
 echo -e "${YELLOW}[ETAPA 1]${NC} Criando usuário 'runner' com permissões mínimas..."
 
 # Criar usuário runner
-    if id "runner" &>/dev/null; then
-        echo -e "${YELLOW}Usuário 'runner' já existe. Continuando...${NC}"
-    else
-        useradd -m -s /bin/bash runner
-        echo -e "${GREEN}Usuário 'runner' criado com sucesso!${NC}"
-    fi
+if id "runner" &>/dev/null; then
+    echo -e "${YELLOW}Usuário 'runner' já existe. Continuando...${NC}"
+else
+    useradd -m -s /bin/bash runner
+    echo -e "${GREEN}Usuário 'runner' criado com sucesso!${NC}"
+fi
 
 # Configurar senha para o usuário runner
 echo -e "${BLUE}Configurando senha para o usuário runner...${NC}"
@@ -60,6 +85,9 @@ passwd runner
 usermod -aG docker runner
 echo -e "${GREEN}Usuário 'runner' adicionado ao grupo docker.${NC}"
 
+#==============================================================================
+# ETAPA 3: CONFIGURAÇÃO DE PERMISSÕES SUDO
+#==============================================================================
 # Criar arquivo de configuração sudo para o usuário runner
 cat > /etc/sudoers.d/runner << EOF
 # Permissões específicas para o usuário runner
@@ -96,24 +124,25 @@ echo "ubuntu ALL=(runner) NOPASSWD: ALL" >> /etc/sudoers.d/runner
 echo -e "${GREEN}Navegação entre usuários configurada.${NC}"
 
 # Criar diretório da aplicação se não existir
-    if [ ! -d "/var/www" ]; then
-        mkdir -p /var/www
-    fi
+if [ ! -d "/var/www" ]; then
+    mkdir -p /var/www
+fi
 chown runner:runner /var/www
 echo -e "${GREEN}Diretório da aplicação configurado.${NC}"
 
+#==============================================================================
+# ETAPA 4: PREPARAÇÃO DO DIRETÓRIO DO RUNNER
+#==============================================================================
 echo
 echo -e "${YELLOW}[ETAPA 2]${NC} Mudando para usuário 'runner' e criando diretório actions-runner..."
-
-# Função para executar comandos como usuário runner
-run_as_runner() {
-    sudo -u runner bash -c "$1"
-}
 
 # Criar diretório actions-runner como usuário runner
 run_as_runner "cd /home/runner && mkdir -p actions-runner && cd actions-runner"
 echo -e "${GREEN}Diretório actions-runner criado com sucesso!${NC}"
 
+#==============================================================================
+# ETAPA 5: DOWNLOAD DO GITHUB ACTIONS RUNNER
+#==============================================================================
 echo
 echo -e "${YELLOW}[ETAPA 3]${NC} Download do GitHub Actions Runner"
 echo -e "${BLUE}Agora você precisa ir ao GitHub e copiar o comando de download.${NC}"
@@ -122,53 +151,65 @@ echo -e "${BLUE}Copie o comando que começa com 'curl -o actions-runner-linux...
 echo
 read -p "Cole aqui o comando de download do GitHub: " download_command
 
-    if [ -z "$download_command" ]; then
-        echo -e "${RED}Comando não pode estar vazio!${NC}"
-        exit 1
-    fi
+if [ -z "$download_command" ]; then
+    echo -e "${RED}Comando não pode estar vazio!${NC}"
+    exit 1
+fi
 
 echo -e "${GREEN}Executando download...${NC}"
 run_as_runner "cd /home/runner/actions-runner && $download_command"
 
+#==============================================================================
+# ETAPA 6: VALIDAÇÃO DE HASH (OPCIONAL)
+#==============================================================================
 echo
 echo -e "${YELLOW}[ETAPA 4]${NC} Validação do hash (opcional)"
 echo -e "${BLUE}Cole o comando de validação do hash ou pressione ENTER para pular:${NC}"
 read -p "Comando de validação: " hash_command
 
-    if [ ! -z "$hash_command" ]; then
-        echo -e "${GREEN}Validando hash...${NC}"
-        run_as_runner "cd /home/runner/actions-runner && $hash_command"
-        echo -e "${GREEN}Hash validado com sucesso!${NC}"
-    else
-        echo -e "${YELLOW}Validação de hash pulada.${NC}"
-    fi
+if [ ! -z "$hash_command" ]; then
+    echo -e "${GREEN}Validando hash...${NC}"
+    run_as_runner "cd /home/runner/actions-runner && $hash_command"
+    echo -e "${GREEN}Hash validado com sucesso!${NC}"
+else
+    echo -e "${YELLOW}Validação de hash pulada.${NC}"
+fi
 
+#==============================================================================
+# ETAPA 7: EXTRAÇÃO DO INSTALADOR
+#==============================================================================
 echo
 echo -e "${YELLOW}[ETAPA 5]${NC} Extração do instalador"
 echo -e "${BLUE}Cole o comando de extração do GitHub (geralmente tar xzf actions-runner-linux...):${NC}"
 read -p "Comando de extração: " extract_command
 
-    if [ -z "$extract_command" ]; then
-        echo -e "${RED}Comando não pode estar vazio!${NC}"
-        exit 1
-    fi
+if [ -z "$extract_command" ]; then
+    echo -e "${RED}Comando não pode estar vazio!${NC}"
+    exit 1
+fi
 
 echo -e "${GREEN}Extraindo instalador...${NC}"
 run_as_runner "cd /home/runner/actions-runner && $extract_command"
 
+#==============================================================================
+# ETAPA 8: CONFIGURAÇÃO DO RUNNER
+#==============================================================================
 echo
 echo -e "${YELLOW}[ETAPA 6]${NC} Configuração do Runner"
 echo -e "${BLUE}Cole o comando de configuração do GitHub (./config.sh --url...):${NC}"
 read -p "Comando de configuração: " config_command
 
-    if [ -z "$config_command" ]; then
-        echo -e "${RED}Comando não pode estar vazio!${NC}"
-        exit 1
-    fi
+if [ -z "$config_command" ]; then
+    echo -e "${RED}Comando não pode estar vazio!${NC}"
+    exit 1
+fi
 
 echo -e "${GREEN}Configurando runner...${NC}"
 run_as_runner "cd /home/runner/actions-runner && $config_command"
 
+#==============================================================================
+# ETAPA 9: TESTE E INSTALAÇÃO DO SERVIÇO
+#==============================================================================
 echo
 echo -e "${YELLOW}[ETAPA 7]${NC} Teste do Runner"
 echo -e "${BLUE}Deseja instalar o runner como serviço automático? (s/n):${NC}"
@@ -245,6 +286,9 @@ else
     echo -e "${BLUE}Para testar manualmente: sudo su - runner && cd actions-runner && ./run.sh${NC}"
 fi
 
+#==============================================================================
+# ETAPA 10: INSTRUÇÕES FINAIS E RESUMO
+#==============================================================================
 echo
 echo -e "${GREEN}========================================${NC}"
 echo -e "${GREEN}  🎉 CONFIGURAÇÃO CONCLUÍDA! 🎉${NC}"

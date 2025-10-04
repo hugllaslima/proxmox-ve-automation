@@ -1,7 +1,22 @@
 #!/bin/bash
 
-# Script para remover configurações do Self-Hosted Runner
-# Remove usuário runner e todas as configurações criadas
+#==============================================================================
+# Script: cleanup_runner.sh
+# Descrição: Limpeza completa das configurações do Self-hosted Runner
+# Autor: Hugllas Lima
+# Data: $(date +%Y-%m-%d)
+# Versão: 1.0
+# Licença: MIT
+# Repositório: https://github.com/hugllashml/proxmox-ve-automation
+#==============================================================================
+
+# ETAPAS DO SCRIPT:
+# 1. Parada do serviço do runner
+# 2. Desabilitação do serviço systemd
+# 3. Remoção dos arquivos de configuração
+# 4. Remoção do usuário runner
+# 5. Limpeza dos diretórios de trabalho
+# 6. Verificação da limpeza completa
 
 set -e
 
