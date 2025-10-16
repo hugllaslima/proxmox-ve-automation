@@ -1,14 +1,51 @@
 #!/bin/bash
 
+#==============================================================================
+# Script: add_key_ssh_public.sh
+# Descrição: Adiciona uma chave pública SSH ao authorized_keys de um usuário,
+#            com validação, confirmação interativa e comentário identificando o proprietário.
+# Autor: Hugllas Lima
+# Data: $(date +%Y-%m-%d)
+# Versão: 1.0
+# Licença: MIT
+# Repositório: https://github.com/hugllashml/proxmox-ve-automation
+#==============================================================================
+#
+# ETAPAS DO SCRIPT:
+# 1. Selecionar e confirmar usuário alvo
+# 2. Informar o proprietário da chave (comentário)
+# 3. Preparar diretório .ssh e authorized_keys (permissões e ownership)
+# 4. Colar e validar chave pública
+# 5. Verificar duplicidade
+# 6. Adicionar comentário e chave
+#
+# Uso:
+#   chmod +x add_key_ssh_public.sh
+#   sudo ./add_key_ssh_public.sh
+#
+# Pré-requisitos:
+# - Acesso sudo/root para escrever no home de outros usuários
+# - openssh-client instalado (para validar formato de chave)
+#
+# Boas práticas:
+# - .ssh deve ter permissão 700 e owned pelo usuário alvo
+# - authorized_keys deve ter permissão 600 e owned pelo usuário alvo
+# - Para adicionar chave a outro usuário, execute com sudo
+
 # Função para exibir uma mensagem de erro e sair
 error_exit() {
     echo "Erro: $1" >&2
     exit 1
 }
 
-echo "--- Adicionar Chave Pública SSH ---"
+echo " "
+echo "---------------------------------------------"
+echo "--- Adicionar Chave Pública SSH (interativo) ---"
+echo "---------------------------------------------"
 
-# --- 1. Perguntar e confirmar para qual usuário a chave será adicionada no servidor ---
+# ============================================================================
+# ETAPA 1: Selecionar e confirmar usuário alvo
+# ============================================================================
 while true; do
     read -p "Para qual usuário no servidor a chave pública será adicionada? (Deixe em branco para o usuário atual: $USER): " TARGET_USER_INPUT
     TARGET_USER=${TARGET_USER_INPUT:-$USER} # Se vazio, usa o usuário atual
@@ -27,7 +64,9 @@ while true; do
     fi
 done
 
-# --- 2. Perguntar e confirmar o nome do proprietário da chave para o comentário ---
+# ============================================================================
+# ETAPA 2: Informar o proprietário da chave (comentário)
+# ============================================================================
 while true; do
     echo ""
     read -p "Qual o nome da pessoa ou sistema que está adicionando esta chave? (Ex: 'João da Silva', 'Servidor de Backup'): " KEY_OWNER_NAME
@@ -53,8 +92,10 @@ echo "A chave será adicionada para o usuário: $TARGET_USER"
 echo "Comentário a ser adicionado: $COMMENT_LINE"
 echo "Caminho do arquivo authorized_keys: $AUTH_KEYS_FILE"
 
-# 3. Criar diretório .ssh e arquivo authorized_keys se não existirem
-# Lidar com permissões e propriedade cuidadosamente
+# ============================================================================
+# ETAPA 3: Preparar diretório .ssh e arquivo authorized_keys
+# ============================================================================
+# Lidar com permissões e ownership cuidadosamente
 if [ "$TARGET_USER" != "$USER" ]; then
     # Se o usuário alvo for diferente, provavelmente precisamos de sudo
     if [ "$(id -u)" -ne 0 ]; then
@@ -99,7 +140,9 @@ else
 fi
 
 
-# --- 4. Pedir e confirmar a chave pública ---
+# ============================================================================
+# ETAPA 4: Colar e validar chave pública
+# ============================================================================
 while true; do
     echo ""
     echo "Por favor, cole a chave pública SSH. Após colar, pressione Enter e, em seguida, pressione Enter novamente em uma linha vazia para finalizar."
@@ -142,7 +185,9 @@ while true; do
     fi
 done
 
-# 5. Verificar se a chave já existe para evitar duplicatas
+# ============================================================================
+# ETAPA 5: Verificar duplicidade
+# ============================================================================
 if [ "$TARGET_USER" != "$USER" ]; then
     # Usar sudo para ler o arquivo se o usuário alvo for diferente
     if sudo grep -qF "$KEY_CONTENT" "$AUTH_KEYS_FILE"; then
@@ -156,7 +201,9 @@ else
     fi
 fi
 
-# 6. Adicionar o comentário e a chave ao arquivo authorized_keys
+# ============================================================================
+# ETAPA 6: Adicionar comentário e chave ao authorized_keys
+# ============================================================================
 echo "Adicionando o comentário e a chave pública ao arquivo $AUTH_KEYS_FILE..."
 
 # Prepara o conteúdo completo (comentário + chave) para ser escrito

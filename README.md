@@ -46,10 +46,15 @@ Scripts para configuração de runners:
 - `setup_runner_v2.sh` - Versão aprimorada do setup
 - `cleanup_runner.sh` - Limpeza e remoção de runners
 
+### 🔑 **scripts-ssh/**
+Scripts para configuração de acesso SSH:
+- `add_key_ssh_public.sh` - Adiciona chave pública ao `authorized_keys` com validação, comentário e preservação de permissões
+
 ### 🔌 **Agentes QEMU/**
 Scripts para instalação de agentes QEMU:
 - `apt_install_agent_qemu.sh` - Instalação do agente QEMU em sistemas baseados em APT
 - `yum_install_agent_qemu.sh` - Instalação do agente QEMU em sistemas baseados em YUM
+ - `README.md` - Documentação detalhada sobre o QEMU Guest Agent e uso dos scripts
 
 ## 🚀 Como Usar
 
