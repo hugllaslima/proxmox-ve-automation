@@ -2,8 +2,7 @@
 
 #==============================================================================
 # Script: add_key_ssh_public.sh
-# Descrição: Adiciona uma chave pública SSH ao authorized_keys de um usuário,
-#            com validação, confirmação interativa e comentário identificando o proprietário.
+# Descrição: Adiciona uma chave pública SSH ao authorized_keys de um usuário com validação, confirmação interativa e comentário identificando o proprietário.
 # Autor: Hugllas Lima
 # Data: $(date +%Y-%m-%d)
 # Versão: 1.0
