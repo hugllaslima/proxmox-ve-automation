@@ -1,6 +1,6 @@
-# Scripts de Configuração para VMs Ubuntu no Proxmox VE
+# Scripts para VMs no Proxmox VE
 
-Este diretório contém scripts especializados para configuração completa de máquinas virtuais Ubuntu Server no ambiente Proxmox VE.
+Este diretório contém scripts para criação e configuração de máquinas virtuais no Proxmox VE, incluindo criação de VMs, configuração inicial de Ubuntu Server e instalação de Docker.
 
 ## 📋 Scripts Disponíveis
 
@@ -28,6 +28,29 @@ sudo ./install_docker_full.sh
 **Pós-instalação:**
 - Faça logout e login novamente para aplicar as permissões do grupo docker
 - Teste com: `docker --version` e `docker-compose --version`
+
+### 🧩 `create-vm.sh`
+**Criação interativa de VMs no Proxmox VE (qm)**
+
+**Funcionalidades:**
+- Verificação de execução como root
+- Coleta interativa de ID, nome, RAM, núcleos de CPU, tamanho de disco
+- Seleção de storage para o disco (conteúdo `images`)
+- Seleção do tipo de OS (`l26`, `win10`, `other`)
+- Anexo opcional de imagem ISO a partir de storages com conteúdo `iso`
+- Resumo final e confirmação antes da criação
+- Criação via `qm create` com parâmetros padrão (virtio-scsi, virtio net, boot order)
+
+**Uso:**
+```bash
+chmod +x create-vm.sh
+sudo ./create-vm.sh
+```
+
+**Pré-requisitos:**
+- Proxmox VE com ferramentas CLI: `pvesh`, `pvesm`, `qm`
+- `jq` instalado (utilizado para parse de JSON)
+- Execução como `root` ou com `sudo`
 
 ---
 
@@ -109,7 +132,8 @@ sudo ./ubuntu_full_config_pve_v2.sh
 
 ## ⚠️ Pré-requisitos
 
-- Ubuntu Server 20.04 LTS ou superior
+- Proxmox VE com ferramentas CLI
+- Ubuntu Server 20.04 LTS ou superior (para scripts de configuração de Ubuntu)
 - Acesso root ou sudo
 - Conexão com a internet
 - Chave SSH privada (para scripts de configuração completa)
@@ -157,6 +181,3 @@ Para melhorias ou correções:
 ## 📄 Licença
 
 GPL-3.0 - Veja o arquivo LICENSE no diretório raiz.
-
-### 2°) Execução
-$ sudo ./ansible_config_host.sh

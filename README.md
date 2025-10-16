@@ -16,8 +16,9 @@ Automatizar processos repetitivos e padronizar configurações em ambientes Prox
 
 ## 📁 Estrutura do Repositório
 
-### 🖥️ **scripts-vm-ubuntu/**
-Scripts para configuração completa de VMs Ubuntu Server no Proxmox VE:
+### 🖥️ **scripts-vms/**
+Scripts para criação e configuração de VMs no Proxmox VE:
+- `create-vm.sh` - Criação interativa de VMs via `qm` com validações e ISO opcional
 - `ubuntu_full_config_pve.sh` - Configuração inicial completa (timezone, SSH, Docker)
 - `ubuntu_full_config_pve_v2.sh` - Versão aprimorada do script de configuração
 - `install_docker_full.sh` - Instalação standalone do Docker e Docker Compose
@@ -66,7 +67,7 @@ Scripts para instalação de agentes QEMU:
 
 2. **Navegue até o diretório desejado:**
    ```bash
-   cd scripts-vm-ubuntu/
+   cd scripts-vms/
    ```
 
 3. **Torne o script executável:**
