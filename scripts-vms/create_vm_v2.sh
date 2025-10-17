@@ -1,21 +1,67 @@
 #!/bin/bash
 
+#==============================================================================
+# Script: create_vm_v2.sh
+# Descrição: Criação interativa de VMs no Proxmox VE com validações avançadas
+#            e suporte a ISO opcional. Versão aprimorada com melhor tratamento
+#            de storages e listagem de ISOs disponíveis.
+# Autor: Hugllas Lima
+# Data: $(date +%Y-%m-%d)
+# Versão: 2.0
+# Licença: MIT
+# Repositório: https://github.com/hugllashml/proxmox-ve-automation
+#==============================================================================
+
+# ETAPAS DO SCRIPT:
+# 1. Verificação de privilégios e dependências (jq opcional)
+# 2. Coleta interativa de configurações da VM (ID, nome, RAM, CPU, disco)
+# 3. Seleção de storage para disco (listagem automática de storages com 'images')
+# 4. Seleção do tipo de OS (Linux, Windows, Outro)
+# 5. Anexo opcional de ISO (listagem automática de ISOs disponíveis)
+# 6. Resumo e confirmação final das configurações
+# 7. Criação da VM via comando 'qm create'
+
+# MELHORIAS DA V2:
+# - Listagem inteligente de storages por tipo de conteúdo
+# - Listagem automática de ISOs disponíveis em cada storage
+# - Melhor tratamento de erros e validações
+# - Interface mais amigável com confirmações em cada etapa
+# - Suporte a diferentes tipos de OS com nomes amigáveis
+# - Validação de formato de tamanho de disco (G/M)
+
+# Uso:
+#   chmod +x create_vm_v2.sh
+#   sudo ./create_vm_v2.sh
+
+# Pré-requisitos:
+# - Proxmox VE com ferramentas CLI: pvesh, pvesm, qm
+# - Execução como root ou com sudo
+# - jq (opcional, mas recomendado para melhor performance)
+# - Storages configurados no Proxmox para 'images' e 'iso'
+
+#==============================================================================
+# FUNÇÕES AUXILIARES
+#==============================================================================
+
 # Função para exibir uma mensagem de erro e sair
 error_exit() {
     echo "Erro: $1" >&2
     exit 1
 }
 
+#==============================================================================
+# ETAPA 1: VERIFICAÇÃO DE PRIVILÉGIOS E DEPENDÊNCIAS
+#==============================================================================
+
 # Verifica se o script está sendo executado como root
 if [ "$(id -u)" -ne 0 ]; then
     error_exit "Este script precisa ser executado como root (ou com sudo)."
 fi
 
-echo "--- Criador de Máquina Virtual Proxmox VE ---"
+echo "--- Criador de Máquina Virtual Proxmox VE v2.0 ---"
 
-# --- Verificação e Instalação do 'jq' ---
-# 'jq' ainda é útil para outras partes do script ou para futuras expansões,
-# mas a dependência direta para 'pvesm status' será removida.
+# Verificação e instalação opcional do 'jq'
+# O 'jq' é útil para processamento JSON, mas o script funciona sem ele
 if ! command -v jq &> /dev/null; then
     echo ""
     echo "O pacote 'jq' não foi encontrado no seu sistema."
@@ -31,6 +77,10 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # --- Funções Auxiliares ---
+
+#==============================================================================
+# ETAPA 2: FUNÇÕES PARA LISTAGEM DE RECURSOS DO PROXMOX
+#==============================================================================
 
 # Função para obter o próximo ID de VM disponível
 get_next_vmid() {
@@ -69,6 +119,10 @@ list_isos_on_storage() {
 }
 
 # --- Variáveis de Configuração da VM ---
+
+#==============================================================================
+# ETAPA 3: INICIALIZAÇÃO DE VARIÁVEIS DE CONFIGURAÇÃO
+#==============================================================================
 VMID=""
 VM_NAME=""
 RAM_MB=""
@@ -82,6 +136,12 @@ ISO_STORAGE=""
 DISPLAY_OS_TYPE="" # Para exibir o nome amigável do OS
 
 # --- 1. Obter e confirmar o ID da VM ---
+
+#==============================================================================
+# ETAPA 4: COLETA INTERATIVA DE CONFIGURAÇÕES DA VM
+#==============================================================================
+
+# Subetapa 4.1: Configuração do ID da VM
 while true; do
     NEXT_ID=$(get_next_vmid)
     read -p "Digite o ID da VM (sugestão: $NEXT_ID): " VMID_INPUT
@@ -108,6 +168,7 @@ while true; do
 done
 
 # --- 2. Obter e confirmar o Nome da VM ---
+# Subetapa 4.2: Configuração do nome da VM
 while true; do
     read -p "Digite o nome da VM: " VM_NAME_INPUT
     VM_NAME=${VM_NAME_INPUT}
@@ -127,6 +188,7 @@ while true; do
 done
 
 # --- 3. Obter e confirmar a quantidade de RAM ---
+# Subetapa 4.3: Configuração da memória RAM
 while true; do
     read -p "Digite a quantidade de RAM em MB (Ex: 2048 para 2GB): " RAM_INPUT
     RAM_MB=${RAM_INPUT}
@@ -146,6 +208,7 @@ while true; do
 done
 
 # --- 4. Obter e confirmar o número de núcleos de CPU ---
+# Subetapa 4.4: Configuração dos núcleos de CPU
 while true; do
     read -p "Digite o número de núcleos de CPU (Ex: 2): " CPU_INPUT
     CPU_CORES=${CPU_INPUT}
@@ -165,6 +228,7 @@ while true; do
 done
 
 # --- 5. Obter e confirmar o tamanho do disco ---
+# Subetapa 4.5: Configuração do tamanho do disco
 while true; do
     read -p "Digite o tamanho do disco (Ex: 32G para 32GB, 500M para 500MB): " DISK_SIZE_INPUT
     DISK_SIZE=${DISK_SIZE_INPUT}
@@ -185,6 +249,7 @@ while true; do
 done
 
 # --- 6. Obter e confirmar o Storage Pool ---
+# Subetapa 4.6: Seleção do storage para o disco
 while true; do
     echo ""
     echo "Storages disponíveis para imagens de disco:"
@@ -217,6 +282,7 @@ while true; do
 done
 
 # --- 7. Obter e confirmar o Tipo de OS ---
+# Subetapa 4.7: Seleção do tipo de sistema operacional
 while true; do
     echo ""
     echo "Tipos de OS disponíveis:"
@@ -243,6 +309,7 @@ while true; do
 done
 
 # --- 8. Perguntar sobre Imagem ISO (Opcional) ---
+# Subetapa 4.8: Anexo opcional de imagem ISO para instalação
 read -p "Deseja anexar uma imagem ISO para instalação? (s/N): " ATTACH_ISO_CHOICE
 if [[ "$ATTACH_ISO_CHOICE" =~ ^[Ss]$ ]]; then
     while true; do
@@ -303,6 +370,10 @@ if [[ "$ATTACH_ISO_CHOICE" =~ ^[Ss]$ ]]; then
 fi
 
 # --- 9. Exibir Resumo e Confirmação Final ---
+
+#==============================================================================
+# ETAPA 5: RESUMO E CONFIRMAÇÃO FINAL
+#==============================================================================
 echo ""
 echo "--- Resumo da Configuração da VM ---"
 echo "ID da VM: $VMID"
@@ -326,6 +397,10 @@ if [[ ! "$FINAL_CONFIRMATION" =~ ^[Ss]$ ]]; then
 fi
 
 # --- 10. Criar a VM ---
+
+#==============================================================================
+# ETAPA 6: CRIAÇÃO DA MÁQUINA VIRTUAL
+#==============================================================================
 echo ""
 echo "Criando a VM com ID $VMID e nome '$VM_NAME'..."
 

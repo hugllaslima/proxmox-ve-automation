@@ -18,7 +18,8 @@ Automatizar processos repetitivos e padronizar configurações em ambientes Prox
 
 ### 🖥️ **scripts-vms/**
 Scripts para criação e configuração de VMs no Proxmox VE:
-- `create-vm.sh` - Criação interativa de VMs via `qm` com validações e ISO opcional
+- `create_vm.sh` - Criação interativa de VMs via `qm` com validações e ISO opcional
+- `create_vm_v2.sh` - Versão aprimorada com interface melhorada e validações robustas
 - `ubuntu_full_config_pve.sh` - Configuração inicial completa (timezone, SSH, Docker)
 - `ubuntu_full_config_pve_v2.sh` - Versão aprimorada do script de configuração
 - `install_docker_full.sh` - Instalação standalone do Docker e Docker Compose
