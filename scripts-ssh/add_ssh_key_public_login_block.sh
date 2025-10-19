@@ -5,9 +5,10 @@
 # Descrição: Adiciona uma chave pública SSH ao authorized_keys de um usuário
 #            com validação, confirmação interativa e comentário identificando
 #            o proprietário.
-# Autor: Hugllas Lima
+# Autor: Hugllas Lima (com contribuições de Claude)
 # Data: $(date +%Y-%m-%d)
-# Versão: 1.1 (Ajustado para incluir hardening SSH e validação pós-execução)
+# Versão: 1.6 (Ajuste na lógica de NOPASSWD para TARGET_USER, incluindo adição ao grupo sudo,
+#            e ajuste no hardening SSH para comentar 'PasswordAuthentication yes' em sshd_config.d/*.conf)
 # Licença: MIT
 # Repositório: https://github.com/hugllashml/proxmox-ve-automation
 #==============================================================================
@@ -17,10 +18,11 @@
 # 2. Informar o proprietário da chave (comentário)
 # 3. Preparar diretório .ssh e authorized_keys (permissões e ownership)
 # 4. Colar e validar chave pública
-# 5. Verificar duplicidade
-# 6. Adicionar comentário e chave
-# 7. (NOVO) Ajustar configurações SSH (hardening)
-# 8. (NOVO) Pausar para validação de acesso SSH
+# 5. Verificar duplicidade da chave
+# 6. Adicionar comentário e chave ao authorized_keys
+# 7. Ajustar configurações SSH (hardening) - AGORA INCLUI sshd_config.d/
+# 8. Configurar sudo NOPASSWD para o usuário alvo (opcional e condicional, com teste e dicas)
+# 9. Pausar para validação de acesso SSH
 #
 # Uso:
 #   chmod +x add_key_ssh_public.sh
@@ -36,10 +38,14 @@
 # - authorized_keys deve ter permissão 600 e owned pelo usuário alvo
 # - Para adicionar chave a outro usuário, execute com sudo
 #
-# ATENÇÃO: A desativação do login por senha pode bloquear o acesso se a chave SSH
-#          não estiver configurada corretamente. Certifique-se de ter um método
-#          alternativo de acesso (ex: console físico/virtual) ou teste
-#          cuidadosamente.
+# ATENÇÃO:
+# - A desativação do login por senha pode bloquear o acesso se a chave SSH
+#   não estiver configurada corretamente. Certifique-se de ter um método
+#   alternativo de acesso (ex: console físico/virtual) ou teste
+#   cuidadosamente.
+# - A configuração de 'NOPASSWD' para 'sudo' (se ativada) permite que o usuário
+#   alvo execute qualquer comando como root sem senha, o que reduz
+#   significativamente a segurança do sistema. Use com extrema cautela.
 
 # Função para exibir uma mensagem de erro e sair
 error_exit() {
@@ -189,7 +195,7 @@ while true; do
 done
 
 # ============================================================================
-# ETAPA 5: Verificar duplicidade
+# ETAPA 5: Verificar duplicidade da chave
 # ============================================================================
 # Como o script agora sempre é executado com sudo, podemos simplificar a verificação
 if sudo grep -qF "$KEY_CONTENT" "$AUTH_KEYS_FILE"; then
@@ -223,29 +229,89 @@ if [[ "$CONFIRM_HARDENING" =~ ^[Ss]$ ]]; then
     echo "Aplicando ajustes de segurança ao SSH..."
 
     SSHD_CONFIG_FILE="/etc/ssh/sshd_config"
+    SSHD_CONFIG_D_DIR="/etc/ssh/sshd_config.d"
 
     # Fazer backup do sshd_config original
     echo "Fazendo backup de $SSHD_CONFIG_FILE para ${SSHD_CONFIG_FILE}.bak_$(date +%Y%m%d%H%M%S)..."
     sudo cp "$SSHD_CONFIG_FILE" "${SSHD_CONFIG_FILE}.bak_$(date +%Y%m%d%H%M%S)" || error_exit "Falha ao fazer backup do sshd_config."
 
-    # Desabilitar PasswordAuthentication
-    echo "Desabilitando PasswordAuthentication..."
-    sudo sed -i 's/^#\?PasswordAuthentication yes/PasswordAuthentication no/' "$SSHD_CONFIG_FILE"
+    # Função para aplicar as alterações em um arquivo de configuração
+    apply_hardening_to_file() {
+        local config_file="$1"
+        local is_main_sshd_config=false
+        if [[ "$config_file" == "$SSHD_CONFIG_FILE" ]]; then
+            is_main_sshd_config=true
+        fi
 
-    # Desabilitar ChallengeResponseAuthentication
-    echo "Desabilitando ChallengeResponseAuthentication..."
-    sudo sed -i 's/^#\?ChallengeResponseAuthentication yes/ChallengeResponseAuthentication no/' "$SSHD_CONFIG_FILE"
+        echo "Aplicando hardening em: $config_file"
 
-    # Restringir PermitRootLogin para chaves (se root login for permitido)
-    echo "Configurando PermitRootLogin para 'prohibit-password'..."
-    # Primeiro, remove qualquer linha existente de PermitRootLogin que não seja comentada
-    sudo sed -i '/^PermitRootLogin/d' "$SSHD_CONFIG_FILE"
-    # Em seguida, adiciona a linha desejada ou modifica a comentada
-    # Esta regex tenta encontrar e substituir linhas como "PermitRootLogin yes", "PermitRootLogin without-password", etc.
-    # Se não encontrar, a linha será adicionada no final.
-    if ! sudo sed -i 's/^#\?PermitRootLogin \(yes\|without-password\|forced-commands-only\)/PermitRootLogin prohibit-password/' "$SSHD_CONFIG_FILE"; then
-        # Se o sed acima não encontrou uma linha para modificar, adiciona uma nova
-        echo "PermitRootLogin prohibit-password" | sudo tee -a "$SSHD_CONFIG_FILE" > /dev/null
+        # 1. PubkeyAuthentication yes (para sshd_config principal)
+        if $is_main_sshd_config; then
+            # Garante que a linha existe e está descomentada com 'yes'
+            sudo sed -i 's/^#\?PubkeyAuthentication \(no\|yes\)/PubkeyAuthentication yes/' "$config_file"
+            if ! sudo grep -qE '^PubkeyAuthentication yes' "$config_file"; then
+                echo "PubkeyAuthentication yes" | sudo tee -a "$config_file" > /dev/null
+            fi
+        fi
+
+        # 2. AuthorizedKeysFile .ssh/authorized_keys (para sshd_config principal)
+        if $is_main_sshd_config; then
+            # Remove linhas existentes para evitar duplicatas ou conflitos
+            sudo sed -i '/^AuthorizedKeysFile/d' "$config_file"
+            # Adiciona a linha desejada
+            echo "AuthorizedKeysFile .ssh/authorized_keys" | sudo tee -a "$config_file" > /dev/null
+        fi
+
+        # 3. PasswordAuthentication
+        if $is_main_sshd_config; then
+            # Para sshd_config principal, define como 'no'
+            sudo sed -i 's/^#\?PasswordAuthentication \(yes\|no\)/PasswordAuthentication no/' "$config_file"
+            if ! sudo grep -qE '^PasswordAuthentication no' "$config_file"; then
+                echo "PasswordAuthentication no" | sudo tee -a "$config_file" > /dev/null
+            fi
+        else
+            # Para arquivos em sshd_config.d/, comenta 'PasswordAuthentication yes'
+            # Isso garante que qualquer 'yes' nesses arquivos seja ignorado.
+            sudo sed -i 's/^\(PasswordAuthentication yes\)/#\1/' "$config_file"
+        fi
+
+        # 4. KbdInteractiveAuthentication no (para sshd_config principal)
+        if $is_main_sshd_config; then
+            sudo sed -i 's/^#\?KbdInteractiveAuthentication \(yes\|no\)/KbdInteractiveAuthentication no/' "$config_file"
+            if ! sudo grep -qE '^KbdInteractiveAuthentication no' "$config_file"; then
+                echo "KbdInteractiveAuthentication no" | sudo tee -a "$config_file" > /dev/null
+            fi
+        fi
+
+        # 5. ChallengeResponseAuthentication no (para ambos, boa prática)
+        sudo sed -i 's/^#\?ChallengeResponseAuthentication \(yes\|no\)/ChallengeResponseAuthentication no/' "$config_file"
+        if ! sudo grep -qE '^ChallengeResponseAuthentication no' "$config_file"; then
+            echo "ChallengeResponseAuthentication no" | sudo tee -a "$config_file" > /dev/null
+        fi
+
+        # 6. PermitRootLogin prohibit-password (para ambos, boa prática)
+        # Primeiro, remove qualquer linha PermitRootLogin existente que não seja comentada
+        sudo sed -i '/^PermitRootLogin/d' "$config_file"
+        # Em seguida, adiciona a linha desejada
+        echo "PermitRootLogin prohibit-password" | sudo tee -a "$config_file" > /dev/null
+    }
+
+    # Aplicar hardening ao arquivo principal sshd_config
+    apply_hardening_to_file "$SSHD_CONFIG_FILE"
+
+    # Aplicar hardening a arquivos em sshd_config.d/
+    if [ -d "$SSHD_CONFIG_D_DIR" ]; then
+        echo "Verificando arquivos em $SSHD_CONFIG_D_DIR/..."
+        for conf_file in "$SSHD_CONFIG_D_DIR"/*.conf; do
+            if [ -f "$conf_file" ]; then
+                # Fazer backup de cada arquivo .conf antes de modificar
+                echo "Fazendo backup de $conf_file para ${conf_file}.bak_$(date +%Y%m%d%H%M%S)..."
+                sudo cp "$conf_file" "${conf_file}.bak_$(date +%Y%m%d%H%M%S)" || echo "Aviso: Falha ao fazer backup de $conf_file."
+                apply_hardening_to_file "$conf_file"
+            fi
+        done
+    else
+        echo "Diretório $SSHD_CONFIG_D_DIR/ não encontrado. Nenhuma configuração adicional será verificada."
     fi
 
     # Reiniciar o serviço SSH
@@ -262,6 +328,85 @@ else
     echo "Ajustes de segurança SSH não aplicados."
 fi
 
+# ============================================================================
+# ETAPA 8: Configurar sudo NOPASSWD para o usuário alvo (opcional e condicional)
+# ============================================================================
+echo ""
+echo "--- Configuração de Sudo NOPASSWD para o usuário '$TARGET_USER' ---"
+
+# Verifica se o usuário alvo existe
+if ! id "$TARGET_USER" &>/dev/null; then
+    echo "Aviso: O usuário '$TARGET_USER' não existe neste sistema. Nenhuma alteração será feita para 'NOPASSWD'."
+else
+    # Verifica se o usuário já está no grupo sudo
+    if ! id -nG "$TARGET_USER" | grep -qw "sudo"; then
+        read -p "O usuário '$TARGET_USER' não está no grupo 'sudo'. Deseja adicioná-lo ao grupo 'sudo' agora? (s/N): " CONFIRM_ADD_TO_SUDO_GROUP
+        if [[ "$CONFIRM_ADD_TO_SUDO_GROUP" =~ ^[Ss]$ ]]; then
+            echo "Adicionando '$TARGET_USER' ao grupo 'sudo'..."
+            sudo usermod -aG sudo "$TARGET_USER" || error_exit "Falha ao adicionar '$TARGET_USER' ao grupo 'sudo'."
+            echo "'$TARGET_USER' adicionado ao grupo 'sudo' com sucesso."
+        else
+            echo "Usuário '$TARGET_USER' não adicionado ao grupo 'sudo'. A configuração 'NOPASSWD' pode não funcionar."
+        fi
+    else
+        echo "O usuário '$TARGET_USER' já está no grupo 'sudo'."
+    fi
+
+    # Verifica se a configuração NOPASSWD já existe para o usuário alvo
+    # Usamos `sudo -l -U $TARGET_USER` para listar as permissões sudo do usuário
+    # e verificamos se a string "NOPASSWD: ALL" está presente.
+    if sudo -l -U "$TARGET_USER" 2>/dev/null | grep -qE 'NOPASSWD: ALL'; then
+        echo "A configuração 'NOPASSWD' para o usuário '$TARGET_USER' já está ativa. Nenhuma alteração é necessária."
+    else
+        # Se não estiver configurado, perguntamos ao usuário
+        read -p "Deseja configurar o usuário '$TARGET_USER' para usar 'sudo' sem senha? (s/N): " CONFIRM_TARGET_USER_NOPASSWD
+
+        if [[ "$CONFIRM_TARGET_USER_NOPASSWD" =~ ^[Ss]$ ]]; then
+            SUDOERS_FILE="/etc/sudoers.d/90-${TARGET_USER}-nopasswd"
+            TEMP_SUDOERS_FILE=$(mktemp)
+
+            # Conteúdo do arquivo sudoers.d
+            echo "$TARGET_USER ALL=(ALL) NOPASSWD:ALL" > "$TEMP_SUDOERS_FILE"
+
+            echo "Validando a sintaxe do arquivo sudoers temporário..."
+            # visudo -cf testa a sintaxe do arquivo sem instalá-lo
+            if sudo visudo -cf "$TEMP_SUDOERS_FILE"; then
+                echo "Sintaxe validada com sucesso."
+                echo "Movendo arquivo para $SUDOERS_FILE..."
+                sudo mv "$TEMP_SUDOERS_FILE" "$SUDOERS_FILE" || error_exit "Falha ao mover o arquivo sudoers."
+                sudo chmod 0440 "$SUDOERS_FILE" || error_exit "Falha ao definir permissões para o arquivo sudoers."
+                echo "Configuração 'NOPASSWD' para '$TARGET_USER' adicionada com sucesso."
+                echo "AVISO DE SEGURANÇA: O usuário '$TARGET_USER' agora pode executar qualquer comando com 'sudo' sem senha."
+                echo "Isso é conveniente para automação, mas reduz a segurança do sistema."
+
+                # Teste imediato da configuração NOPASSWD
+                echo "Testando a configuração 'NOPASSWD' para o usuário '$TARGET_USER'..."
+                # Invalida o cache do sudo para o usuário alvo antes de testar
+                sudo -u "$TARGET_USER" sudo -k &>/dev/null
+                if sudo -u "$TARGET_USER" sudo -n true &>/dev/null; then
+                    echo "Teste bem-sucedido: O usuário '$TARGET_USER' pode usar 'sudo' sem senha."
+                else
+                    echo "AVISO: O teste de 'NOPASSWD' para '$TARGET_USER' falhou. O usuário '$TARGET_USER' ainda pode estar pedindo senha para 'sudo'."
+                    echo "Isso pode ocorrer devido ao cache de credenciais do 'sudo' ou outras configurações."
+                    echo "Tente o seguinte:"
+                    echo "  1. Abra uma NOVA sessão de terminal para o usuário '$TARGET_USER'."
+                    echo "  2. Na nova sessão, execute 'sudo -k' para limpar o cache de credenciais do sudo."
+                    echo "  3. Tente usar 'sudo' novamente (ex: 'sudo ls /root')."
+                    echo "  4. Um REINÍCIO DO SERVIDOR GERALMENTE NÃO É NECESSÁRIO para que as mudanças no sudoers.d entrem em vigor."
+                fi
+            else
+                sudo rm "$TEMP_SUDOERS_FILE" # Limpa o arquivo temporário em caso de erro
+                error_exit "Falha na validação da sintaxe do arquivo sudoers. Nenhuma alteração foi feita."
+            fi
+        else
+            echo "Configuração 'NOPASSWD' para '$TARGET_USER' não aplicada."
+        fi
+    fi
+fi
+
+# ============================================================================
+# ETAPA 9: Pausar para validação de acesso SSH
+# ============================================================================
 echo ""
 echo "--- Próximo Passo: Testar o Acesso SSH ---"
 echo "A chave pública foi adicionada para o usuário '$TARGET_USER'."
@@ -273,8 +418,8 @@ else
     echo "O login por senha ainda está habilitado (se era o padrão)."
 fi
 echo "Por favor, abra uma NOVA sessão de terminal e tente acessar o servidor via SSH."
-echo "Exemplo: ssh $TARGET_USER@<IP_DO_SEU_SERVIDOR>"
+echo "Exemplo: ssh $TARGET_USER@<IP_DO_SEU_SERVIDORT>"
 read -p "Pressione Enter APÓS validar o acesso SSH para finalizar o script."
 
 echo ""
-echo "Script concluído. Verifique se o acesso SSH está funcionando corretamente."
+echo "Script concluído. Verifique se o acesso SSH e o sudo para '$TARGET_USER' estão funcionando corretamente."
