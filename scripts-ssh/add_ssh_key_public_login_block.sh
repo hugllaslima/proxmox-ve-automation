@@ -7,8 +7,7 @@
 #            o proprietário.
 # Autor: Hugllas Lima (com contribuições de Claude)
 # Data: $(date +%Y-%m-%d)
-# Versão: 1.6 (Ajuste na lógica de NOPASSWD para TARGET_USER, incluindo adição ao grupo sudo,
-#            e ajuste no hardening SSH para comentar 'PasswordAuthentication yes' em sshd_config.d/*.conf)
+# Versão: 1.8 (Correção: Detecção e reinício robusto do serviço SSH - ssh.service vs sshd.service)
 # Licença: MIT
 # Repositório: https://github.com/hugllashml/proxmox-ve-automation
 #==============================================================================
@@ -243,13 +242,14 @@ if [[ "$CONFIRM_HARDENING" =~ ^[Ss]$ ]]; then
             is_main_sshd_config=true
         fi
 
-        echo "Aplicando hardening em: $config_file"
+        echo "  -> Aplicando hardening em: $config_file"
 
         # 1. PubkeyAuthentication yes (para sshd_config principal)
         if $is_main_sshd_config; then
             # Garante que a linha existe e está descomentada com 'yes'
             sudo sed -i 's/^#\?PubkeyAuthentication \(no\|yes\)/PubkeyAuthentication yes/' "$config_file"
             if ! sudo grep -qE '^PubkeyAuthentication yes' "$config_file"; then
+                echo "    -> Adicionando 'PubkeyAuthentication yes'"
                 echo "PubkeyAuthentication yes" | sudo tee -a "$config_file" > /dev/null
             fi
         fi
@@ -259,7 +259,13 @@ if [[ "$CONFIRM_HARDENING" =~ ^[Ss]$ ]]; then
             # Remove linhas existentes para evitar duplicatas ou conflitos
             sudo sed -i '/^AuthorizedKeysFile/d' "$config_file"
             # Adiciona a linha desejada
+            echo "    -> Adicionando 'AuthorizedKeysFile .ssh/authorized_keys'"
             echo "AuthorizedKeysFile .ssh/authorized_keys" | sudo tee -a "$config_file" > /dev/null
+            # Adiciona Match User para o usuário alvo, se ainda não existir
+            if ! sudo grep -qE "^Match User $TARGET_USER" "$config_file"; then
+                echo "    -> Adicionando 'Match User $TARGET_USER' para garantir AuthorizedKeysFile"
+                echo -e "\nMatch User $TARGET_USER\n  AuthorizedKeysFile $HOME_DIR/.ssh/authorized_keys" | sudo tee -a "$config_file" > /dev/null
+            fi
         fi
 
         # 3. PasswordAuthentication
@@ -267,18 +273,23 @@ if [[ "$CONFIRM_HARDENING" =~ ^[Ss]$ ]]; then
             # Para sshd_config principal, define como 'no'
             sudo sed -i 's/^#\?PasswordAuthentication \(yes\|no\)/PasswordAuthentication no/' "$config_file"
             if ! sudo grep -qE '^PasswordAuthentication no' "$config_file"; then
+                echo "    -> Adicionando 'PasswordAuthentication no'"
                 echo "PasswordAuthentication no" | sudo tee -a "$config_file" > /dev/null
             fi
         else
             # Para arquivos em sshd_config.d/, comenta 'PasswordAuthentication yes'
             # Isso garante que qualquer 'yes' nesses arquivos seja ignorado.
-            sudo sed -i 's/^\(PasswordAuthentication yes\)/#\1/' "$config_file"
+            if sudo grep -qE '^PasswordAuthentication yes' "$config_file"; then
+                echo "    -> Comentando 'PasswordAuthentication yes' em $config_file"
+                sudo sed -i 's/^\(PasswordAuthentication yes\)/#\1/' "$config_file"
+            fi
         fi
 
         # 4. KbdInteractiveAuthentication no (para sshd_config principal)
         if $is_main_sshd_config; then
             sudo sed -i 's/^#\?KbdInteractiveAuthentication \(yes\|no\)/KbdInteractiveAuthentication no/' "$config_file"
             if ! sudo grep -qE '^KbdInteractiveAuthentication no' "$config_file"; then
+                echo "    -> Adicionando 'KbdInteractiveAuthentication no'"
                 echo "KbdInteractiveAuthentication no" | sudo tee -a "$config_file" > /dev/null
             fi
         fi
@@ -286,6 +297,7 @@ if [[ "$CONFIRM_HARDENING" =~ ^[Ss]$ ]]; then
         # 5. ChallengeResponseAuthentication no (para ambos, boa prática)
         sudo sed -i 's/^#\?ChallengeResponseAuthentication \(yes\|no\)/ChallengeResponseAuthentication no/' "$config_file"
         if ! sudo grep -qE '^ChallengeResponseAuthentication no' "$config_file"; then
+            echo "    -> Adicionando 'ChallengeResponseAuthentication no'"
             echo "ChallengeResponseAuthentication no" | sudo tee -a "$config_file" > /dev/null
         fi
 
@@ -293,6 +305,7 @@ if [[ "$CONFIRM_HARDENING" =~ ^[Ss]$ ]]; then
         # Primeiro, remove qualquer linha PermitRootLogin existente que não seja comentada
         sudo sed -i '/^PermitRootLogin/d' "$config_file"
         # Em seguida, adiciona a linha desejada
+        echo "    -> Adicionando 'PermitRootLogin prohibit-password'"
         echo "PermitRootLogin prohibit-password" | sudo tee -a "$config_file" > /dev/null
     }
 
@@ -305,7 +318,7 @@ if [[ "$CONFIRM_HARDENING" =~ ^[Ss]$ ]]; then
         for conf_file in "$SSHD_CONFIG_D_DIR"/*.conf; do
             if [ -f "$conf_file" ]; then
                 # Fazer backup de cada arquivo .conf antes de modificar
-                echo "Fazendo backup de $conf_file para ${conf_file}.bak_$(date +%Y%m%d%H%M%S)..."
+                echo "  -> Fazendo backup de $conf_file para ${conf_file}.bak_$(date +%Y%m%d%H%M%S)..."
                 sudo cp "$conf_file" "${conf_file}.bak_$(date +%Y%m%d%H%M%S)" || echo "Aviso: Falha ao fazer backup de $conf_file."
                 apply_hardening_to_file "$conf_file"
             fi
@@ -316,13 +329,40 @@ if [[ "$CONFIRM_HARDENING" =~ ^[Ss]$ ]]; then
 
     # Reiniciar o serviço SSH
     echo "Reiniciando o serviço SSH para aplicar as mudanças..."
-    if sudo systemctl restart sshd &>/dev/null; then
-        echo "Serviço SSH reiniciado com sucesso (systemctl)."
-    elif sudo service sshd restart &>/dev/null; then
-        echo "Serviço SSH reiniciado com sucesso (service)."
+    SSH_SERVICE_NAME=""
+
+    # Tenta determinar o nome correto do serviço SSH
+    # Proxmox é baseado em Debian, então 'ssh' é o mais provável.
+    if sudo systemctl list-units --type=service --all | grep -q "ssh.service"; then
+        SSH_SERVICE_NAME="ssh"
+    elif sudo systemctl list-units --type=service --all | grep -q "sshd.service"; then
+        SSH_SERVICE_NAME="sshd"
     else
-        echo "Aviso: Falha ao reiniciar o serviço SSH. Pode ser necessário reiniciar manualmente para que as mudanças entrem em vigor."
-        echo "Comando para reiniciar: sudo systemctl restart sshd ou sudo service sshd restart"
+        echo "AVISO: Não foi possível determinar o nome do serviço SSH (ssh.service ou sshd.service)."
+        echo "Tentando reiniciar com 'ssh' como padrão, pois é comum em sistemas Debian/Ubuntu."
+        SSH_SERVICE_NAME="ssh" # Default para 'ssh' se não encontrado, comum em Debian/Ubuntu
+    fi
+
+    if [ -n "$SSH_SERVICE_NAME" ]; then
+        echo "Tentando reiniciar o serviço: $SSH_SERVICE_NAME.service"
+        if sudo systemctl restart "$SSH_SERVICE_NAME".service; then
+            echo "Serviço SSH '$SSH_SERVICE_NAME.service' reiniciado com sucesso (systemctl)."
+            if sudo systemctl is-active "$SSH_SERVICE_NAME".service &>/dev/null; then
+                echo "Serviço SSH está ativo e rodando."
+            else
+                echo "AVISO: O serviço SSH '$SSH_SERVICE_NAME.service' não está ativo após o reinício. Pode haver um problema."
+                echo "Verifique os logs com 'sudo journalctl -u $SSH_SERVICE_NAME.service' para mais detalhes."
+            fi
+        elif sudo service "$SSH_SERVICE_NAME" restart; then # Fallback para sistemas mais antigos ou comando 'service'
+            echo "Serviço SSH '$SSH_SERVICE_NAME' reiniciado com sucesso (service)."
+        else
+            echo "ERRO CRÍTICO: Falha ao reiniciar o serviço SSH '$SSH_SERVICE_NAME'. As mudanças podem não ter sido aplicadas."
+            echo "Pode ser necessário reiniciar manualmente para que as mudanças entrem em vigor."
+            echo "Comando para reiniciar: sudo systemctl restart $SSH_SERVICE_NAME.service ou sudo service $SSH_SERVICE_NAME restart"
+            error_exit "Falha ao reiniciar o serviço SSH."
+        fi
+    else
+        error_exit "Não foi possível determinar e reiniciar o serviço SSH. Verifique manualmente."
     fi
 else
     echo "Ajustes de segurança SSH não aplicados."
@@ -393,6 +433,7 @@ else
                     echo "  2. Na nova sessão, execute 'sudo -k' para limpar o cache de credenciais do sudo."
                     echo "  3. Tente usar 'sudo' novamente (ex: 'sudo ls /root')."
                     echo "  4. Um REINÍCIO DO SERVIDOR GERALMENTE NÃO É NECESSÁRIO para que as mudanças no sudoers.d entrem em vigor."
+                    echo "  5. Se o problema persistir, verifique os logs do sudo: 'sudo journalctl -u sudo' ou '/var/log/auth.log'."
                 fi
             else
                 sudo rm "$TEMP_SUDOERS_FILE" # Limpa o arquivo temporário em caso de erro
