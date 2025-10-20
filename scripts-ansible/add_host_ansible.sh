@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #==============================================================================
-# Script: ansible_config_host.sh
+# Script: add_host_ansible.sh
 # Descrição: Configuração de hosts para automação com Ansible
 # Autor: Hugllas Lima (com contribuições de Claude)
 # Data: $(date +%Y-%m-%d)
