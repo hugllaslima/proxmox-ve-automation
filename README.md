@@ -70,7 +70,7 @@ Scripts para instalação de agentes QEMU:
 
 1. **Clone o repositório:**
    ```bash
-   git clone https://github.com/seu-usuario/proxmox-ve-automation.git
+   git clone https://github.com/hugllaslima/proxmox-ve-automation.git
    cd proxmox-ve-automation
    ```
 
