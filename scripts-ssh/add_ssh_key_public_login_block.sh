@@ -5,7 +5,7 @@
 # Descrição: Adiciona uma chave pública SSH ao authorized_keys de um usuário
 #            com validação, confirmação interativa e comentário identificando
 #            o proprietário.
-# Autor: Hugllas Lima (com contribuições de Claude)
+# Autor: Hugllas Lima 
 # Data: $(date +%Y-%m-%d)
 # Versão: 1.8 (Correção: Detecção e reinício robusto do serviço SSH - ssh.service vs sshd.service)
 # Licença: MIT
