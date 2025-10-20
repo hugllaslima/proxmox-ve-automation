@@ -6,6 +6,7 @@
 # Data: 2025-10-20
 # Versão: 1.6 (Correção do usuário no comentário da chave SSH: usando SUDO_USER)
 # Licença: MIT
+# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
 #==============================================================================
 # ETAPAS DO SCRIPT:
 # 1. Verificação e atualização das dependências do SO

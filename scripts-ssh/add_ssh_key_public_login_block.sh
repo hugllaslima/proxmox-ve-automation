@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #==============================================================================
-# Script: add_key_ssh_public.sh
+# Script: add_key_ssh_public_login_block.sh
 # Descrição: Adiciona uma chave pública SSH ao authorized_keys de um usuário
 #            com validação, confirmação interativa e comentário identificando
 #            o proprietário.
@@ -9,7 +9,7 @@
 # Data: $(date +%Y-%m-%d)
 # Versão: 1.8 (Correção: Detecção e reinício robusto do serviço SSH - ssh.service vs sshd.service)
 # Licença: MIT
-# Repositório: https://github.com/hugllashml/proxmox-ve-automation
+# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
 #==============================================================================
 #
 # ETAPAS DO SCRIPT:

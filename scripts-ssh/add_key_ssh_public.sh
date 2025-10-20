@@ -9,7 +9,7 @@
 # Data: $(date +%Y-%m-%d)
 # Versão: 1.3 (Adição do usuário que executou o script no comentário da chave)
 # Licença: MIT
-# Repositório: https://github.com/hugllashml/proxmox-ve-automation
+# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
 #==============================================================================
 #
 # ETAPAS DO SCRIPT:
