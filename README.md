@@ -137,7 +137,7 @@ Este projeto está licenciado sob a GPL-3.0 - veja o arquivo LICENSE para detalh
 
 **Hugllas R S Lima**
 - Email: hugllaslima@gmail.com
-- GitHub: [@seu-usuario](https://github.com/seu-usuario)
+- GitHub: [@hugllaslima](https://github.com/hugllaslima)
 
 ## 📚 Documentação Adicional
 
