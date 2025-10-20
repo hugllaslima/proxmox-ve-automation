@@ -90,6 +90,32 @@ Para ambientes de produção, considere:
 - Implementar políticas de senha mais restritivas
 - Usar autenticação por chave SSH
 
+## Configuração de Acesso SSH
+
+Após criar o usuário com os scripts deste diretório, você pode configurar o acesso SSH usando o script dedicado:
+
+### Configuração de Chaves SSH
+Para adicionar chaves públicas SSH ao usuário criado, utilize:
+- **`../scripts-ssh/add_key_ssh_public.sh`** - Script interativo para adicionar chaves SSH com validação completa
+
+**Funcionalidades do script SSH:**
+- Validação de existência do usuário alvo
+- Confirmação interativa de todas as informações
+- Validação do formato da chave SSH
+- Verificação de duplicidade automática
+- Comentários identificando proprietário, data e quem adicionou
+- Configuração automática de permissões (700 para .ssh, 600 para authorized_keys)
+- Suporte para adicionar chaves a qualquer usuário (com sudo)
+
+**Uso:**
+```bash
+# Navegar para o diretório SSH
+cd ../scripts-ssh/
+
+# Executar o script
+sudo ./add_key_ssh_public.sh
+```
+
 ## Verificação Pós-Configuração
 
 ```bash
@@ -104,6 +130,10 @@ sudo -l -U nome_usuario
 
 # Verificar timezone
 timedatectl show --property=Timezone --value
+
+# Verificar configuração SSH (se configurado)
+ls -la /home/nome_usuario/.ssh/
+cat /home/nome_usuario/.ssh/authorized_keys
 ```
 
 ## Solução de Problemas

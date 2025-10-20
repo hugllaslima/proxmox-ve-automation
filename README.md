@@ -23,40 +23,48 @@ Scripts para criação e configuração de VMs no Proxmox VE:
 - `ubuntu_full_config_pve.sh` - Configuração inicial completa (timezone, SSH, Docker)
 - `ubuntu_full_config_pve_v2.sh` - Versão aprimorada do script de configuração
 - `install_docker_full.sh` - Instalação standalone do Docker e Docker Compose
+- `README.md` - Documentação detalhada sobre o uso dos scripts
 
 ### 🔧 **scripts-ansible/**
 Scripts para preparação de hosts para automação com Ansible:
-- `ansible_config_host.sh` - Configuração de hosts para gerenciamento via Ansible
+- `add_host_ansible.sh` - Configuração completa de hosts para gerenciamento via Ansible (dependências, SSH, validações)
+- `README.md` - Documentação detalhada sobre o uso dos scripts
 
 ### 💾 **scripts-backups/**
 Scripts para backup e proteção de dados:
 - `backup_full_proxmox_ve.sh` - Backup completo das configurações do Proxmox VE
 - `backups_usb_external.sh` - Backup para dispositivos USB externos
+- `README.md` - Documentação detalhada sobre o uso dos scripts
 
 ### 📦 **scripts-container-lxc/**
 Scripts para configuração de containers LXC:
 - `create_user_lxc.sh` - Criação e configuração de usuários em containers LXC
 - `create_user_lxc_2.sh` - Versão alternativa do script de criação de usuários
+- `README.md` - Documentação detalhada sobre o uso dos scripts
 
 ### 📊 **scripts-prometheus/**
 Scripts para monitoramento:
 - `install_node_exporter.sh` - Instalação do Prometheus Node Exporter
+- `README.md` - Documentação detalhada sobre o uso dos scripts
 
 ### 🏃 **scripts-self-hosted-runner/**
 Scripts para configuração de runners:
 - `setup_runner.sh` - Configuração de Self-Hosted Runner
 - `setup_runner_v2.sh` - Versão aprimorada do setup
 - `cleanup_runner.sh` - Limpeza e remoção de runners
+- `README.md` - Documentação detalhada sobre o uso dos scripts
 
 ### 🔑 **scripts-ssh/**
 Scripts para configuração de acesso SSH:
-- `add_key_ssh_public.sh` - Adiciona chave pública ao `authorized_keys` com validação, comentário e preservação de permissões
+- `add_key_ssh_public.sh` - Adiciona chave pública SSH com validação de formato, comentários identificando proprietário, confirmação interativa e preservação de permissões
+- `add_ssh_key_public_login_block.sh` - Versão avançada com hardening SSH completo, desabilitação de login por senha e configuração opcional de sudo NOPASSWD
+- `README.md` - Documentação detalhada sobre o uso dos scripts
 
 ### 🔌 **Agentes QEMU/**
 Scripts para instalação de agentes QEMU:
 - `apt_install_agent_qemu.sh` - Instalação do agente QEMU em sistemas baseados em APT
 - `yum_install_agent_qemu.sh` - Instalação do agente QEMU em sistemas baseados em YUM
- - `README.md` - Documentação detalhada sobre o QEMU Guest Agent e uso dos scripts
+- `README.md` - Documentação detalhada sobre o QEMU Guest Agent e uso dos scripts
 
 ## 🚀 Como Usar
 

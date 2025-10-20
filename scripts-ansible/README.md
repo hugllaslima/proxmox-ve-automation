@@ -4,7 +4,7 @@ Este diretório contém scripts para preparar hosts (VMs e containers LXC) para 
 
 ## 📋 Scripts Disponíveis
 
-### 🔧 `ansible_config_host.sh`
+### 🔧 `add_host_ansible.sh`
 **Configuração de hosts para gerenciamento via Ansible**
 
 **Objetivo:**
@@ -31,6 +31,9 @@ Preparar máquinas virtuais e containers LXC para serem gerenciados remotamente 
   - Remoção de duplicatas automática
   - Configuração correta de permissões (600 para authorized_keys, 700 para .ssh)
   - Configuração correta de ownership
+  - **Comentários identificando proprietário:** Inclui descrição da chave, quem adicionou e data/hora
+  - **Validação de formato SSH:** Verifica se a chave está em formato válido
+  - **Confirmação interativa:** Todas as informações são confirmadas antes da execução
 
 #### 🛡️ **Hardening SSH Recomendado**
 - Orientações para configuração segura do SSH
@@ -39,8 +42,8 @@ Preparar máquinas virtuais e containers LXC para serem gerenciados remotamente 
 
 **Uso:**
 ```bash
-chmod +x ansible_config_host.sh
-sudo ./ansible_config_host.sh
+chmod +x add_host_ansible.sh
+sudo ./add_host_ansible.sh
 ```
 
 **Fluxo Interativo:**
@@ -48,11 +51,12 @@ sudo ./ansible_config_host.sh
 2. **Atualização do Sistema:** Escolha se deseja atualizar o sistema operacional
 3. **Configuração do Usuário:** Informe o usuário que receberá a chave SSH
 4. **Tipo de Host:** Identifique se é VM Linux ou Container LXC (para logs)
-5. **Chave Pública:** Cole a chave pública do usuário Ansible
+5. **Descrição da Chave:** Informe uma descrição identificando o proprietário da chave
+6. **Chave Pública:** Cole a chave pública do usuário Ansible
 
 **Exemplo de Execução:**
 ```bash
-$ sudo ./ansible_config_host.sh
+$ sudo ./add_host_ansible.sh
 
 Deseja verificar se 'sudo' e 'openssh-client' estão instalados?
 Digite 1 para SIM (verificar e instalar se faltar)
@@ -72,9 +76,22 @@ Esta máquina é:
 2) Container LXC (usuário ubuntu)
 Digite 1 ou 2 (só para log/registro): 1
 
+Qual a descrição desta chave pública? (Ex: 'Hugllas Lima (Linux)', 'Ansible (Server)', 'Servidor de Backup'):
+Ansible Control Node
+
 Cole a chave pública do usuário "ansible" (linha única):
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB... ansible@control-node
 ```
+
+## 🔗 Scripts Relacionados
+
+### Configuração Adicional de SSH
+Para configurações mais avançadas de SSH ou adição de chaves a usuários específicos, utilize:
+- **`../scripts-ssh/add_key_ssh_public.sh`** - Script dedicado para adição de chaves SSH com validação completa
+
+**Diferenças entre os scripts:**
+- **`add_host_ansible.sh`**: Focado na preparação completa de hosts para Ansible (dependências + SSH)
+- **`add_key_ssh_public.sh`**: Focado exclusivamente na adição segura de chaves SSH a qualquer usuário
 
 ## 🎯 Casos de Uso
 
