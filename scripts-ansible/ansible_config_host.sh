@@ -5,7 +5,7 @@
 # Descrição: Configuração de hosts para automação com Ansible
 # Autor: Hugllas Lima (com contribuições de Claude)
 # Data: $(date +%Y-%m-%d)
-# Versão: 1.1 (Adição de confirmações interativas para dados inseridos)
+# Versão: 1.3 (Melhoria na validação e feedback de usuário inexistente)
 # Licença: MIT
 # Repositório: https://github.com/hugllashml/proxmox-ve-automation
 #==============================================================================
@@ -79,12 +79,12 @@ while true; do
     read -p "Sua escolha: " OPCAO_SUDO_INPUT
 
     if [[ "$OPCAO_SUDO_INPUT" == "1" || "$OPCAO_SUDO_INPUT" == "2" ]]; then
-        read -p "Você escolheu '$OPCAO_SUDO_INPUT'. Está correto? (s/N): " CONFIRM_OPCAO_SUDO
+        read -p "Você escolheu '$OPCAO_SUDO_INPUT'. Está correto? (s para sim, N para não): " CONFIRM_OPCAO_SUDO
         if [[ "$CONFIRM_OPCAO_SUDO" =~ ^[Ss]$ ]]; then
             OPCAO_SUDO="$OPCAO_SUDO_INPUT"
             break
         else
-            echo "Por favor, faça sua escolha novamente."
+            echo "[INFO] Confirmação negativa ou inválida. Por favor, faça sua escolha novamente."
         fi
     else
         echo "Opção inválida. Por favor, digite 1 ou 2."
@@ -106,12 +106,12 @@ while true; do
     read -p "Sua escolha: " OPCAO_ATUALIZA_INPUT
 
     if [[ "$OPCAO_ATUALIZA_INPUT" == "1" || "$OPCAO_ATUALIZA_INPUT" == "2" ]]; then
-        read -p "Você escolheu '$OPCAO_ATUALIZA_INPUT'. Está correto? (s/N): " CONFIRM_OPCAO_ATUALIZA
+        read -p "Você escolheu '$OPCAO_ATUALIZA_INPUT'. Está correto? (s para sim, N para não): " CONFIRM_OPCAO_ATUALIZA
         if [[ "$CONFIRM_OPCAO_ATUALIZA" =~ ^[Ss]$ ]]; then
             OPCAO_ATUALIZA="$OPCAO_ATUALIZA_INPUT"
             break
         else
-            echo "Por favor, faça sua escolha novamente."
+            echo "[INFO] Confirmação negativa ou inválida. Por favor, faça sua escolha novamente."
         fi
     else
         echo "Opção inválida. Por favor, digite 1 ou 2."
@@ -139,18 +139,36 @@ while true; do
     fi
 
     echo "Você informou o usuário: '$USUARIO_INPUT'"
-    read -p "Esta informação está correta? (s/N): " CONFIRM_USUARIO
+    read -p "Esta informação está correta? (s para sim, N para não): " CONFIRM_USUARIO
     if [[ "$CONFIRM_USUARIO" =~ ^[Ss]$ ]]; then
         USUARIO="$USUARIO_INPUT"
-        # Determina o home do usuário, independente de /home, /root, /srv, etc
-        if ! HOME_USER=$(eval echo "~$USUARIO"); then
-            echo "[ERRO] Diretório home do usuário '$USUARIO' não encontrado ou inacessível!"
-            echo "Certifique-se de que o usuário existe ANTES de rodar este script."
-            continue # Volta para o início do loop de usuário
+
+        # 1. Verifica se o usuário realmente existe no sistema
+        if ! id -u "$USUARIO" &>/dev/null; then
+            echo "[ERRO] O usuário '$USUARIO' não existe neste sistema. Por favor, digite um nome de usuário que exista neste servidor."
+            continue # Volta para o início do loop para pedir o nome do usuário novamente
         fi
+
+        # 2. Determina o diretório home do usuário
+        HOME_USER_TEMP=$(eval echo "~$USUARIO" 2>/dev/null)
+        if [ -z "$HOME_USER_TEMP" ]; then
+            echo "[ERRO] Não foi possível determinar o diretório home para o usuário '$USUARIO'."
+            echo "Verifique se o usuário tem um diretório home configurado corretamente."
+            continue # Volta para o início do loop
+        fi
+        HOME_USER="$HOME_USER_TEMP"
+
+        # 3. Verifica se o diretório home existe e é um diretório válido
+        if [ ! -d "$HOME_USER" ]; then
+            echo "[ERRO] O diretório home '$HOME_USER' para o usuário '$USUARIO' não existe ou não é um diretório válido."
+            echo "Por favor, crie o diretório home para o usuário ou verifique a configuração do usuário."
+            continue # Volta para o início do loop
+        fi
+
+        # Se todas as verificações passarem, sai do loop
         break
     else
-        echo "Por favor, insira o usuário novamente."
+        echo "[INFO] Confirmação negativa ou inválida. Por favor, insira o usuário novamente."
     fi
 done
 
@@ -167,12 +185,12 @@ while true; do
         [ "$OPCAO_TIPO_INPUT" == "2" ] && TIPOTXT="Container LXC"
 
         echo "Você informou: '$TIPOTXT'"
-        read -p "Esta informação está correta? (s/N): " CONFIRM_OPCAO_TIPO
+        read -p "Esta informação está correta? (s para sim, N para não): " CONFIRM_OPCAO_TIPO
         if [[ "$CONFIRM_OPCAO_TIPO" =~ ^[Ss]$ ]]; then
             OPCAO_TIPO="$OPCAO_TIPO_INPUT"
             break
         else
-            echo "Por favor, faça sua escolha novamente."
+            echo "[INFO] Confirmação negativa ou inválida. Por favor, faça sua escolha novamente."
         fi
     else
         echo "Opção inválida. Por favor, digite 1 ou 2."
@@ -206,7 +224,7 @@ while true; do
     # Validação básica do formato da chave SSH
     if ! echo "$CHAVE_PUB_CONTENT" | grep -Eq "^(ssh-rsa|ecdsa-sha2-nistp256|ecdsa-sha2-nistp384|ecdsa-sha2-nistp521|ssh-ed25519|sk-ecdsa-sha2-nistp256@openssh.com|sk-ssh-ed25519@openssh.com) [A-Za-z0-9+/]+={0,2}( .*)?$"; then
         echo "Aviso: A chave pública fornecida não parece estar em um formato SSH válido."
-        read -p "Deseja continuar mesmo assim? (s/N): " CONFIRM_INVALID
+        read -p "Deseja continuar mesmo assim? (s para sim, N para não): " CONFIRM_INVALID
         if [[ ! "$CONFIRM_INVALID" =~ ^[Ss]$ ]]; then
             echo "Por favor, cole a chave pública novamente."
             continue
@@ -221,12 +239,12 @@ while true; do
     echo ""
     echo "Você colou a seguinte chave (prévia):"
     echo "$KEY_PREVIEW"
-    read -p "A chave pública está correta? (s/N): " CONFIRM_KEY_CONTENT
+    read -p "A chave pública está correta? (s para sim, N para não): " CONFIRM_KEY_CONTENT
     if [[ "$CONFIRM_KEY_CONTENT" =~ ^[Ss]$ ]]; then
         CHAVE_PUB="$CHAVE_PUB_CONTENT"
         break
     else
-        echo "Por favor, cole a chave pública novamente."
+        echo "[INFO] Confirmação negativa ou inválida. Por favor, cole a chave pública novamente."
     fi
 done
 
