@@ -4,16 +4,16 @@
 # Script: add_key_ssh_public.sh
 # Descrição: Adiciona uma chave pública SSH ao authorized_keys de um usuário 
 #            com validação, confirmação interativa e comentário identificando 
-#            o proprietário.
+#            o proprietário, data e hora da adição.
 # Autor: Hugllas Lima
 # Data: $(date +%Y-%m-%d)
-# Versão: 1.0
+# Versão: 1.2
 # Licença: MIT
 # Repositório: https://github.com/hugllashml/proxmox-ve-automation
 #==============================================================================
 #
 # ETAPAS DO SCRIPT:
-# 1. Selecionar e confirmar usuário alvo
+# 1. Selecionar e confirmar usuário alvo (com validação de existência)
 # 2. Informar o proprietário da chave (comentário)
 # 3. Preparar diretório .ssh e authorized_keys (permissões e ownership)
 # 4. Colar e validar chave pública
@@ -55,11 +55,19 @@ while true; do
     echo "Você informou o usuário: '$TARGET_USER'"
     read -p "Esta informação está correta? (s/N): " CONFIRM_TARGET_USER
     if [[ "$CONFIRM_TARGET_USER" =~ ^[Ss]$ ]]; then
-        # Obter o diretório home do usuário alvo
-        if ! HOME_DIR=$(eval echo "~$TARGET_USER"); then
-            echo "Aviso: Usuário '$TARGET_USER' não encontrado ou inacessível. Por favor, tente novamente."
+        # Verificar se o usuário existe no sistema
+        if ! id -u "$TARGET_USER" &>/dev/null; then
+            echo "Erro: Usuário '$TARGET_USER' não existe no sistema. Por favor, tente novamente."
             continue # Volta para o início do loop
         fi
+
+        # Obter o diretório home do usuário alvo de forma robusta
+        HOME_DIR=$(getent passwd "$TARGET_USER" | cut -d: -f6)
+        if [ -z "$HOME_DIR" ]; then
+            echo "Aviso: Não foi possível determinar o diretório home para o usuário '$TARGET_USER'. Por favor, tente novamente."
+            continue # Volta para o início do loop
+        fi
+        
         break # Sai do loop se confirmado e usuário válido
     else
         echo "Por favor, insira o usuário novamente."
@@ -88,7 +96,8 @@ done
 
 SSH_DIR="$HOME_DIR/.ssh"
 AUTH_KEYS_FILE="$SSH_DIR/authorized_keys"
-COMMENT_LINE="# Key for: $KEY_OWNER_NAME"
+CURRENT_DATETIME=$(date +'%Y-%m-%d %H:%M:%S') # Captura a data e hora atual
+COMMENT_LINE="# Key for: $KEY_OWNER_NAME (Added: $CURRENT_DATETIME)" # Adiciona a data e hora ao comentário
 
 echo "A chave será adicionada para o usuário: $TARGET_USER"
 echo "Comentário a ser adicionado: $COMMENT_LINE"
@@ -214,8 +223,8 @@ CONTENT_TO_WRITE="$COMMENT_LINE"$'\n'"$KEY_CONTENT"
 if [ "$TARGET_USER" != "$USER" ]; then
     # Usar sudo para anexar o conteúdo e, em seguida, reaplicar propriedade/permissões
     echo "$CONTENT_TO_WRITE" | sudo tee -a "$AUTH_KEYS_FILE" > /dev/null || error_exit "Falha ao adicionar a chave pública."
-    sudo chown "$TARGET_USER:$TARGET_USER" "$AUTH_KEYS_FILE" || error_exit "Falha ao definir proprietário para $AUTH_KEYS_FILE após adição."
-    sudo chmod 0600 "$AUTH_KEYS_FILE" || error_exit "Falha ao definir permissões para $AUTH_KEYS_FILE após adição."
+    sudo chown "$TARGET_USER:$TARGET_USER" "$AUTH_KEYS_FILE" || error_exit "Falha ao definir proprietário para "$AUTH_KEYS_FILE" após adição."
+    sudo chmod 0600 "$AUTH_KEYS_FILE" || error_exit "Falha ao definir permissões para "$AUTH_KEYS_FILE" após adição."
 else
     # Anexar diretamente se for o usuário atual
     echo "$CONTENT_TO_WRITE" >> "$AUTH_KEYS_FILE" || error_exit "Falha ao adicionar a chave pública."
