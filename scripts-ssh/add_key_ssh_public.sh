@@ -2,12 +2,12 @@
 
 #==============================================================================
 # Script: add_key_ssh_public.sh
-# Descrição: Adiciona uma chave pública SSH ao authorized_keys de um usuário 
-#            com validação, confirmação interativa e comentário identificando 
-#            o proprietário, data e hora da adição.
+# Descrição: Adiciona uma chave pública SSH ao authorized_keys de um usuário
+#            com validação, confirmação interativa e comentário identificando
+#            o proprietário, data e hora da adição, e o usuário que adicionou.
 # Autor: Hugllas Lima
 # Data: $(date +%Y-%m-%d)
-# Versão: 1.2
+# Versão: 1.3 (Adição do usuário que executou o script no comentário da chave)
 # Licença: MIT
 # Repositório: https://github.com/hugllashml/proxmox-ve-automation
 #==============================================================================
@@ -33,12 +33,22 @@
 # - .ssh deve ter permissão 700 e owned pelo usuário alvo
 # - authorized_keys deve ter permissão 600 e owned pelo usuário alvo
 # - Para adicionar chave a outro usuário, execute com sudo
+#
 
 # Função para exibir uma mensagem de erro e sair
 error_exit() {
     echo "Erro: $1" >&2
     exit 1
 }
+
+# Determine o usuário real que invocou o script (considerando sudo)
+# Se SUDO_USER estiver definido, significa que o script foi executado com sudo.
+# Caso contrário, usa o usuário atual ($USER).
+if [ -n "$SUDO_USER" ]; then
+    EXECUTING_USER="$SUDO_USER"
+else
+    EXECUTING_USER="$USER"
+fi
 
 echo " "
 echo "---------------------------------------------"
@@ -67,7 +77,7 @@ while true; do
             echo "Aviso: Não foi possível determinar o diretório home para o usuário '$TARGET_USER'. Por favor, tente novamente."
             continue # Volta para o início do loop
         fi
-        
+
         break # Sai do loop se confirmado e usuário válido
     else
         echo "Por favor, insira o usuário novamente."
@@ -79,7 +89,7 @@ done
 # ============================================================================
 while true; do
     echo ""
-    read -p "Qual o nome da pessoa ou sistema que está adicionando esta chave? (Ex: 'João da Silva', 'Servidor de Backup'): " KEY_OWNER_NAME
+    read -p "Qual o nome da pessoa ou sistema que é o DONO desta chave? (Ex: 'João da Silva (Windows 10)', 'Servidor de Backup'): " KEY_OWNER_NAME
     if [ -z "$KEY_OWNER_NAME" ]; then
         echo "Erro: O nome do proprietário da chave é obrigatório para o comentário. Por favor, tente novamente."
         continue # Volta para o início do loop
@@ -97,7 +107,8 @@ done
 SSH_DIR="$HOME_DIR/.ssh"
 AUTH_KEYS_FILE="$SSH_DIR/authorized_keys"
 CURRENT_DATETIME=$(date +'%Y-%m-%d %H:%M:%S') # Captura a data e hora atual
-COMMENT_LINE="# Key for: $KEY_OWNER_NAME (Added: $CURRENT_DATETIME)" # Adiciona a data e hora ao comentário
+# A linha de comentário foi atualizada para incluir o usuário que executou o script
+COMMENT_LINE="# Key for: $KEY_OWNER_NAME (added by $EXECUTING_USER on $CURRENT_DATETIME)"
 
 echo "A chave será adicionada para o usuário: $TARGET_USER"
 echo "Comentário a ser adicionado: $COMMENT_LINE"
@@ -112,7 +123,7 @@ if [ "$TARGET_USER" != "$USER" ]; then
     if [ "$(id -u)" -ne 0 ]; then
         error_exit "Para adicionar chaves para outro usuário ('$TARGET_USER'), você precisa executar o script com 'sudo'."
     fi
-    
+
     # Criar diretório .ssh e definir permissões/propriedade
     if [ ! -d "$SSH_DIR" ]; then
         echo "Criando diretório $SSH_DIR..."
@@ -193,7 +204,7 @@ while true; do
         break # Sai do loop se confirmado
     else
         echo "Por favor, cole a chave pública novamente."
-    fi
+    fi # <--- CORREÇÃO AQUI: Era 'F', agora é 'fi'
 done
 
 # ============================================================================
