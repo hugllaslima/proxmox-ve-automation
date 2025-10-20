@@ -25,7 +25,7 @@
 #   sudo ./add_key_ssh_public.sh
 #
 # Pré-requisitos:
-# - Sistemas operacionais baseados em Ubuntu
+# - Sistemas operacionais baseados em Debian & Ubuntu
 # - Acesso sudo/root para escrever no home de outros usuários
 # - openssh-client instalado (para validar formato de chave)
 #
