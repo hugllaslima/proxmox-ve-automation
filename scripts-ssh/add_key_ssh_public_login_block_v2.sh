@@ -263,7 +263,7 @@ if [ -n "$KEY_MATCH_OUTPUT" ]; then
                 exit 0 # Sai do script após a exclusão
                 ;;
             3)
-                echo "Opção 'Manter' selecionada. Nenhuma alteração será feita."
+                echo "Opção 'Manter' selecionada, sendo assim, não houve alteração no arquivo."
                 exit 0 # Sai do script sem fazer alterações
                 ;;
             *)
