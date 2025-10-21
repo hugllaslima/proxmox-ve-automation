@@ -5,9 +5,11 @@
 # Descrição: Adiciona uma chave pública SSH ao authorized_keys de um usuário
 #            com validação, confirmação interativa e comentário identificando
 #            o proprietário, data e hora da adição, e o usuário que adicionou.
+#            Melhoria: Lida com chaves duplicadas, oferecendo opções para
+#            substituir, excluir ou manter a chave existente.
 # Autor: Hugllas Lima
 # Data: $(date +%Y-%m-%d)
-# Versão: 1.3 (Adição do usuário que executou o script no comentário da chave)
+# Versão: 1.4 (Adição de tratamento de duplicidade de chaves)
 # Licença: MIT
 # Repositório: https://github.com/hugllaslima/proxmox-ve-automation
 #==============================================================================
@@ -17,7 +19,7 @@
 # 2. Informar o proprietário da chave (comentário)
 # 3. Preparar diretório .ssh e authorized_keys (permissões e ownership)
 # 4. Colar e validar chave pública
-# 5. Verificar duplicidade
+# 5. Verificar duplicidade e interagir com o usuário
 # 6. Adicionar comentário e chave
 #
 # Uso:
@@ -195,7 +197,9 @@ while true; do
     fi
 
     # Exibir uma parte da chave para confirmação
-    KEY_PREVIEW=$(echo "$KEY_CONTENT" | head -n 1 | cut -c 1-70)...$(echo "$KEY_CONTENT" | tail -n 1 | cut -c $(( $(echo "$KEY_CONTENT" | tail -n 1 | wc -c) - 50 ))- )
+    # Garante que KEY_CONTENT é uma única linha para o preview
+    SINGLE_LINE_KEY=$(echo "$KEY_CONTENT" | tr -d '\n')
+    KEY_PREVIEW=$(echo "$SINGLE_LINE_KEY" | head -n 1 | cut -c 1-70)...$(echo "$SINGLE_LINE_KEY" | tail -n 1 | cut -c $(( $(echo "$SINGLE_LINE_KEY" | tail -n 1 | wc -c) - 50 ))- )
     echo ""
     echo "Você colou a seguinte chave (prévia):"
     echo "$KEY_PREVIEW"
@@ -204,23 +208,87 @@ while true; do
         break # Sai do loop se confirmado
     else
         echo "Por favor, cole a chave pública novamente."
-    fi # <--- CORREÇÃO AQUI: Era 'F', agora é 'fi'
+    fi
 done
 
-# ============================================================================
-# ETAPA 5: Verificar duplicidade
-# ============================================================================
-if [ "$TARGET_USER" != "$USER" ]; then
-    # Usar sudo para ler o arquivo se o usuário alvo for diferente
-    if sudo grep -qF "$KEY_CONTENT" "$AUTH_KEYS_FILE"; then
-        echo "Aviso: A chave pública fornecida já existe no arquivo $AUTH_KEYS_FILE. Nenhuma alteração foi feita."
-        exit 0
+# Função auxiliar para executar comandos com ou sem sudo
+# Isso garante que operações de arquivo sejam feitas com as permissões corretas
+# dependendo se o usuário alvo é o usuário atual ou outro.
+run_command() {
+    if [ "$TARGET_USER" != "$USER" ]; then
+        sudo "$@"
+    else
+        "$@"
     fi
-else
-    if grep -qF "$KEY_CONTENT" "$AUTH_KEYS_FILE"; then
-        echo "Aviso: A chave pública fornecida já existe no arquivo $AUTH_KEYS_FILE. Nenhuma alteração foi feita."
-        exit 0
-    fi
+}
+
+# ============================================================================
+# ETAPA 5: Verificar duplicidade e interagir com o usuário
+# ============================================================================
+echo "Verificando duplicidade da chave pública no arquivo $AUTH_KEYS_FILE..."
+
+# Tenta encontrar a chave e seu número de linha.
+# Usamos `grep -nF` para correspondência de string fixa e para obter o número da linha.
+# A saída é capturada para que possamos extrair o número da linha.
+KEY_MATCH_OUTPUT=$(run_command grep -nF "$KEY_CONTENT" "$AUTH_KEYS_FILE")
+
+if [ -n "$KEY_MATCH_OUTPUT" ]; then
+    echo "Aviso: A chave pública fornecida JÁ EXISTE no arquivo $AUTH_KEYS_FILE."
+
+    # Extrai o número da primeira linha onde a chave foi encontrada.
+    # Assumimos que a chave é uma única linha, como é o padrão para chaves SSH públicas.
+    FIRST_KEY_LINE_NUM=$(echo "$KEY_MATCH_OUTPUT" | head -n 1 | cut -d: -f1)
+    
+    # O script adiciona um comentário na linha imediatamente anterior à chave.
+    # Se a chave estiver na linha N, o comentário estará na linha N-1.
+    FIRST_COMMENT_LINE_NUM=$((FIRST_KEY_LINE_NUM - 1))
+
+    while true; do
+        echo ""
+        echo "O que você gostaria de fazer com a chave duplicada?"
+        echo "  1) Substituir a chave existente por esta nova (o comentário também será atualizado)."
+        echo "  2) Excluir a chave existente (e seu comentário, se houver)."
+        echo "  3) Manter a chave existente (e não adicionar esta nova)."
+        read -p "Escolha uma opção (1, 2 ou 3): " DUPLICATE_ACTION
+
+        case "$DUPLICATE_ACTION" in
+            1)
+                echo "Opção 'Substituir' selecionada."
+                echo "Removendo a chave existente (linha $FIRST_KEY_LINE_NUM) e seu comentário (linha $FIRST_COMMENT_LINE_NUM, se aplicável)..."
+                
+                # Para remover as linhas corretamente com sed, é mais seguro deletar a linha com maior número primeiro.
+                # Isso evita que o número da linha do comentário seja alterado após a exclusão da chave.
+                # Se o comentário existir e for válido (linha >= 1), deletamos ambos.
+                if [ "$FIRST_COMMENT_LINE_NUM" -ge 1 ]; then
+                    run_command sed -i "${FIRST_KEY_LINE_NUM}d; ${FIRST_COMMENT_LINE_NUM}d" "$AUTH_KEYS_FILE" || error_exit "Falha ao remover a chave existente e seu comentário."
+                else
+                    # Se a chave estiver na primeira linha do arquivo ou não houver comentário antes dela, remove apenas a chave.
+                    run_command sed -i "${FIRST_KEY_LINE_NUM}d" "$AUTH_KEYS_FILE" || error_exit "Falha ao remover a chave existente."
+                fi
+                echo "Chave existente removida. Prosseguindo para adicionar a nova chave."
+                break # Sai do loop de ação de duplicidade e continua para ETAPA 6
+                ;;
+            2)
+                echo "Opção 'Excluir' selecionada."
+                echo "Removendo a chave existente (linha $FIRST_KEY_LINE_NUM) e seu comentário (linha $FIRST_COMMENT_LINE_NUM, se aplicável)..."
+                
+                if [ "$FIRST_COMMENT_LINE_NUM" -ge 1 ]; then
+                    run_command sed -i "${FIRST_KEY_LINE_NUM}d; ${FIRST_COMMENT_LINE_NUM}d" "$AUTH_KEYS_FILE" || error_exit "Falha ao remover a chave existente e seu comentário."
+                else
+                    run_command sed -i "${FIRST_KEY_LINE_NUM}d" "$AUTH_KEYS_FILE" || error_exit "Falha ao remover a chave existente."
+                fi
+                echo "Chave existente excluída com sucesso para o usuário '$TARGET_USER'."
+                exit 0 # Sai do script após a exclusão
+                ;;
+            3)
+                echo "Opção 'Manter' selecionada. Nenhuma alteração será feita."
+                exit 0 # Sai do script sem fazer alterações
+                ;;
+            *)
+                echo "Opção inválida. Por favor, escolha 1, 2 ou 3."
+                ;;
+        esac
+    done
 fi
 
 # ============================================================================
@@ -231,15 +299,10 @@ echo "Adicionando o comentário e a chave pública ao arquivo $AUTH_KEYS_FILE...
 # Prepara o conteúdo completo (comentário + chave) para ser escrito
 CONTENT_TO_WRITE="$COMMENT_LINE"$'\n'"$KEY_CONTENT"
 
-if [ "$TARGET_USER" != "$USER" ]; then
-    # Usar sudo para anexar o conteúdo e, em seguida, reaplicar propriedade/permissões
-    echo "$CONTENT_TO_WRITE" | sudo tee -a "$AUTH_KEYS_FILE" > /dev/null || error_exit "Falha ao adicionar a chave pública."
-    sudo chown "$TARGET_USER:$TARGET_USER" "$AUTH_KEYS_FILE" || error_exit "Falha ao definir proprietário para "$AUTH_KEYS_FILE" após adição."
-    sudo chmod 0600 "$AUTH_KEYS_FILE" || error_exit "Falha ao definir permissões para "$AUTH_KEYS_FILE" após adição."
-else
-    # Anexar diretamente se for o usuário atual
-    echo "$CONTENT_TO_WRITE" >> "$AUTH_KEYS_FILE" || error_exit "Falha ao adicionar a chave pública."
-fi
+# Usa a função run_command para lidar com sudo ou não
+echo "$CONTENT_TO_WRITE" | run_command tee -a "$AUTH_KEYS_FILE" > /dev/null || error_exit "Falha ao adicionar a chave pública."
+run_command chown "$TARGET_USER:$TARGET_USER" "$AUTH_KEYS_FILE" || error_exit "Falha ao definir proprietário para "$AUTH_KEYS_FILE" após adição."
+run_command chmod 0600 "$AUTH_KEYS_FILE" || error_exit "Falha ao definir permissões para "$AUTH_KEYS_FILE" após adição."
 
 echo "Chave pública adicionada com sucesso para o usuário '$TARGET_USER'!"
 echo ""
