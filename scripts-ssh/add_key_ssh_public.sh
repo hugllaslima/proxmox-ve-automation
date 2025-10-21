@@ -59,7 +59,7 @@ echo "---------------------------------------------"
 # ETAPA 1: Selecionar e confirmar usuário alvo
 # ============================================================================
 while true; do
-    read -p "Para qual usuário no servidor a chave pública será adicionada? (Deixe em branco para o usuário atual: $USER): " TARGET_USER_INPUT
+    read -p "Para qual usuário neste servidor a chave pública será adicionada? (Deixe em branco para o usuário atual: $USER): " TARGET_USER_INPUT
     TARGET_USER=${TARGET_USER_INPUT:-$USER} # Se vazio, usa o usuário atual
 
     echo "Você informou o usuário: '$TARGET_USER'"
