@@ -9,7 +9,7 @@
 #            substituir, excluir ou manter a chave existente.
 # Autor: Hugllas Lima
 # Data: $(date +%Y-%m-%d)
-# Versão: 1.9 (Adição de tratamento de duplicidade de chaves)
+# Versão: 1.10 (Correção: Validação robusta da existência do usuário alvo)
 # Licença: MIT
 # Repositório: https://github.com/hugllaslima/proxmox-ve-automation
 #==============================================================================
@@ -78,9 +78,16 @@ while true; do
     echo "Você informou o usuário: '$TARGET_USER'"
     read -p "Esta informação está correta? (s/N): " CONFIRM_TARGET_USER
     if [[ "$CONFIRM_TARGET_USER" =~ ^[Ss]$ ]]; then
-        # Obter o diretório home do usuário alvo
-        if ! HOME_DIR=$(eval echo "~$TARGET_USER"); then
-            echo "Aviso: Usuário '$TARGET_USER' não encontrado ou inacessível. Por favor, tente novamente."
+        # Verificar se o usuário existe no sistema
+        if ! id -u "$TARGET_USER" &>/dev/null; then
+            echo "Erro: Usuário '$TARGET_USER' não existe no sistema. Por favor, tente novamente."
+            continue # Volta para o início do loop
+        fi
+
+        # Obter o diretório home do usuário alvo de forma robusta
+        HOME_DIR=$(getent passwd "$TARGET_USER" | cut -d: -f6)
+        if [ -z "$HOME_DIR" ]; then
+            echo "Aviso: Não foi possível determinar o diretório home para o usuário '$TARGET_USER'. Por favor, tente novamente."
             continue # Volta para o início do loop
         fi
         break # Sai do loop se confirmado e usuário válido
