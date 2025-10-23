@@ -50,8 +50,8 @@ Scripts para monitoramento:
 
 ### 🏃 **scripts-self-hosted-runner/**
 Scripts para configuração de runners:
-- `setup_runner.sh` - Configuração de Self-Hosted Runner
-- `setup_runner_v2.sh` - Versão aprimorada do setup
+- `setup_runner.sh` - Script padrão (v2.0), robusto e recomendado para produção: logging, checkpoints, validação de comandos, rollback e recuperação, captura de Ctrl+C, verificações de status e interface interativa.
+- `setup_runner_legacy.sh` - Versão legada (v1.0), fluxo simples/linear para laboratório e cenários básicos.
 - `cleanup_runner.sh` - Limpeza e remoção de runners
 - `README.md` - Documentação detalhada sobre o uso dos scripts
 

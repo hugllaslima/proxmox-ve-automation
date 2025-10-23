@@ -4,32 +4,27 @@ Este diretório contém scripts para configuração, gerenciamento e limpeza de 
 
 ## Scripts Disponíveis
 
-### 1. setup_runner.sh
-**Objetivo:** Configurar um self-hosted runner do GitHub Actions com usuário dedicado e permissões mínimas.
+### 1. setup_runner.sh (Padrão v2.0)
+**Objetivo:** Script padrão e robusto para configuração do self-hosted runner (recomendado para produção).
 
 **Funcionalidades:**
-- Criação de usuário `runner` com shell bash
-- Configuração de senha para o usuário
-- Adição ao grupo Docker
-- Configuração de permissões sudo específicas
-- Navegação entre usuários (ubuntu ↔ runner)
-- Download e instalação do GitHub Actions Runner
-- Configuração como serviço systemd
-- Validação de hash (opcional)
-- Feedback visual aprimorado com cores
+- Logging avançado e checkpoints
+- Controle de estado e recuperação
+- Backup de configurações críticas
+- Validação de comandos e fluxos
+- Tratamento robusto de erros com fallback
+- Verificação de status e captura de Ctrl+C
+- Interface interativa e intuitiva
 
-### 2. setup_runner_v2.sh
-**Objetivo:** Versão aprimorada com melhor tratamento de erros, logging e controle de estado.
+### 2. setup_runner_legacy.sh (Legado v1.0)
+**Objetivo:** Versão simples/linear, indicada para laboratório e cenários básicos.
 
 **Funcionalidades:**
-- Sistema de logging avançado
-- Controle de estado da instalação
-- Backup automático de configurações
-- Tratamento robusto de erros
-- Múltiplos métodos de fallback
-- Verificações de status melhoradas
-- Captura de interrupções (Ctrl+C)
-- Interface mais intuitiva
+- Criação de usuário `runner`
+- Permissões sudo específicas
+- Download, extração e configuração do runner
+- Instalação como serviço (opcional)
+- Fluxo direto com menos validações
 
 ### 3. cleanup_runner.sh
 **Objetivo:** Remover completamente todas as configurações do self-hosted runner.
@@ -58,11 +53,11 @@ Um **Self-Hosted Runner** é um servidor que você configura e gerencia para exe
 
 ### Configuração Inicial
 ```bash
-# Executar como usuário com privilégios sudo
+# Padrão (v2.0)
 sudo ./setup_runner.sh
 
-# Ou usar a versão aprimorada
-sudo ./setup_runner_v2.sh
+# Versão legada (v1.0)
+sudo ./setup_runner_legacy.sh
 ```
 
 ### Fluxo de Configuração
