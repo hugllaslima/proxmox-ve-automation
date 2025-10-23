@@ -90,54 +90,12 @@ sudo ./create_vm_v2.sh
 
 ---
 
+
+
 ### ⚙️ `ubuntu_full_config_pve.sh`
-**Configuração inicial completa para Ubuntu Server no Proxmox VE**
-
-**Funcionalidades:**
-- **Configuração de Sistema:**
-  - Ajuste do timezone para America/Sao_Paulo
-  - Atualização completa do sistema operacional
-  - Instalação do qemu-guest-agent para integração com Proxmox
-
-- **Configuração de Usuário:**
-  - Adição do usuário 'ubuntu' ao grupo sudo
-  - Configuração de sudo sem senha para o usuário ubuntu
-
-- **Configuração SSH Avançada:**
-  - Criação e configuração do diretório .ssh
-  - Entrada manual de chave privada SSH
-  - Geração automática da chave pública correspondente
-  - Opção de remoção segura da chave privada após configuração
-  - Configuração do arquivo authorized_keys
-
-- **Hardening SSH:**
-  - Habilitação da autenticação por chave pública
-  - Desabilitação da autenticação por senha
-  - Desabilitação da autenticação interativa por teclado
-  - Backup automático da configuração SSH original
-  - Reinicialização do serviço SSH
-
-- **Instalação Opcional do Docker:**
-  - Instalação completa do Docker CE e Docker Compose
-  - Configuração do usuário ubuntu para usar Docker
-
-**Uso:**
-```bash
-chmod +x ubuntu_full_config_pve.sh
-sudo ./ubuntu_full_config_pve.sh
-```
-
-**Importante:**
-- Execute como root (sudo su)
-- Tenha sua chave SSH privada pronta para inserção
-- Teste o acesso SSH em outra sessão antes de reiniciar
-
----
-
-### ⚙️ `ubuntu_full_config_pve_v2.sh`
 **Versão aprimorada do script de configuração inicial**
 
-**Melhorias da v2:**
+**Melhorias:**
 - Interface de usuário aprimorada com melhor feedback visual
 - Tratamento de erros mais robusto
 - Validações adicionais de segurança
@@ -145,7 +103,7 @@ sudo ./ubuntu_full_config_pve.sh
 - Melhor gerenciamento de permissões
 - Logs mais detalhados das operações
 
-**Funcionalidades:** (Mesmas da v1 com melhorias)
+**Funcionalidades:** 
 - Todas as funcionalidades do script v1
 - Melhor tratamento de exceções
 - Validações de entrada mais rigorosas
@@ -153,8 +111,8 @@ sudo ./ubuntu_full_config_pve.sh
 
 **Uso:**
 ```bash
-chmod +x ubuntu_full_config_pve_v2.sh
-sudo ./ubuntu_full_config_pve_v2.sh
+chmod +x ubuntu_full_config_pve.sh
+sudo ./ubuntu_full_config_pve.sh
 ```
 
 ## 🚀 Fluxo de Uso Recomendado
@@ -165,8 +123,8 @@ sudo ./ubuntu_full_config_pve_v2.sh
 
 ### Para Nova VM Ubuntu:
 1. **Primeiro:** Execute `create_vm_v2.sh` ou `create_vm.sh` para criar a VM
-2. **Segundo:** Execute `ubuntu_full_config_pve_v2.sh` para configuração inicial completa
-3. **Alternativo:** Use `ubuntu_full_config_pve.sh` se preferir a versão original
+2. **Segundo:** Execute `ubuntu_full_config_pve.sh` para configuração inicial completa
+
 
 ### Para Instalação Apenas do Docker:
 1. Execute `install_docker_full.sh` em uma VM já configurada
@@ -177,13 +135,13 @@ sudo ./ubuntu_full_config_pve_v2.sh
 - Ubuntu Server 20.04 LTS ou superior (para scripts de configuração de Ubuntu)
 - Acesso root ou sudo
 - Conexão com a internet
-- Chave SSH privada (para scripts de configuração completa)
+- Chave SSH pública (para configuração SSH no v2)
 - VM criada no Proxmox VE
 
 ## 🔒 Considerações de Segurança
 
 - **Backup:** Sempre faça snapshot da VM antes de executar os scripts
-- **Chaves SSH:** Os scripts oferecem opção de remoção segura da chave privada após configuração
+- **Chaves SSH:** O script v2 solicita chave pública e preserva chaves existentes
 - **Teste SSH:** Sempre teste o acesso SSH em outra sessão antes de reiniciar
 - **Sudo:** Scripts configuram sudo sem senha apenas para o usuário 'ubuntu'
 

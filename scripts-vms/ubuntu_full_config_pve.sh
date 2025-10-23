@@ -1,11 +1,11 @@
 #!/bin/bash
 
 #==============================================================================
-# Script: ubuntu_full_config_pve.sh
-# Descrição: Configuração completa do Ubuntu Server para Proxmox VE
+# Script: ubuntu_full_config_pve_v2.sh
+# Descrição: Configuração completa do Ubuntu Server para Proxmox VE (Versão 2)
 # Autor: Hugllas Lima
 # Data: $(date +%Y-%m-%d)
-# Versão: 1.0
+# Versão: 2.0
 # Licença: MIT
 # Repositório: https://github.com/hugllaslima/proxmox-ve-automation
 #==============================================================================
@@ -13,11 +13,12 @@
 # ETAPAS DO SCRIPT:
 # 1. Configuração de timezone
 # 2. Configuração de usuário sudo
-# 3. Configuração SSH
+# 3. Configuração SSH avançada
 # 4. Atualização do sistema
 # 5. Instalação do Docker e Docker Compose
 # 6. Configuração de permissões
 # 7. Instalação de ferramentas adicionais
+# 8. Configurações de segurança
 
 set -euo pipefail
 
@@ -38,11 +39,12 @@ reiniciar() {
         echo "Por favor, execute 'sudo reboot' manualmente quando estiver pronto."
     fi
 }
+echo " "
 
 # ============================================================================
 # ETAPA 1: CONFIGURAÇÃO INICIAL DO SISTEMA
 # ============================================================================
-configuração_inicial() {
+configuracao_inicial() {
 echo "[Configuração Inicial - Root]"
 echo "Ajustando o timezone..."
     timedatectl set-timezone America/Sao_Paulo
@@ -54,11 +56,11 @@ echo "Adicionando usuário 'ubuntu' ao grupo sudo..."
     sleep 1
 
 echo "Enable sudo sem senha para ubuntu..."
-    echo "ubuntu ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/ubuntu    
+    echo "ubuntu ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/ubuntu   
     sleep 1
 
 echo "Atualizando pacotes..."
-    apt update && apt upgrade -y    
+    apt update && apt upgrade -y   
     sleep 1
 
 echo "Instalando qemu-guest-agent..."
@@ -66,53 +68,58 @@ echo "Instalando qemu-guest-agent..."
     systemctl start qemu-guest-agent
     systemctl enable qemu-guest-agent
 }
+echo " "
 
 # ============================================================================
-# ETAPA 2: CONFIGURAÇÃO SSH PARA USUÁRIO UBUNTU
+# ETAPA 2: CONFIGURAÇÃO SSH AVANÇADA PARA USUÁRIO UBUNTU
 # ============================================================================
 configura_ssh_ubuntu() {
     echo "[SSH para usuário ubuntu]"
 
     SSH_DIR="/home/ubuntu/.ssh"
     AUTH_KEYS="$SSH_DIR/authorized_keys"
-    ID_RSA="$SSH_DIR/id_rsa"
-    ID_PUB="$SSH_DIR/id_rsa.pub"
 
     echo "Criando diretório SSH para o usuário ubuntu..."
     sudo -u ubuntu mkdir -p $SSH_DIR
     sudo chown ubuntu:ubuntu $SSH_DIR
     sudo chmod 700 $SSH_DIR
 
-    # Entrada manual da chave privada (campo oculto)
-    echo "Por favor, cole a chave PRIVADA do usuário ubuntu (PEM)."
+    # Entrada manual da chave pública
+    echo "Por favor, cole a chave PÚBLICA do usuário ubuntu."
     echo "Finalize com Ctrl+D numa linha em branco."
-    sudo -u ubuntu tee $ID_RSA > /dev/null
-    sudo chmod 600 $ID_RSA
-
-    # Gerar chave pública correspondente
-    echo "Gerando chave pública a partir da chave privada..."
-    sudo -u ubuntu ssh-keygen -y -f $ID_RSA | sudo tee $ID_PUB > /dev/null
-    sudo chmod 644 $ID_PUB
-
-    # >>> NOVO BLOCO AQUI <<<
-    read -p "Deseja apagar a chave privada ($ID_RSA) por segurança? [s/n]: " RESP_APAGA_CHAVE
-    if [[ "$RESP_APAGA_CHAVE" =~ ^([sS][iI][mM]|[sS])$ ]]; then
-        sudo shred -u $ID_RSA
-        echo "Chave privada $ID_RSA removida com segurança!"
-    else
-        echo "Atenção: A chave privada foi mantida em $ID_RSA."
+    
+    # Lê a chave pública fornecida pelo usuário
+    CHAVE_PUBLICA=$(sudo -u ubuntu tee /tmp/temp_pubkey)
+    
+    # Valida se parece com uma chave pública SSH
+    if [[ ! "$CHAVE_PUBLICA" =~ ^ssh-(rsa|dss|ecdsa|ed25519) ]]; then
+        echo "ERRO: A entrada não parece ser uma chave pública SSH válida."
+        echo "Uma chave pública deve começar com 'ssh-rsa', 'ssh-dss', 'ssh-ecdsa' ou 'ssh-ed25519'."
+        rm -f /tmp/temp_pubkey
+        exit 1
     fi
+echo " "
 
-    # Adiciona a chave pública ao authorized_keys
+# Cria ou atualiza o authorized_keys sem apagar chaves existentes
     sudo -u ubuntu touch $AUTH_KEYS
-    if ! grep -q "$(sudo cat $ID_PUB)" $AUTH_KEYS; then
-        sudo cat $ID_PUB | sudo tee -a $AUTH_KEYS > /dev/null
+    
+    # Verifica se a chave já existe para evitar duplicatas
+    if ! grep -qF "$CHAVE_PUBLICA" $AUTH_KEYS; then
+        echo "$CHAVE_PUBLICA" | sudo tee -a $AUTH_KEYS > /dev/null
+        echo "Nova chave pública adicionada ao authorized_keys."
+    else
+        echo "Esta chave pública já existe no authorized_keys."
     fi
+    
     sudo chmod 600 $AUTH_KEYS
     sudo chown ubuntu:ubuntu $AUTH_KEYS
 
-    echo "Chaves SSH configuradas para o usuário ubuntu."
+    # Remove arquivo temporário
+    rm -f /tmp/temp_pubkey
+
+    echo "Chave SSH configurada para o usuário ubuntu (chaves existentes preservadas)."
 }
+echo " "
 
 # ============================================================================
 # ETAPA 3: AJUSTES NO SSHD
@@ -147,6 +154,7 @@ ajusta_sshd() {
 
     echo "Ajustes SSH aplicados. Teste o acesso via SSH em outra janela antes de sair desta sessão!"
 }
+echo " "
 
 # ============================================================================
 # ETAPA 4: INSTALAÇÃO DOCKER E DOCKER COMPOSE
