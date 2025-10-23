@@ -57,7 +57,7 @@ Scripts para configuração de runners:
 ### 🔑 **scripts-ssh/**
 Scripts para configuração de acesso SSH:
 - `add_key_ssh_public.sh` - Adiciona chave pública SSH com validação de formato, comentários identificando proprietário, confirmação interativa e preservação de permissões
-- `add_ssh_key_public_login_block.sh` - Versão avançada com hardening SSH completo, desabilitação de login por senha e configuração opcional de sudo NOPASSWD
+- `add_key_ssh_public_login_block.sh` - Versão avançada com hardening SSH completo, desabilitação de login por senha, configuração opcional de sudo NOPASSWD, validação robusta de usuário, prévia de chave aprimorada e opções para chaves duplicadas (substituir, excluir ou manter)
 - `README.md` - Documentação detalhada sobre o uso dos scripts
 
 ### 🔌 **Agentes QEMU/**
