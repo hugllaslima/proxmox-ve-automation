@@ -26,8 +26,8 @@
 # 9. Pausar para validação de acesso SSH
 #
 # Uso:
-#   chmod +x add_key_ssh_public.sh
-#   sudo ./add_key_ssh_public.sh
+#   chmod +x add_key_ssh_public_login_block.sh
+#   sudo ./add_key_ssh_public_login_block.sh
 #
 # Pré-requisitos:
 # - Sistemas operacionais baseados em Ubuntu
