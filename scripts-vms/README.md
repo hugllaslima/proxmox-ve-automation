@@ -104,7 +104,6 @@ sudo ./create_vm_v2.sh
 - Logs mais detalhados das operações
 
 **Funcionalidades:** 
-- Todas as funcionalidades do script v1
 - Melhor tratamento de exceções
 - Validações de entrada mais rigorosas
 - Feedback visual aprimorado durante a execução
