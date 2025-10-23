@@ -2,7 +2,7 @@
 
 #==============================================================================
 # Script: setup_runner.sh
-# Descrição: Configuração de GitHub Actions Self-hosted Runner — Padrão (Versão 2.0)
+# Descrição: Configuração de GitHub Actions Self-hosted Runner — Padrão
 # Perfil: Padrão/robusto — recomendado para produção; tolerante a falhas
 # Diferenciais: logging detalhado, checkpoints, validação de comandos, rollback, recuperação
 # Autor: Hugllas Lima
@@ -638,25 +638,39 @@ if [ "$current_state" -lt "8" ]; then
         
         print_info "Iniciando runner..."
         
-        # Marcar que estamos no teste
-        IN_RUNNER_TEST=true
+        # Criar um subshell para isolar o teste e redirecionar stderr
+        (
+            trap '' INT TERM  # Ignorar sinais no subshell
+            sudo -u runner bash -c "cd /home/runner/actions-runner && ./run.sh" 2>/dev/null
+        ) &
         
-        # Executar o runner com timeout
-        run_as_runner "cd /home/runner/actions-runner && timeout 30 ./run.sh" || true
+        TEST_PID=$!
         
-        # Desmarcar teste
-        IN_RUNNER_TEST=false
+        # Aguardar Ctrl+C do usuário
+        echo
+        echo -e "${GREEN}Runner iniciado! Aguardando você pressionar Ctrl+C...${NC}"
+        
+        # Criar um trap temporário apenas para esta seção
+        trap 'kill -TERM $TEST_PID 2>/dev/null; wait $TEST_PID 2>/dev/null; echo; print_info "Teste interrompido - finalizando runner..."; sleep 1' INT
+        
+        # Aguardar o processo ou interrupção
+        wait $TEST_PID 2>/dev/null
+        
+        # Restaurar o trap original
+        trap 'handle_interrupt' INT TERM
+        
+        # Aguardar um momento para o runner terminar completamente
+        sleep 2
         
         echo
-        print_success "Teste concluído"
-        
-        sleep 2
+        print_success "Teste concluído com sucesso"
+        sleep 1
         
         print_info "═══════════════════════════════════════════════════"
         print_info "             INSTALANDO COMO SERVIÇO               "
         print_info "═══════════════════════════════════════════════════"
         
-        # Tentar instalar o serviço
+        # Continua com a instalação do serviço...
         attempts=0
         max_attempts=3
         
@@ -665,12 +679,10 @@ if [ "$current_state" -lt "8" ]; then
             
             if run_as_runner "cd /home/runner/actions-runner && sudo ./svc.sh install runner"; then
                 print_success "Serviço instalado"
-                
                 sleep 2
                 
                 if run_as_runner "cd /home/runner/actions-runner && sudo ./svc.sh start"; then
                     print_success "Serviço iniciado"
-                    
                     sleep 5
                     
                     print_info "═══════════════════════════════════════════════════"
