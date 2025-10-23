@@ -1,8 +1,8 @@
 #!/bin/bash
 
 #==============================================================================
-# Script: ubuntu_full_config_pve_v2.sh
-# Descrição: Configuração completa do Ubuntu Server para Proxmox VE (Versão 2)
+# Script: ubuntu_full_config_pve.sh
+# Descrição: Configuração completa do Ubuntu Server para Proxmox VE
 # Autor: Hugllas Lima
 # Data: $(date +%Y-%m-%d)
 # Versão: 2.0
