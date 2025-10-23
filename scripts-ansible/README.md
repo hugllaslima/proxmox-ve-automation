@@ -35,6 +35,14 @@ Preparar máquinas virtuais e containers LXC para serem gerenciados remotamente 
   - **Validação de formato SSH:** Verifica se a chave está em formato válido
   - **Confirmação interativa:** Todas as informações são confirmadas antes da execução
 
+## 📝 Notas da Versão 1.6
+- Correção do comentário da chave: usa `SUDO_USER` para identificar quem adicionou
+- Comentários incluem data/hora (`YYYY-MM-DD HH:MM:SS`)
+- Removido `sort -u` para preservar ordem e manter comentários associados às chaves
+- Não altera `sshd_config` nem `sudoers`; foco em preparar `.ssh` e `authorized_keys`
+- Pré-visualização de chave e validação de formato aprimoradas
+- Verificação robusta de existência do usuário e diretório home
+
 #### 🛡️ **Hardening SSH Recomendado**
 - Orientações para configuração segura do SSH
 - Recomendações para desabilitar autenticação por senha
@@ -87,11 +95,13 @@ ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB... ansible@control-node
 
 ### Configuração Adicional de SSH
 Para configurações mais avançadas de SSH ou adição de chaves a usuários específicos, utilize:
-- **`../scripts-ssh/add_key_ssh_public.sh`** - Script dedicado para adição de chaves SSH com validação completa
+- **`../scripts-ssh/add_key_ssh_public.sh`** - Adição dedicada de chaves SSH com validação de formato, comentários e preservação de permissões
+- **`../scripts-ssh/add_key_ssh_public_login_block.sh`** - Hardening SSH completo (desabilita login por senha), validações robustas e opção de `sudo NOPASSWD`
 
 **Diferenças entre os scripts:**
-- **`add_host_ansible.sh`**: Focado na preparação completa de hosts para Ansible (dependências + SSH)
-- **`add_key_ssh_public.sh`**: Focado exclusivamente na adição segura de chaves SSH a qualquer usuário
+- **`add_host_ansible.sh`**: Prepara usuários existentes para Ansible; não altera `sshd_config` nem `sudoers`
+- **`add_key_ssh_public.sh`**: Focado exclusivamente na adição segura de chaves a qualquer usuário
+- **`add_key_ssh_public_login_block.sh`**: Aplica hardening SSH completo e pode configurar `sudo NOPASSWD`
 
 ## 🎯 Casos de Uso
 

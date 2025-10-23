@@ -27,7 +27,8 @@ Scripts para criação e configuração de VMs no Proxmox VE:
 
 ### 🔧 **scripts-ansible/**
 Scripts para preparação de hosts para automação com Ansible:
-- `add_host_ansible.sh` - Configuração completa de hosts para gerenciamento via Ansible (dependências, SSH, validações)
+- `add_host_ansible.sh` - Prepara usuários existentes para gerenciamento Ansible: checagens opcionais de dependências e atualização do SO, validações robustas de usuário/home, adição de chave pública com comentário incluindo quem adicionou (via `SUDO_USER`) e data/hora, preview e validação de formato, prevenção de duplicidade. Não cria usuário, não altera `sudoers` e não modifica `sshd_config`.
+  - Para hardening completo do SSH e `NOPASSWD` opcional, use `scripts-ssh/add_key_ssh_public_login_block.sh`.
 - `README.md` - Documentação detalhada sobre o uso dos scripts
 
 ### 💾 **scripts-backups/**
