@@ -1,7 +1,7 @@
 #!/bin/bash
 
 #==============================================================================
-# Script: install_docker_full.sh
+# Script: install_docker_full_zorin_os.sh
 # Descrição: Instalação completa do Docker e Docker Compose
 # Autor: Hugllas Lima
 # Data: $(date +%Y-%m-%d)
