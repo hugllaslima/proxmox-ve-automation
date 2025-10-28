@@ -4,8 +4,8 @@ Este diretório contém scripts para criação e configuração de máquinas vir
 
 ## 📋 Scripts Disponíveis
 
-### 🐳 `install_docker_full.sh`
-**Instalação completa do Docker e Docker Compose**
+### 🐳 `install_docker_full_ubuntu.sh`
+**Instalação completa do Docker e Docker Compose para Ubuntu Server**
 
 **Funcionalidades:**
 - Atualização completa do sistema Ubuntu
@@ -21,13 +21,46 @@ Este diretório contém scripts para criação e configuração de máquinas vir
 
 **Uso:**
 ```bash
-chmod +x install_docker_full.sh
-sudo ./install_docker_full.sh
+chmod +x install_docker_full_ubuntu.sh
+sudo ./install_docker_full_ubuntu.sh
 ```
 
 **Pós-instalação:**
 - Faça logout e login novamente para aplicar as permissões do grupo docker
 - Teste com: `docker --version` e `docker-compose --version`
+
+### 🐳 `install_docker_full_zorin.sh`
+**Instalação completa do Docker e Docker Compose para Zorin OS e derivados do Ubuntu**
+
+**Funcionalidades:**
+- Detecção automática da distribuição (Zorin OS, Pop!_OS, Linux Mint, Elementary OS)
+- Limpeza completa de instalações anteriores do Docker
+- Otimização de mirrors para evitar erros de sincronização
+- Atualização completa do sistema
+- Instalação de dependências necessárias
+- Adição da chave GPG do Docker usando método moderno (keyrings)
+- Configuração do repositório Docker baseado na versão Ubuntu correspondente
+- Instalação do Docker CE e plugins
+- Configuração de permissões do usuário
+- Teste automático da instalação
+- Limpeza final do sistema
+
+**Uso:**
+```bash
+chmod +x install_docker_full_zorin.sh
+sudo ./install_docker_full_zorin.sh
+```
+
+**Sistemas Suportados:**
+- Zorin OS Core/Pro (baseado em Ubuntu)
+- Pop!_OS
+- Linux Mint
+- Elementary OS
+- Outros derivados do Ubuntu
+
+**Pós-instalação:**
+- Faça logout e login novamente para aplicar as permissões do grupo docker
+- Teste com: `docker --version` e `docker compose version`
 
 ### 🧩 `create_vm.sh`
 **Criação interativa de VMs no Proxmox VE (qm)**
@@ -126,7 +159,8 @@ sudo ./ubuntu_full_config_pve.sh
 
 
 ### Para Instalação Apenas do Docker:
-1. Execute `install_docker_full.sh` em uma VM já configurada
+1. **Ubuntu Server:** Execute `install_docker_full_ubuntu.sh` em uma VM Ubuntu já configurada
+2. **Zorin OS/Derivados:** Execute `install_docker_full_zorin.sh` em sistemas baseados em Ubuntu (Zorin, Pop!_OS, Mint, etc.)
 
 ## ⚠️ Pré-requisitos
 

@@ -21,7 +21,8 @@ Scripts para criação e configuração de VMs no Proxmox VE:
 - `create_vm.sh` - Criação interativa de VMs via `qm` com validações e ISO opcional
 - `create_vm_v2.sh` - Versão aprimorada com interface melhorada e validações robustas
 - `ubuntu_full_config_pve.sh` - Configuração inicial completa (versão aprimorada)
-- `install_docker_full.sh` - Instalação standalone do Docker e Docker Compose
+- `install_docker_full_ubuntu.sh` - Instalação do Docker e Docker Compose para Ubuntu Server
+- `install_docker_full_zorin.sh` - Instalação do Docker para Zorin OS e derivados do Ubuntu
 - `README.md` - Documentação detalhada sobre o uso dos scripts
 
 ### 🔧 **scripts-ansible/**
@@ -105,11 +106,12 @@ Scripts para instalação de agentes QEMU:
 
 ## 📋 Funcionalidades Principais
 
-### Configuração de VMs Ubuntu
+### Configuração de VMs Ubuntu e Derivados
 - ✅ Ajuste de timezone para America/Sao_Paulo
 - ✅ Configuração de usuário sudo
 - ✅ Setup completo de SSH com chaves
-- ✅ Instalação do Docker e Docker Compose
+- ✅ Instalação do Docker e Docker Compose (Ubuntu Server e Zorin OS)
+- ✅ Suporte a distribuições baseadas em Ubuntu (Zorin OS, Pop!_OS, Linux Mint, Elementary OS)
 - ✅ Instalação do agente QEMU
 
 ### Backup e Segurança

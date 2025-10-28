@@ -1,14 +1,28 @@
 #!/bin/bash
 
 #==============================================================================
-# Script: install_docker_full.sh
-# Descrição: Instalação completa do Docker e Docker Compose
+# Script: install_docker_full_zorin.sh
+# Descrição: Instalação completa do Docker e Docker Compose para Zorin OS
 # Autor: Hugllas Lima
 # Data: $(date +%Y-%m-%d)
-# Versão: 1.3
+# Versão: 1.0
 # Licença: MIT
 # Repositório: https://github.com/hugllaslima/proxmox-ve-automation
 #==============================================================================
+
+# ETAPAS DO SCRIPT:
+# 1. Detecção da distribuição (Zorin OS e derivados do Ubuntu)
+# 2. Limpeza completa de instalação anterior
+# 3. Otimização do mirror (evita erros de sincronização)
+# 4. Atualização do sistema
+# 5. Instalação de dependências
+# 6. Adição da chave GPG do Docker (método moderno)
+# 7. Adição do repositório Docker
+# 8. Instalação do Docker
+# 9. Configuração de permissões do usuário
+# 10. Teste rápido
+# 11. Verificação da instalação
+# 12. Limpeza final
 
 # Ativa modo de erro (para o script se algum comando falhar)
 set -e
