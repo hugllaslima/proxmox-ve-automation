@@ -67,6 +67,11 @@ Scripts para instalação de agentes QEMU:
 - `yum_install_agent_qemu.sh` - Instalação do agente QEMU em sistemas baseados em YUM
 - `README.md` - Documentação detalhada sobre o QEMU Guest Agent e uso dos scripts
 
+### 🖥️ **scripts-zorin-os/**
+Scripts específicos para a distribuição Zorin OS:
+- `read_only_mounted_disk.sh` - Corrige problemas de disco montado como somente leitura
+- `README.md` - Documentação detalhada sobre o uso dos scripts
+
 ## 🚀 Como Usar
 
 1. **Clone o repositório:**
