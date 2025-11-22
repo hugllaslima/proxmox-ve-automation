@@ -24,8 +24,8 @@ NC='\033[0m' # No Color
 print_header() {
     echo -e "\n${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}║                                                            ║${NC}"
-    echo -e "${BLUE}║        Instalação RabbitMQ Server (Dedicado)              ║${NC}"
-    echo -e "${BLUE}║        Ubuntu Server 24.04 LTS                             ║${NC}"
+    echo -e "${BLUE}║            Instalação RabbitMQ Server (Dedicado)           ║${NC}"
+    echo -e "${BLUE}║                  Ubuntu Server 24.04 LTS                   ║${NC}"
     echo -e "${BLUE}║                                                            ║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}\n"
 }
@@ -343,7 +343,7 @@ rabbitmqctl status | grep "RabbitMQ version"
 
 echo -e "\n${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║                                                            ║${NC}"
-echo -e "${GREEN}║        Instalação Concluída com Sucesso! ✓                ║${NC}"
+echo -e "${GREEN}║            Instalação Concluída com Sucesso! ✓            ║${NC}"
 echo -e "${GREEN}║                                                            ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
