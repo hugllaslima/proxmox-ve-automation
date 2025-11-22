@@ -2,9 +2,9 @@
 
 ################################################################################
 # Script de Instalação do RabbitMQ Server
-# Versão: 2.0
+# Versão: 2.1 - CORRIGIDO para Ubuntu 24.04
 # Compatível com: Ubuntu Server 24.04 LTS
-# Uso: sudo ./install_rabbit_mq.sh
+# Uso: sudo ./install_rabbitmq.sh
 #
 # Este script instala e configura o RabbitMQ Server de forma interativa
 # Ideal para ambientes com múltiplos serviços que necessitam de message broker
@@ -25,7 +25,7 @@ print_header() {
     echo -e "\n${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}║                                                            ║${NC}"
     echo -e "${BLUE}║            Instalação RabbitMQ Server (Dedicado)           ║${NC}"
-    echo -e "${BLUE}║                  Ubuntu Server 24.04 LTS                   ║${NC}"
+    echo -e "${BLUE}║                   Ubuntu Server 24.04 LTS                  ║${NC}"
     echo -e "${BLUE}║                                                            ║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}\n"
 }
@@ -200,64 +200,89 @@ fi
 echo -e "\n${GREEN}Iniciando instalação...${NC}\n"
 
 # 1. Atualizar sistema
-echo -e "${GREEN}[1/6] Atualizando sistema...${NC}"
+echo -e "${GREEN}[1/7] Atualizando sistema...${NC}"
 apt update && apt upgrade -y
-apt install -y apt-transport-https ca-certificates curl gnupg lsb-release
+apt install -y apt-transport-https ca-certificates curl gnupg lsb-release wget
 
-# 2. Instalar Erlang
-echo -e "${GREEN}[2/6] Instalando Erlang...${NC}"
-curl -fsSL https://github.com/rabbitmq/signing-keys/releases/download/2.0/rabbitmq-release-signing-key.asc | gpg --dearmor -o /usr/share/keyrings/rabbitmq-archive-keyring.gpg
+# 2. Instalar Erlang via repositório oficial do Team RabbitMQ
+echo -e "${GREEN}[2/7] Instalando Erlang (via Launchpad PPA)...${NC}"
 
-echo "deb [signed-by=/usr/share/keyrings/rabbitmq-archive-keyring.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-erlang/deb/ubuntu $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/rabbitmq.list
+# Adicionar repositório Erlang Solutions
+wget -O- https://packages.erlang-solutions.com/ubuntu/erlang_solutions.asc | gpg --dearmor -o /usr/share/keyrings/erlang-solutions-archive-keyring.gpg
 
-# 3. Instalar RabbitMQ Server
-echo -e "${GREEN}[3/6] Instalando RabbitMQ Server...${NC}"
-echo "deb [signed-by=/usr/share/keyrings/rabbitmq-archive-keyring.gpg] https://ppa1.novemberain.com/rabbitmq/rabbitmq-server/deb/ubuntu $(lsb_release -sc) main" | tee -a /etc/apt/sources.list.d/rabbitmq.list
+echo "deb [signed-by=/usr/share/keyrings/erlang-solutions-archive-keyring.gpg] https://packages.erlang-solutions.com/ubuntu $(lsb_release -sc) contrib" | tee /etc/apt/sources.list.d/erlang.list
 
+apt update
+apt install -y erlang
+
+# 3. Adicionar chave GPG do RabbitMQ
+echo -e "${GREEN}[3/7] Adicionando chave GPG do RabbitMQ...${NC}"
+curl -fsSL https://keys.openpgp.org/vks/v1/by-fingerprint/0A9AF2115F4687BD29803A206B73A36E6026DFCA | gpg --dearmor -o /usr/share/keyrings/com.rabbitmq.team.gpg
+
+# 4. Adicionar repositório do RabbitMQ via Packagecloud
+echo -e "${GREEN}[4/7] Adicionando repositório RabbitMQ...${NC}"
+
+# Criar arquivo de repositório
+cat > /etc/apt/sources.list.d/rabbitmq.list <<EOF
+## Provides RabbitMQ
+deb [signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://ppa1.rabbitmq.com/rabbitmq/rabbitmq-server/deb/ubuntu $(lsb_release -sc) main
+deb-src [signed-by=/usr/share/keyrings/com.rabbitmq.team.gpg] https://ppa1.rabbitmq.com/rabbitmq/rabbitmq-server/deb/ubuntu $(lsb_release -sc) main
+EOF
+
+# 5. Instalar RabbitMQ Server
+echo -e "${GREEN}[5/7] Instalando RabbitMQ Server...${NC}"
 apt update
 apt install -y rabbitmq-server
 
-# 4. Habilitar e iniciar serviço
-echo -e "${GREEN}[4/6] Habilitando serviços...${NC}"
+# 6. Habilitar e iniciar serviço
+echo -e "${GREEN}[6/7] Habilitando serviços...${NC}"
 systemctl enable rabbitmq-server
 systemctl start rabbitmq-server
 
 # Aguardar serviço iniciar
-sleep 5
+echo -e "${CYAN}Aguardando RabbitMQ inicializar...${NC}"
+sleep 10
 
-# 5. Habilitar Management Plugin
-echo -e "${GREEN}[5/6] Habilitando Management Plugin...${NC}"
+# 7. Habilitar Management Plugin e configurar usuários
+echo -e "${GREEN}[7/7] Configurando RabbitMQ...${NC}"
+
+# Habilitar Management Plugin
 rabbitmq-plugins enable rabbitmq_management
 
-# 6. Criar usuários e configurações
-echo -e "${GREEN}[6/6] Configurando usuários e permissões...${NC}"
+# Aguardar plugin inicializar
+sleep 5
 
 # Remover usuário guest (segurança)
 rabbitmqctl delete_user guest 2>/dev/null || true
 
 # Criar usuário admin
+echo -e "${CYAN}  Criando usuário administrador...${NC}"
 rabbitmqctl add_user "$ADMIN_USER" "$ADMIN_PASS"
 rabbitmqctl set_user_tags "$ADMIN_USER" administrator
 rabbitmqctl set_permissions -p / "$ADMIN_USER" ".*" ".*" ".*"
 
 # Criar usuários dos serviços
-for i in "${!SERVICES[@]}"; do
-    SERVICE_USER="${SERVICE_USERS[$i]}"
-    SERVICE_PASS="${SERVICE_PASSES[$i]}"
-    SERVICE_VHOST="${SERVICE_VHOSTS[$i]}"
+if [ ${#SERVICES[@]} -gt 0 ]; then
+    for i in "${!SERVICES[@]}"; do
+        SERVICE_USER="${SERVICE_USERS[$i]}"
+        SERVICE_PASS="${SERVICE_PASSES[$i]}"
+        SERVICE_VHOST="${SERVICE_VHOSTS[$i]}"
 
-    echo -e "${CYAN}  Criando usuário para ${SERVICES[$i]}...${NC}"
+        echo -e "${CYAN}  Criando usuário para ${SERVICES[$i]}...${NC}"
 
-    # Criar usuário
-    rabbitmqctl add_user "$SERVICE_USER" "$SERVICE_PASS"
+        # Criar usuário
+        rabbitmqctl add_user "$SERVICE_USER" "$SERVICE_PASS"
 
-    # Criar vhost
-    rabbitmqctl add_vhost "$SERVICE_VHOST"
+        # Criar vhost
+        rabbitmqctl add_vhost "$SERVICE_VHOST"
 
-    # Dar permissões
-    rabbitmqctl set_permissions -p "$SERVICE_VHOST" "$SERVICE_USER" ".*" ".*" ".*"
-    rabbitmqctl set_permissions -p / "$SERVICE_USER" ".*" ".*" ".*"
-done
+        # Dar permissões no vhost específico
+        rabbitmqctl set_permissions -p "$SERVICE_VHOST" "$SERVICE_USER" ".*" ".*" ".*"
+
+        # Dar permissões no vhost padrão também
+        rabbitmqctl set_permissions -p / "$SERVICE_USER" ".*" ".*" ".*"
+    done
+fi
 
 # ============================================================================
 # CONFIGURAR FIREWALL
@@ -332,10 +357,21 @@ chmod 600 "$CREDENTIALS_FILE"
 # ============================================================================
 
 echo -e "\n${GREEN}═══ Verificando instalação ═══${NC}"
+
+echo -e "\n${BLUE}Status do serviço:${NC}"
 systemctl status rabbitmq-server --no-pager | grep Active
 
-echo -e "\n${BLUE}Testando RabbitMQ:${NC}"
-rabbitmqctl status | grep "RabbitMQ version"
+echo -e "\n${BLUE}Versão do RabbitMQ:${NC}"
+rabbitmqctl version
+
+echo -e "\n${BLUE}Plugins habilitados:${NC}"
+rabbitmq-plugins list | grep enabled
+
+echo -e "\n${BLUE}Usuários criados:${NC}"
+rabbitmqctl list_users
+
+echo -e "\n${BLUE}VHosts criados:${NC}"
+rabbitmqctl list_vhosts
 
 # ============================================================================
 # FINALIZAÇÃO
@@ -343,7 +379,7 @@ rabbitmqctl status | grep "RabbitMQ version"
 
 echo -e "\n${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║                                                            ║${NC}"
-echo -e "${GREEN}║            Instalação Concluída com Sucesso! ✓            ║${NC}"
+echo -e "${GREEN}║            Instalação Concluída com Sucesso! ✓             ║${NC}"
 echo -e "${GREEN}║                                                            ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
