@@ -4,7 +4,7 @@
 # Script de Instalação do RabbitMQ Server
 # Versão: 2.1 - CORRIGIDO para Ubuntu 24.04
 # Compatível com: Ubuntu Server 24.04 LTS
-# Uso: sudo ./install_rabbitmq.sh
+# Uso: sudo ./install_rabbit_mq.sh
 #
 # Este script instala e configura o RabbitMQ Server de forma interativa
 # Ideal para ambientes com múltiplos serviços que necessitam de message broker
