@@ -1,12 +1,42 @@
 #!/bin/bash
 
 ################################################################################
-# Script de Instalação do RabbitMQ Server
-# Versão: 2.2 - MÉTODO MAIS CONFIÁVEL
-# Compatível com: Ubuntu Server 24.04 LTS
-# Uso: sudo ./install_rabbit_mq.sh
+# Script: install_rabbit_mq.sh
 #
-# Este script usa Erlang dos repositórios Ubuntu + RabbitMQ oficial
+# Descrição:
+#   Este script instala e configura um servidor RabbitMQ dedicado em um sistema
+#   Ubuntu Server 24.04 LTS. Ele guia o usuário através de um processo interativo
+#   para configurar o IP do servidor, um usuário administrador e usuários de serviço
+#   com vhosts específicos. O script também habilita o plugin de gerenciamento,
+#   configura o firewall (UFW) e salva as credenciais em um local seguro.
+#
+# Autor:
+#   Hugllas R. S. Lima <hugllas.s.lima@gmail.com>
+#
+# Data de Criação: 2024-08-01
+#
+# Versão: 2.2
+#
+# Licença:
+#   Este script é distribuído sob a licença GPL-3.0.
+#   Veja o arquivo LICENSE para mais detalhes.
+#
+# Repositório:
+#   https://github.com/hugllaslima/proxmox-ve-automation
+#
+# Uso:
+#   sudo ./install_rabbit_mq.sh
+#
+# Pré-requisitos:
+#   - Sistema Operacional: Ubuntu Server 24.04 LTS.
+#   - Acesso root (sudo).
+#   - Conexão com a internet para download de pacotes.
+#
+# Notas:
+#   - O script é interativo e solicitará informações durante a execução.
+#   - As credenciais geradas são salvas em /root/ para segurança.
+#   - Recomenda-se revisar as configurações antes de confirmar a instalação.
+#
 ################################################################################
 
 set -e  # Parar execução em caso de erro

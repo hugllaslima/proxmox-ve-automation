@@ -1,20 +1,21 @@
 #!/bin/bash
 
 ################################################################################
-# Script: install_onlyoffice_server.sh (LEGADO)
+# Script: install_onlyoffice_server_v2.sh (RECOMENDADO)
 #
 # Descrição:
-#   Este script (versão legada) instala e configura o OnlyOffice Document Server
-#   em um sistema Ubuntu Server 24.04 LTS. Ele foi projetado para integrar
-#   o OnlyOffice com um servidor RabbitMQ externo e um Nextcloud.
+#   Este script instala e configura o OnlyOffice Document Server em um sistema
+#   Ubuntu Server 24.04 LTS. Ele foi projetado para integrar o OnlyOffice com
+#   um servidor RabbitMQ externo e um Nextcloud, utilizando um método de
+#   instalação mais estável e robusto que a versão anterior.
 #   O script é interativo e solicita todas as informações necessárias.
 #
 # Autor:
 #   Hugllas R. S. Lima <hugllas.s.lima@gmail.com>
 #
-# Data de Criação: 2024-07-30
+# Data de Criação: 2024-08-01
 #
-# Versão: 2.0
+# Versão: 2.1
 #
 # Licença:
 #   Este script é distribuído sob a licença GPL-3.0.
@@ -24,12 +25,18 @@
 #   https://github.com/hugllaslima/proxmox-ve-automation
 #
 # Uso:
-#   sudo ./install_onlyoffice_server.sh
+#   sudo ./install_onlyoffice_server_v2.sh
 #
-# ATENÇÃO:
-#   Esta é uma versão legada. Para novas instalações, é altamente recomendável
-#   utilizar o script `install_onlyoffice_server_v2.sh`, que contém melhorias
-#   de estabilidade e um processo de instalação mais robusto.
+# Pré-requisitos:
+#   - Sistema Operacional: Ubuntu Server 24.04 LTS.
+#   - Acesso root (sudo).
+#   - Conexão com a internet para download de pacotes.
+#   - Um servidor RabbitMQ externo já configurado.
+#
+# Notas:
+#   - Esta é a versão recomendada para novas instalações.
+#   - O script é interativo e guia o usuário em cada etapa.
+#   - As configurações são validadas para garantir a integração correta.
 #
 ################################################################################
 
@@ -47,8 +54,8 @@ NC='\033[0m' # No Color
 print_header() {
     echo -e "\n${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}║                                                            ║${NC}"
-    echo -e "${BLUE}║           Instalação OnlyOffice Document Server            ║${NC}"
-    echo -e "${BLUE}║                  Ubuntu Server 24.04 LTS                   ║${NC}"
+    echo -e "${BLUE}║      Instalação OnlyOffice Document Server                ║${NC}"
+    echo -e "${BLUE}║      Ubuntu Server 24.04 LTS                               ║${NC}"
     echo -e "${BLUE}║                                                            ║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}\n"
 }
@@ -161,7 +168,7 @@ RABBITMQ_VHOST=${RABBITMQ_VHOST:-onlyoffice_vhost}
 echo -e "\n${BLUE}Testando conexão com RabbitMQ...${NC}"
 
 if ! command -v nc &> /dev/null; then
-    apt install -y netcat-openbsd
+    apt install -y netcat-openbsd >/dev/null 2>&1
 fi
 
 if nc -zv $RABBITMQ_HOST $RABBITMQ_PORT 2>&1 | grep -q succeeded; then
@@ -250,59 +257,72 @@ fi
 echo -e "\n${GREEN}Iniciando instalação...${NC}\n"
 
 # 1. Atualizar sistema
-echo -e "${GREEN}[1/9] Atualizando sistema...${NC}"
+echo -e "${GREEN}[1/10] Atualizando sistema...${NC}"
 apt update && apt upgrade -y
 apt install -y apt-transport-https ca-certificates curl gnupg lsb-release netcat-openbsd software-properties-common
 
 # 2. Instalar PostgreSQL
-echo -e "${GREEN}[2/9] Instalando PostgreSQL...${NC}"
+echo -e "${GREEN}[2/10] Instalando PostgreSQL...${NC}"
 apt install -y postgresql postgresql-contrib
 
 # Aguardar PostgreSQL iniciar
 sleep 3
 
 # Configurar banco
-sudo -u postgres psql -c "CREATE DATABASE onlyoffice;" 2>/dev/null || echo "Database já existe"
-sudo -u postgres psql -c "CREATE USER onlyoffice WITH PASSWORD '${POSTGRES_PASS}';" 2>/dev/null || echo "Usuário já existe"
+sudo -u postgres psql -c "CREATE DATABASE onlyoffice;" 2>/dev/null || echo "  Database já existe"
+sudo -u postgres psql -c "CREATE USER onlyoffice WITH PASSWORD '${POSTGRES_PASS}';" 2>/dev/null || echo "  Usuário já existe"
 sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE onlyoffice TO onlyoffice;"
 
-# 3. Adicionar repositório OnlyOffice
-echo -e "${GREEN}[3/9] Adicionando repositório OnlyOffice...${NC}"
-mkdir -p /usr/share/keyrings
-curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | gpg --dearmor -o /usr/share/keyrings/onlyoffice.gpg
+# 3. Instalar Erlang (necessário para comunicação com RabbitMQ)
+echo -e "${GREEN}[3/10] Instalando Erlang...${NC}"
+apt install -y erlang-base erlang-asn1 erlang-crypto erlang-eldap erlang-ftp erlang-inets \
+               erlang-mnesia erlang-os-mon erlang-parsetools erlang-public-key \
+               erlang-runtime-tools erlang-snmp erlang-ssl erlang-syntax-tools \
+               erlang-tftp erlang-tools erlang-xmerl
 
+# 4. Adicionar chave GPG do OnlyOffice
+echo -e "${GREEN}[4/10] Adicionando chave GPG do OnlyOffice...${NC}"
+mkdir -p /usr/share/keyrings
+
+if ! curl -fsSL https://download.onlyoffice.com/GPG-KEY-ONLYOFFICE | gpg --dearmor -o /usr/share/keyrings/onlyoffice.gpg 2>/dev/null; then
+    echo -e "${YELLOW}Método 1 falhou, tentando alternativo...${NC}"
+    gpg --keyserver keyserver.ubuntu.com --recv-keys CB2DE8E5
+    gpg --export CB2DE8E5 > /usr/share/keyrings/onlyoffice.gpg
+fi
+
+# 5. Adicionar repositório OnlyOffice
+echo -e "${GREEN}[5/10] Adicionando repositório OnlyOffice...${NC}"
 echo "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyoffice.com/repo/debian squeeze main" | tee /etc/apt/sources.list.d/onlyoffice.list
 
-# 4. Preparar variáveis de ambiente para instalação
-echo -e "${GREEN}[4/9] Preparando ambiente...${NC}"
-
+# 6. Preparar variáveis de ambiente
+echo -e "${GREEN}[6/10] Preparando ambiente...${NC}"
 export DS_RABBITMQ_HOST=$RABBITMQ_HOST
 export DS_RABBITMQ_USER=$RABBITMQ_USER
 export DS_RABBITMQ_PWD=$RABBITMQ_PASS
 export DS_RABBITMQ_VHOST=$RABBITMQ_VHOST
 
-# 5. Instalar OnlyOffice
-echo -e "${GREEN}[5/9] Instalando OnlyOffice Document Server...${NC}"
+# 7. Instalar OnlyOffice
+echo -e "${GREEN}[7/10] Instalando OnlyOffice Document Server...${NC}"
 echo -e "${YELLOW}Nota: Avisos sobre RabbitMQ local são normais (estamos usando externo).${NC}"
 
 apt update
 DEBIAN_FRONTEND=noninteractive apt install -y onlyoffice-documentserver
 
-# 6. Configurar banco de dados
-echo -e "${GREEN}[6/9] Configurando banco de dados...${NC}"
-sudo -u postgres psql -d onlyoffice -f /var/www/onlyoffice/documentserver/server/schema/postgresql/createdb.sql 2>/dev/null || echo "Schema já aplicado"
+# 8. Configurar banco de dados
+echo -e "${GREEN}[8/10] Configurando banco de dados...${NC}"
+sudo -u postgres psql -d onlyoffice -f /var/www/onlyoffice/documentserver/server/schema/postgresql/createdb.sql 2>/dev/null || echo "  Schema já aplicado"
 
-# 7. Parar RabbitMQ local se existir
-echo -e "${GREEN}[7/9] Desabilitando RabbitMQ local...${NC}"
+# 9. Parar RabbitMQ local se existir
+echo -e "${GREEN}[9/10] Desabilitando RabbitMQ local...${NC}"
 if systemctl is-active --quiet rabbitmq-server; then
     systemctl stop rabbitmq-server
     systemctl disable rabbitmq-server
 fi
 
-# 8. Configurar OnlyOffice
-echo -e "${GREEN}[8/9] Configurando OnlyOffice...${NC}"
+# 10. Configurar OnlyOffice
+echo -e "${GREEN}[10/10] Configurando OnlyOffice...${NC}"
 
-# Criar diretório de configuração se não existir
+# Criar diretório de configuração
 mkdir -p /etc/onlyoffice/documentserver
 
 # Configuração principal
@@ -365,8 +385,8 @@ cat > /etc/onlyoffice/documentserver/local-production-linux.json <<EOF
 }
 EOF
 
-# 9. Reiniciar serviços
-echo -e "${GREEN}[9/9] Reiniciando serviços...${NC}"
+# Reiniciar serviços
+echo -e "${BLUE}Reiniciando serviços OnlyOffice...${NC}"
 supervisorctl restart all
 sleep 5
 systemctl restart nginx
@@ -460,7 +480,7 @@ fi
 
 echo -e "\n${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║                                                            ║${NC}"
-echo -e "${GREEN}║             Instalação Concluída com Sucesso! ✓            ║${NC}"
+echo -e "${GREEN}║        Instalação Concluída com Sucesso! ✓                ║${NC}"
 echo -e "${GREEN}║                                                            ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 

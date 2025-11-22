@@ -67,6 +67,14 @@ Scripts para instalação de agentes QEMU:
 - `yum_install_agent_qemu.sh` - Instalação do agente QEMU em sistemas baseados em YUM
 - `README.md` - Documentação detalhada sobre o QEMU Guest Agent e uso dos scripts
 
+### 🖥️ **scripts-applications/**
+Este diretório contém scripts para automatizar a instalação e configuração de aplicações em servidores dedicados. Cada script é projetado para ser modular e interativo, facilitando a implantação de serviços como RabbitMQ e OnlyOffice.
+- `install_rabbit_mq.sh` - Instala e configura um servidor RabbitMQ dedicado.
+- `cleanup_rabbit_mq.sh` - Remove completamente uma instalação do RabbitMQ.
+- `install_onlyoffice_server_v2.sh` - Instala o OnlyOffice Document Server (versão recomendada).
+- `install_onlyoffice_server.sh` - Instala o OnlyOffice Document Server (versão legada).
+- `README.md` - Documentação detalhada sobre os scripts de aplicação.
+
 ### 🖥️ **scripts-zorin-os/**
 Scripts específicos para a distribuição Zorin OS:
 - `read_only_mounted_disk.sh` - Corrige problemas de disco montado como somente leitura
