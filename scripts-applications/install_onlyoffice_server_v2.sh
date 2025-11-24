@@ -7,8 +7,8 @@
 #   Este script instala e configura o OnlyOffice Document Server em um sistema
 #   Ubuntu Server 24.04 LTS. Ele foi projetado para integrar o OnlyOffice com
 #   um servidor RabbitMQ externo e um Nextcloud, utilizando um método de
-#   instalação mais estável e robusto que a versão anterior.
-#   O script é interativo e solicita todas as informações necessárias.
+#   instalação mais estável e robusto que a versão anterior. O script 
+#   é interativo e solicita todas as informações necessárias.
 #
 # Autor:
 #   Hugllas R. S. Lima <hugllas.s.lima@gmail.com>
