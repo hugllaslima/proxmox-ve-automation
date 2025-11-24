@@ -20,7 +20,7 @@
 # CONFIGURAÇÃO DO /etc/fstab (caso precise reconfigurar):
 # --------------------------------------------------------
 # 1. Obter o UUID do disco:
-#    sudo blkid /dev/sdb1
+#    sudo blkid /dev/sdb1   # Substitua /dev/sdb1 pelo seu disco local
 #
 # 2. Editar o arquivo fstab:
 #    sudo nano /etc/fstab
