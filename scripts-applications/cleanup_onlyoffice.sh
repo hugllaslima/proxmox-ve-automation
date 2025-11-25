@@ -2,15 +2,19 @@
 
 ################################################################################
 # Script de Limpeza - OnlyOffice Document Server
-# Versão: 2.0 - ROBUSTA
+# Versão: 3.0 - FINAL CORRIGIDA
 # Remove completamente o OnlyOffice e suas dependências
 # Uso: sudo ./cleanup_onlyoffice.sh
 #
 # ATENÇÃO: Este script remove TUDO relacionado ao OnlyOffice!
 ################################################################################
 
-# Desabilitar exit on error para continuar mesmo com erros
+# Desabilitar exit on error
 set +e
+
+# Proteger este script de ser morto
+SCRIPT_PID=$$
+trap '' SIGTERM SIGINT
 
 # Cores para output
 GREEN='\033[0;32m'
@@ -42,19 +46,6 @@ ask_yes_no() {
             * ) echo "Por favor, responda 's' ou 'n'.";;
         esac
     done
-}
-
-# Função para executar comando com tratamento de erro
-safe_execute() {
-    local description=$1
-    shift
-    local command="$@"
-
-    if eval "$command" 2>/dev/null; then
-        return 0
-    else
-        return 1
-    fi
 }
 
 # Verificar se está rodando como root
@@ -131,7 +122,7 @@ fi
 
 echo -e "${BLUE}[1/15] Parando serviços OnlyOffice...${NC}"
 
-# Parar supervisor de forma mais agressiva
+# Parar supervisor
 if command -v supervisorctl &> /dev/null; then
     echo -e "  ${CYAN}→${NC} Parando processos via Supervisor..."
     timeout 10 supervisorctl stop all 2>/dev/null || true
@@ -143,18 +134,31 @@ fi
 echo -e "  ${CYAN}→${NC} Parando Nginx..."
 systemctl stop nginx 2>/dev/null || true
 
-# Matar processos OnlyOffice manualmente
+# Matar processos OnlyOffice de forma seletiva (PROTEGENDO ESTE SCRIPT)
 echo -e "  ${CYAN}→${NC} Finalizando processos OnlyOffice..."
-pkill -9 -f "onlyoffice" 2>/dev/null || true
-pkill -9 -f "documentserver" 2>/dev/null || true
-pkill -9 -f "ds-" 2>/dev/null || true
-pkill -9 -f "converter" 2>/dev/null || true
-pkill -9 -f "docservice" 2>/dev/null || true
 
-# Matar processos Node.js relacionados
-pkill -9 -f "node.*onlyoffice" 2>/dev/null || true
+# Obter lista de PIDs para matar (excluindo este script)
+PIDS_TO_KILL=$(ps aux | grep -E "(documentserver|ds-converter|ds-docservice|ds-metrics)" | grep -v grep | awk '{print $2}')
 
-sleep 3
+if [ -n "$PIDS_TO_KILL" ]; then
+    for pid in $PIDS_TO_KILL; do
+        if [ "$pid" != "$$" ] && [ "$pid" != "$PPID" ]; then
+            kill -9 $pid 2>/dev/null || true
+        fi
+    done
+fi
+
+# Matar processos Node.js do OnlyOffice
+NODE_PIDS=$(ps aux | grep "node.*\/var\/www\/onlyoffice" | grep -v grep | awk '{print $2}')
+if [ -n "$NODE_PIDS" ]; then
+    for pid in $NODE_PIDS; do
+        if [ "$pid" != "$$" ] && [ "$pid" != "$PPID" ]; then
+            kill -9 $pid 2>/dev/null || true
+        fi
+    done
+fi
+
+sleep 2
 echo -e "${GREEN}✓ Serviços parados${NC}"
 
 # ============================================================================
@@ -315,8 +319,15 @@ echo -e "${BLUE}[10/15] Removendo usuários e grupos...${NC}"
 
 # Remover usuário ds
 if id "ds" &>/dev/null; then
-    # Matar processos do usuário primeiro
-    pkill -9 -u ds 2>/dev/null || true
+    # Matar processos do usuário primeiro (de forma seletiva)
+    DS_PIDS=$(ps -u ds -o pid= 2>/dev/null)
+    if [ -n "$DS_PIDS" ]; then
+        for pid in $DS_PIDS; do
+            if [ "$pid" != "$$" ] && [ "$pid" != "$PPID" ]; then
+                kill -9 $pid 2>/dev/null || true
+            fi
+        done
+    fi
     sleep 1
     userdel -r ds 2>/dev/null || userdel ds 2>/dev/null || true
     echo -e "${GREEN}✓ Usuário 'ds' removido${NC}"
@@ -404,13 +415,11 @@ echo -e "${GREEN}✓ Cache limpo${NC}"
 echo -e "\n${GREEN}═══ Verificando limpeza ═══${NC}\n"
 
 # Verificar se ainda existem processos
-PROCESSES=$(ps aux | grep -i onlyoffice | grep -v grep | grep -v cleanup | wc -l)
+PROCESSES=$(ps aux | grep -E "(documentserver|ds-converter|ds-docservice)" | grep -v grep | wc -l)
 if [ $PROCESSES -eq 0 ]; then
     echo -e "${GREEN}✓ Nenhum processo OnlyOffice em execução${NC}"
 else
     echo -e "${YELLOW}⚠ Ainda existem $PROCESSES processo(s) OnlyOffice em execução${NC}"
-    echo -e "${CYAN}  Processos:${NC}"
-    ps aux | grep -i onlyoffice | grep -v grep | grep -v cleanup
 fi
 
 # Verificar diretórios
