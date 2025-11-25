@@ -15,7 +15,7 @@
 #
 # Data de Criação: 2024-08-01
 #
-# Versão: 2.1
+# Versão: 2.2
 #
 # Licença:
 #   Este script é distribuído sob a licença GPL-3.0.
@@ -37,6 +37,7 @@
 #   - Esta é a versão recomendada para novas instalações.
 #   - O script é interativo e guia o usuário em cada etapa.
 #   - As configurações são validadas para garantir a integração correta.
+#   - Cada informação inserida requer confirmação do usuário.
 #
 ################################################################################
 
@@ -89,6 +90,113 @@ ask_yes_no() {
     done
 }
 
+# Função para confirmar informação
+confirm_input() {
+    local label=$1
+    local value=$2
+    local is_password=$3
+
+    if [ "$is_password" == "true" ]; then
+        echo -e "${YELLOW}${label}:${NC} ********"
+    else
+        echo -e "${YELLOW}${label}:${NC} ${CYAN}${value}${NC}"
+    fi
+
+    if ask_yes_no "Confirma esta informação?"; then
+        return 0
+    else
+        return 1
+    fi
+}
+
+# Função para coletar e confirmar IP
+get_confirmed_ip() {
+    local prompt=$1
+    local example=$2
+    local ip
+
+    while true; do
+        read -p "$prompt: " ip
+
+        if validate_ip "$ip"; then
+            echo -e "${GREEN}✓ IP válido: ${ip}${NC}"
+            if confirm_input "IP informado" "$ip" "false"; then
+                echo "$ip"
+                return 0
+            else
+                echo -e "${YELLOW}Vamos tentar novamente...${NC}\n"
+            fi
+        else
+            echo -e "${RED}✗ IP inválido. Por favor, digite um IP válido (ex: ${example})${NC}"
+        fi
+    done
+}
+
+# Função para coletar e confirmar texto
+get_confirmed_text() {
+    local prompt=$1
+    local default=$2
+    local min_length=$3
+    local value
+
+    while true; do
+        if [ -n "$default" ]; then
+            read -p "$prompt [$default]: " value
+            value=${value:-$default}
+        else
+            read -p "$prompt: " value
+        fi
+
+        if [ -n "$min_length" ] && [ ${#value} -lt $min_length ]; then
+            echo -e "${RED}✗ Valor muito curto. Mínimo: ${min_length} caracteres.${NC}"
+            continue
+        fi
+
+        if [ -n "$value" ]; then
+            if confirm_input "Valor informado" "$value" "false"; then
+                echo "$value"
+                return 0
+            else
+                echo -e "${YELLOW}Vamos tentar novamente...${NC}\n"
+            fi
+        else
+            echo -e "${RED}✗ Este campo não pode estar vazio.${NC}"
+        fi
+    done
+}
+
+# Função para coletar e confirmar senha
+get_confirmed_password() {
+    local prompt=$1
+    local password
+    local password_confirm
+
+    while true; do
+        read -sp "$prompt: " password
+        echo
+
+        if [ -z "$password" ]; then
+            echo -e "${RED}✗ A senha não pode estar vazia.${NC}"
+            continue
+        fi
+
+        read -sp "Confirme a senha: " password_confirm
+        echo
+
+        if [ "$password" != "$password_confirm" ]; then
+            echo -e "${RED}✗ As senhas não conferem. Tente novamente.${NC}"
+            continue
+        fi
+
+        if confirm_input "Senha" "$password" "true"; then
+            echo "$password"
+            return 0
+        else
+            echo -e "${YELLOW}Vamos tentar novamente...${NC}\n"
+        fi
+    done
+}
+
 # Verificar se está rodando como root
 if [[ $EUID -ne 0 ]]; then
    echo -e "${RED}Este script precisa ser executado como root (use sudo)${NC}" 
@@ -98,7 +206,8 @@ fi
 print_header
 
 echo -e "${CYAN}Este script irá instalar e configurar o OnlyOffice Document Server.${NC}"
-echo -e "${CYAN}Você será guiado através de perguntas interativas.${NC}\n"
+echo -e "${CYAN}Você será guiado através de perguntas interativas.${NC}"
+echo -e "${CYAN}Cada informação inserida precisará ser confirmada.${NC}\n"
 
 # ============================================================================
 # COLETA DE INFORMAÇÕES - SERVIDOR ONLYOFFICE
@@ -106,25 +215,11 @@ echo -e "${CYAN}Você será guiado através de perguntas interativas.${NC}\n"
 
 echo -e "${YELLOW}═══ Configuração do Servidor OnlyOffice ═══${NC}\n"
 
-while true; do
-    read -p "Digite o IP deste servidor OnlyOffice: " ONLYOFFICE_IP
-    if validate_ip "$ONLYOFFICE_IP"; then
-        echo -e "${GREEN}✓ IP válido: ${ONLYOFFICE_IP}${NC}\n"
-        break
-    else
-        echo -e "${RED}✗ IP inválido. Por favor, digite um IP válido (ex: 10.10.1.228)${NC}"
-    fi
-done
+ONLYOFFICE_IP=$(get_confirmed_ip "Digite o IP deste servidor OnlyOffice" "10.10.1.228")
+echo
 
-while true; do
-    read -p "Digite o IP do servidor Nextcloud: " NEXTCLOUD_IP
-    if validate_ip "$NEXTCLOUD_IP"; then
-        echo -e "${GREEN}✓ IP válido: ${NEXTCLOUD_IP}${NC}\n"
-        break
-    else
-        echo -e "${RED}✗ IP inválido. Por favor, digite um IP válido (ex: 10.10.1.229)${NC}"
-    fi
-done
+NEXTCLOUD_IP=$(get_confirmed_ip "Digite o IP do servidor Nextcloud" "10.10.1.229")
+echo
 
 # ============================================================================
 # COLETA DE INFORMAÇÕES - RABBITMQ
@@ -133,39 +228,26 @@ done
 echo -e "${YELLOW}═══ Configuração do RabbitMQ (Servidor Externo) ═══${NC}"
 echo -e "${CYAN}Informe os dados do servidor RabbitMQ dedicado.${NC}\n"
 
-while true; do
-    read -p "IP do servidor RabbitMQ: " RABBITMQ_HOST
-    if validate_ip "$RABBITMQ_HOST"; then
-        echo -e "${GREEN}✓ IP válido: ${RABBITMQ_HOST}${NC}"
-        break
-    else
-        echo -e "${RED}✗ IP inválido. Por favor, digite um IP válido${NC}"
-    fi
-done
+RABBITMQ_HOST=$(get_confirmed_ip "IP do servidor RabbitMQ" "10.10.1.231")
+echo
 
-read -p "Porta do RabbitMQ [5672]: " RABBITMQ_PORT
-RABBITMQ_PORT=${RABBITMQ_PORT:-5672}
+RABBITMQ_PORT=$(get_confirmed_text "Porta do RabbitMQ" "5672" "")
+echo
 
-read -p "Usuário do RabbitMQ: " RABBITMQ_USER
+RABBITMQ_USER=$(get_confirmed_text "Usuário do RabbitMQ" "" "")
+echo
 
-while true; do
-    read -sp "Senha do RabbitMQ: " RABBITMQ_PASS
-    echo
-    if [ -n "$RABBITMQ_PASS" ]; then
-        break
-    else
-        echo -e "${RED}A senha não pode estar vazia.${NC}"
-    fi
-done
+RABBITMQ_PASS=$(get_confirmed_password "Senha do RabbitMQ")
+echo
 
-read -p "VHost do RabbitMQ [onlyoffice_vhost]: " RABBITMQ_VHOST
-RABBITMQ_VHOST=${RABBITMQ_VHOST:-onlyoffice_vhost}
+RABBITMQ_VHOST=$(get_confirmed_text "VHost do RabbitMQ" "onlyoffice_vhost" "")
+echo
 
 # ============================================================================
 # TESTAR CONEXÃO COM RABBITMQ
 # ============================================================================
 
-echo -e "\n${BLUE}Testando conexão com RabbitMQ...${NC}"
+echo -e "${BLUE}Testando conexão com RabbitMQ...${NC}"
 
 if ! command -v nc &> /dev/null; then
     apt install -y netcat-openbsd >/dev/null 2>&1
@@ -183,6 +265,7 @@ else
     if ! ask_yes_no "Deseja continuar mesmo assim?"; then
         exit 1
     fi
+    echo
 fi
 
 # ============================================================================
@@ -195,57 +278,67 @@ echo -e "${CYAN}O OnlyOffice usa PostgreSQL localmente para armazenar metadados.
 if ask_yes_no "Deseja gerar uma senha aleatória para o PostgreSQL?"; then
     POSTGRES_PASS=$(generate_password)
     echo -e "${GREEN}Senha gerada automaticamente.${NC}"
+    echo -e "${YELLOW}Senha gerada:${NC} ${POSTGRES_PASS}"
+    if ! ask_yes_no "Confirma o uso desta senha?"; then
+        echo -e "${YELLOW}Vamos definir uma senha manualmente...${NC}\n"
+        POSTGRES_PASS=$(get_confirmed_password "Digite a senha para o usuário PostgreSQL 'onlyoffice'")
+    fi
 else
-    while true; do
-        read -sp "Digite a senha para o usuário PostgreSQL 'onlyoffice': " POSTGRES_PASS
-        echo
-        read -sp "Confirme a senha: " POSTGRES_PASS_CONFIRM
-        echo
-        if [ "$POSTGRES_PASS" == "$POSTGRES_PASS_CONFIRM" ]; then
-            break
-        else
-            echo -e "${RED}As senhas não conferem. Tente novamente.${NC}"
-        fi
-    done
+    POSTGRES_PASS=$(get_confirmed_password "Digite a senha para o usuário PostgreSQL 'onlyoffice'")
 fi
+echo
 
 # ============================================================================
 # JWT SECRET
 # ============================================================================
 
-echo -e "\n${YELLOW}═══ JWT Secret (Segurança) ═══${NC}"
+echo -e "${YELLOW}═══ JWT Secret (Segurança) ═══${NC}"
 echo -e "${CYAN}O JWT Secret é usado para autenticação entre Nextcloud e OnlyOffice.${NC}\n"
 
 if ask_yes_no "Deseja gerar um JWT Secret automaticamente?"; then
     JWT_SECRET=$(generate_password)
     echo -e "${GREEN}JWT Secret gerado automaticamente.${NC}"
+    echo -e "${YELLOW}JWT Secret:${NC} ${JWT_SECRET}"
+    if ! ask_yes_no "Confirma o uso deste JWT Secret?"; then
+        echo -e "${YELLOW}Vamos definir um JWT Secret manualmente...${NC}\n"
+        JWT_SECRET=$(get_confirmed_text "Digite o JWT Secret" "" "20")
+    fi
 else
-    while true; do
-        read -p "Digite o JWT Secret (mínimo 20 caracteres): " JWT_SECRET
-        if [ ${#JWT_SECRET} -ge 20 ]; then
-            break
-        else
-            echo -e "${RED}JWT Secret muito curto. Use no mínimo 20 caracteres.${NC}"
-        fi
-    done
+    JWT_SECRET=$(get_confirmed_text "Digite o JWT Secret" "" "20")
 fi
-
-# ============================================================================
-# CONFIRMAÇÃO
-# ============================================================================
-
-echo -e "\n${YELLOW}═══ Resumo da Configuração ═══${NC}"
-echo -e "${BLUE}IP OnlyOffice:${NC} $ONLYOFFICE_IP"
-echo -e "${BLUE}IP Nextcloud:${NC} $NEXTCLOUD_IP"
-echo -e "${BLUE}RabbitMQ Host:${NC} $RABBITMQ_HOST:$RABBITMQ_PORT"
-echo -e "${BLUE}RabbitMQ User:${NC} $RABBITMQ_USER"
-echo -e "${BLUE}RabbitMQ VHost:${NC} $RABBITMQ_VHOST"
-echo -e "${BLUE}PostgreSQL User:${NC} onlyoffice"
-echo -e "${BLUE}JWT Secret:${NC} ${JWT_SECRET:0:10}... (${#JWT_SECRET} caracteres)"
-
 echo
 
-if ! ask_yes_no "Confirma a instalação com estas configurações?"; then
+# ============================================================================
+# CONFIRMAÇÃO FINAL
+# ============================================================================
+
+echo -e "${YELLOW}═══════════════════════════════════════════════════════════${NC}"
+echo -e "${YELLOW}           RESUMO FINAL DA CONFIGURAÇÃO${NC}"
+echo -e "${YELLOW}═══════════════════════════════════════════════════════════${NC}\n"
+
+echo -e "${BLUE}Servidores:${NC}"
+echo -e "  ${CYAN}→${NC} IP OnlyOffice: ${GREEN}${ONLYOFFICE_IP}${NC}"
+echo -e "  ${CYAN}→${NC} IP Nextcloud: ${GREEN}${NEXTCLOUD_IP}${NC}"
+echo
+
+echo -e "${BLUE}RabbitMQ:${NC}"
+echo -e "  ${CYAN}→${NC} Host: ${GREEN}${RABBITMQ_HOST}:${RABBITMQ_PORT}${NC}"
+echo -e "  ${CYAN}→${NC} User: ${GREEN}${RABBITMQ_USER}${NC}"
+echo -e "  ${CYAN}→${NC} VHost: ${GREEN}${RABBITMQ_VHOST}${NC}"
+echo
+
+echo -e "${BLUE}PostgreSQL:${NC}"
+echo -e "  ${CYAN}→${NC} User: ${GREEN}onlyoffice${NC}"
+echo -e "  ${CYAN}→${NC} Password: ${GREEN}********${NC}"
+echo
+
+echo -e "${BLUE}Segurança:${NC}"
+echo -e "  ${CYAN}→${NC} JWT Secret: ${GREEN}${JWT_SECRET:0:10}...${NC} (${#JWT_SECRET} caracteres)"
+echo
+
+echo -e "${YELLOW}═══════════════════════════════════════════════════════════${NC}\n"
+
+if ! ask_yes_no "Confirma TODAS as configurações acima e deseja iniciar a instalação?"; then
     echo -e "${YELLOW}Instalação cancelada pelo usuário.${NC}"
     exit 0
 fi
@@ -254,7 +347,11 @@ fi
 # INSTALAÇÃO
 # ============================================================================
 
-echo -e "\n${GREEN}Iniciando instalação...${NC}\n"
+echo -e "\n${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
+echo -e "${GREEN}║                                                            ║${NC}"
+echo -e "${GREEN}║                    Iniciando Instalação...                 ║${NC}"
+echo -e "${GREEN}║                                                            ║${NC}"
+echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
 # 1. Atualizar sistema
 echo -e "${GREEN}[1/10] Atualizando sistema...${NC}"
