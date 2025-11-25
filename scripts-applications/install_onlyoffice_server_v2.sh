@@ -36,8 +36,8 @@ NC='\033[0m' # No Color
 print_header() {
     echo -e "\n${BLUE}╔════════════════════════════════════════════════════════════╗${NC}"
     echo -e "${BLUE}║                                                            ║${NC}"
-    echo -e "${BLUE}║      Instalação OnlyOffice Document Server                ║${NC}"
-    echo -e "${BLUE}║      Ubuntu Server 24.04 LTS - v3.1 CORRIGIDA             ║${NC}"
+    echo -e "${BLUE}║            Instalação OnlyOffice Document Server           ║${NC}"
+    echo -e "${BLUE}║           Ubuntu Server 24.04 LTS - v3.1 CORRIGIDA         ║${NC}"
     echo -e "${BLUE}║                                                            ║${NC}"
     echo -e "${BLUE}╚════════════════════════════════════════════════════════════╝${NC}\n"
 }
@@ -561,7 +561,7 @@ fi
 
 echo -e "\n${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║                                                            ║${NC}"
-echo -e "${GREEN}║        Instalação Concluída com Sucesso! ✓                ║${NC}"
+echo -e "${GREEN}║             Instalação Concluída com Sucesso! ✓            ║${NC}"
 echo -e "${GREEN}║                                                            ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
