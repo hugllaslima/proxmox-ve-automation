@@ -15,7 +15,7 @@
 #
 # Data de Criação: 2024-08-01
 #
-# Versão: 2.2
+# Versão: 2.3
 #
 # Licença:
 #   Este script é distribuído sob a licença GPL-3.0.
@@ -96,6 +96,7 @@ confirm_input() {
     local value=$2
     local is_password=$3
 
+    echo ""
     if [ "$is_password" == "true" ]; then
         echo -e "${YELLOW}${label}:${NC} ********"
     else
@@ -119,7 +120,6 @@ get_confirmed_ip() {
         read -p "$prompt: " ip
 
         if validate_ip "$ip"; then
-            echo -e "${GREEN}✓ IP válido: ${ip}${NC}"
             if confirm_input "IP informado" "$ip" "false"; then
                 echo "$ip"
                 return 0
@@ -165,30 +165,35 @@ get_confirmed_text() {
     done
 }
 
-# Função para coletar e confirmar senha
+# Função para coletar e confirmar senha (CORRIGIDA)
 get_confirmed_password() {
     local prompt=$1
     local password
     local password_confirm
 
     while true; do
-        read -sp "$prompt: " password
-        echo
+        # Primeira entrada da senha
+        read -sp "${prompt}: " password
+        echo  # Nova linha após a senha
 
         if [ -z "$password" ]; then
             echo -e "${RED}✗ A senha não pode estar vazia.${NC}"
             continue
         fi
 
+        # Confirmação da senha
         read -sp "Confirme a senha: " password_confirm
-        echo
+        echo  # Nova linha após a confirmação
 
         if [ "$password" != "$password_confirm" ]; then
-            echo -e "${RED}✗ As senhas não conferem. Tente novamente.${NC}"
+            echo -e "${RED}✗ As senhas não conferem. Tente novamente.${NC}\n"
             continue
         fi
 
-        if confirm_input "Senha" "$password" "true"; then
+        # Confirmação visual (sem mostrar a senha)
+        echo ""
+        echo -e "${YELLOW}Senha informada:${NC} ********"
+        if ask_yes_no "Confirma esta senha?"; then
             echo "$password"
             return 0
         else
@@ -237,6 +242,7 @@ echo
 RABBITMQ_USER=$(get_confirmed_text "Usuário do RabbitMQ" "" "")
 echo
 
+echo -e "${CYAN}Agora vamos configurar a senha do RabbitMQ...${NC}"
 RABBITMQ_PASS=$(get_confirmed_password "Senha do RabbitMQ")
 echo
 
@@ -253,7 +259,7 @@ if ! command -v nc &> /dev/null; then
     apt install -y netcat-openbsd >/dev/null 2>&1
 fi
 
-if nc -zv $RABBITMQ_HOST $RABBITMQ_PORT 2>&1 | grep -q succeeded; then
+if nc -zv "$RABBITMQ_HOST" "$RABBITMQ_PORT" 2>&1 | grep -q succeeded; then
     echo -e "${GREEN}✓ Conexão com RabbitMQ OK${NC}\n"
 else
     echo -e "${RED}✗ ERRO: Não foi possível conectar ao RabbitMQ em ${RABBITMQ_HOST}:${RABBITMQ_PORT}${NC}"
@@ -284,6 +290,7 @@ if ask_yes_no "Deseja gerar uma senha aleatória para o PostgreSQL?"; then
         POSTGRES_PASS=$(get_confirmed_password "Digite a senha para o usuário PostgreSQL 'onlyoffice'")
     fi
 else
+    echo -e "${CYAN}Vamos definir a senha do PostgreSQL...${NC}"
     POSTGRES_PASS=$(get_confirmed_password "Digite a senha para o usuário PostgreSQL 'onlyoffice'")
 fi
 echo
@@ -324,6 +331,7 @@ echo
 echo -e "${BLUE}RabbitMQ:${NC}"
 echo -e "  ${CYAN}→${NC} Host: ${GREEN}${RABBITMQ_HOST}:${RABBITMQ_PORT}${NC}"
 echo -e "  ${CYAN}→${NC} User: ${GREEN}${RABBITMQ_USER}${NC}"
+echo -e "  ${CYAN}→${NC} Password: ${GREEN}********${NC}"
 echo -e "  ${CYAN}→${NC} VHost: ${GREEN}${RABBITMQ_VHOST}${NC}"
 echo
 
@@ -349,7 +357,7 @@ fi
 
 echo -e "\n${GREEN}╔════════════════════════════════════════════════════════════╗${NC}"
 echo -e "${GREEN}║                                                            ║${NC}"
-echo -e "${GREEN}║                    Iniciando Instalação...                 ║${NC}"
+echo -e "${GREEN}║              Iniciando Instalação...                       ║${NC}"
 echo -e "${GREEN}║                                                            ║${NC}"
 echo -e "${GREEN}╚════════════════════════════════════════════════════════════╝${NC}\n"
 
@@ -393,10 +401,10 @@ echo "deb [signed-by=/usr/share/keyrings/onlyoffice.gpg] https://download.onlyof
 
 # 6. Preparar variáveis de ambiente
 echo -e "${GREEN}[6/10] Preparando ambiente...${NC}"
-export DS_RABBITMQ_HOST=$RABBITMQ_HOST
-export DS_RABBITMQ_USER=$RABBITMQ_USER
-export DS_RABBITMQ_PWD=$RABBITMQ_PASS
-export DS_RABBITMQ_VHOST=$RABBITMQ_VHOST
+export DS_RABBITMQ_HOST="$RABBITMQ_HOST"
+export DS_RABBITMQ_USER="$RABBITMQ_USER"
+export DS_RABBITMQ_PWD="$RABBITMQ_PASS"
+export DS_RABBITMQ_VHOST="$RABBITMQ_VHOST"
 
 # 7. Instalar OnlyOffice
 echo -e "${GREEN}[7/10] Instalando OnlyOffice Document Server...${NC}"
@@ -519,8 +527,9 @@ RABBITMQ CONNECTION
 Host: ${RABBITMQ_HOST}
 Port: ${RABBITMQ_PORT}
 User: ${RABBITMQ_USER}
+Password: ${RABBITMQ_PASS}
 VHost: ${RABBITMQ_VHOST}
-URL: amqp://${RABBITMQ_USER}:****@${RABBITMQ_HOST}:${RABBITMQ_PORT}/${RABBITMQ_VHOST}
+URL: amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@${RABBITMQ_HOST}:${RABBITMQ_PORT}/${RABBITMQ_VHOST}
 
 ───────────────────────────────────────────────────────────────
 POSTGRESQL (Local)
