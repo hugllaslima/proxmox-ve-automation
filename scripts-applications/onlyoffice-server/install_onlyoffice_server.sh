@@ -1,27 +1,14 @@
 #!/bin/bash
 
-################################################################################
+# -----------------------------------------------------------------------------
 # Script: install_onlyoffice_server.sh (LEGADO)
-#
-# Descrição:
-#   Este script (versão legada) instala e configura o OnlyOffice Document Server
-#   em um sistema Ubuntu Server 24.04 LTS. Ele foi projetado para integrar
-#   o OnlyOffice com um servidor RabbitMQ externo e um Nextcloud.
-#   O script é interativo e solicita todas as informações necessárias.
-#
-# Autor:
-#   Hugllas R. S. Lima <hugllas.s.lima@gmail.com>
-#
-# Data de Criação: 2024-07-30
-#
+# Descrição: Instala e configura o OnlyOffice Document Server (versão legada).
+# Autor: Hugllas Lima
+# Data de Criação: 30/07/2024
 # Versão: 2.0
-#
-# Licença:
-#   Este script é distribuído sob a licença GPL-3.0.
-#   Veja o arquivo LICENSE para mais detalhes.
-#
-# Repositório:
-#   https://github.com/hugllaslima/proxmox-ve-automation
+# Licença: GPL-3.0
+# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
+# -----------------------------------------------------------------------------
 #
 # Uso:
 #   sudo ./install_onlyoffice_server.sh
@@ -31,7 +18,8 @@
 #   utilizar o script `install_onlyoffice_server_v2.sh`, que contém melhorias
 #   de estabilidade e um processo de instalação mais robusto.
 #
-################################################################################
+# -----------------------------------------------------------------------------
+
 
 set -e  # Parar execução em caso de erro
 

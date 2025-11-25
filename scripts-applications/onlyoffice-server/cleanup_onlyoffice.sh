@@ -1,17 +1,30 @@
 #!/bin/bash
 
-################################################################################
-# Script de Limpeza - OnlyOffice Document Server
-# Versão: 4.0 - FINAL COMPLETA
-# Remove completamente o OnlyOffice e suas dependências
-# Uso: sudo ./cleanup_onlyoffice.sh
+# -----------------------------------------------------------------------------
+# Script: cleanup_onlyoffice.sh
+# Descrição: Remove completamente o OnlyOffice Document Server e suas dependências.
+# Autor: Hugllas Lima
+# Data de Criação: 20/10/2023
+# Versão: 4.0
+# Licença: MIT
+# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
+# -----------------------------------------------------------------------------
 #
-# Características:
-# - Verifica existência antes de remover
-# - Força remoção de pacotes problemáticos
-# - Continua mesmo com erros
-# - Relatório detalhado ao final
-################################################################################
+# Uso:
+#   sudo ./cleanup_onlyoffice.sh
+#
+# Pré-requisitos:
+#   - Permissões de root ou sudo.
+#
+# Notas Importantes:
+#   - Este script é DESTRUTIVO e removerá todos os dados do OnlyOffice,
+#     incluindo documentos, configurações e bancos de dados.
+#   - Use com extrema cautela e apenas quando tiver certeza de que deseja
+#     apagar completamente a instalação.
+#   - Recomenda-se fazer um backup completo antes de executar.
+#
+# -----------------------------------------------------------------------------
+
 
 # Desabilitar exit on error
 set +e

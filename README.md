@@ -68,12 +68,22 @@ Scripts para instalação de agentes QEMU:
 - `README.md` - Documentação detalhada sobre o QEMU Guest Agent e uso dos scripts
 
 ### 🖥️ **scripts-applications/**
-Este diretório contém scripts para automatizar a instalação e configuração de aplicações em servidores dedicados. Cada script é projetado para ser modular e interativo, facilitando a implantação de serviços como RabbitMQ e OnlyOffice.
-- `install_rabbit_mq.sh` - Instala e configura um servidor RabbitMQ dedicado.
-- `cleanup_rabbit_mq.sh` - Remove completamente uma instalação do RabbitMQ.
-- `install_onlyoffice_server_v2.sh` - Instala o OnlyOffice Document Server (versão recomendada).
-- `install_onlyoffice_server.sh` - Instala o OnlyOffice Document Server (versão legada).
-- `README.md` - Documentação detalhada sobre os scripts de aplicação.
+Este diretório contém scripts para automatizar a instalação e configuração de aplicações em servidores dedicados. A estrutura é organizada em subdiretórios para cada aplicação, como `rabbit-mq` e `onlyoffice-server`, facilitando a manutenção e o uso.
+
+#### 🐰 **rabbit-mq/**
+Scripts para gerenciamento de um servidor RabbitMQ dedicado.
+- `install_rabbit_mq.sh` - Instala e configura o RabbitMQ, incluindo a criação de um usuário administrador e a configuração de um cluster opcional.
+- `reconfigure_rabbit_mq.sh` - Corrige problemas de conexão do RabbitMQ, recriando o usuário e reconfigurando permissões.
+- `cleanup_rabbit_mq.sh` - Remove completamente uma instalação do RabbitMQ, incluindo pacotes, logs e configurações.
+- `README.md` - Documentação detalhada sobre os scripts de RabbitMQ.
+
+#### 🏢 **onlyoffice-server/**
+Scripts para implantação e manutenção do OnlyOffice Document Server.
+- `install_onlyoffice_server_v2.sh` - Instala a versão mais recente e recomendada do OnlyOffice Document Server, com todas as dependências e configurações otimizadas.
+- `install_onlyoffice_server.sh` - Instala uma versão legada do OnlyOffice Document Server, mantida para compatibilidade.
+- `onlyoffice_troubleshooting_kit.sh` - Um kit de ferramentas interativo para diagnosticar e resolver problemas comuns do OnlyOffice, como erros de conexão, falhas em serviços e problemas de certificado.
+- `cleanup_onlyoffice.sh` - Remove completamente o OnlyOffice Document Server e suas dependências.
+- `README.md` - Documentação detalhada sobre os scripts do OnlyOffice.
 
 ### 🖥️ **scripts-zorin-os/**
 Scripts específicos para a distribuição Zorin OS:

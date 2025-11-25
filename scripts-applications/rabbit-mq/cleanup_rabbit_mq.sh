@@ -1,41 +1,28 @@
 #!/bin/bash
 
-################################################################################
+# -----------------------------------------------------------------------------
 # Script: cleanup_rabbit_mq.sh
-#
-# Descrição:
-#   Este script realiza uma limpeza completa de instalações anteriores ou
-#   com falha do RabbitMQ Server. Ele remove pacotes, diretórios de dados,
-#   logs, configurações, usuários e repositórios associados ao RabbitMQ e Erlang.
-#   É ideal para preparar um sistema para uma nova instalação limpa.
-#
-# Autor:
-#   Hugllas R. S. Lima <hugllas.s.lima@gmail.com>
-#
-# Data de Criação: 2024-08-01
-#
+# Descrição: Remove completamente o RabbitMQ Server e suas dependências.
+# Autor: Hugllas Lima
+# Data de Criação: 01/08/2024
 # Versão: 1.0
-#
-# Licença:
-#   Este script é distribuído sob a licença GPL-3.0.
-#   Veja o arquivo LICENSE para mais detalhes.
-#
-# Repositório:
-#   https://github.com/hugllaslima/proxmox-ve-automation
+# Licença: GPL-3.0
+# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
+# -----------------------------------------------------------------------------
 #
 # Uso:
 #   sudo ./cleanup_rabbit_mq.sh
 #
 # Pré-requisitos:
-#   - Acesso root (sudo).
-#   - O script deve ser executado no servidor onde a limpeza é necessária.
+#   - Permissões de root ou sudo.
 #
-# Notas:
-#   - Este script é destrutivo e removerá todos os dados do RabbitMQ.
-#   - Use com cuidado e apenas quando tiver certeza de que deseja apagar
-#     completamente a instalação existente.
+# Notas Importantes:
+#   - Este script é DESTRUTIVO e removerá todos os dados do RabbitMQ.
+#   - Use com extrema cautela e apenas quando tiver certeza de que deseja
+#     apagar completamente a instalação.
 #
-################################################################################
+# -----------------------------------------------------------------------------
+
 
 # Cores para output
 GREEN='\033[0;32m'

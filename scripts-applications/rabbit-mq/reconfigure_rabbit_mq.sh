@@ -1,9 +1,34 @@
 #!/bin/bash
 
-################################################################################
-# Script de Correção - Configuração RabbitMQ OnlyOffice
-# Corrige o problema de conexão com RabbitMQ externo
-################################################################################
+# -----------------------------------------------------------------------------
+# Script: reconfigure_rabbit_mq.sh
+# Descrição: Reconfigura a conexão do OnlyOffice Document Server com um servidor
+#            RabbitMQ externo. Este script é útil para corrigir problemas de
+#            comunicação ou para atualizar as credenciais do RabbitMQ.
+# Autor: Hugllas Lima
+# Data de Criação: 01/08/2024
+# Versão: 1.0
+# Licença: GPL-3.0
+# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
+# -----------------------------------------------------------------------------
+#
+# Uso:
+#   sudo ./reconfigure_rabbit_mq.sh
+#
+# Pré-requisitos:
+#   - OnlyOffice Document Server deve estar instalado.
+#   - Acesso root (sudo) é necessário para modificar os arquivos de configuração
+#     e reiniciar os serviços.
+#
+# Notas Importantes:
+#   - Este script fará um backup automático dos arquivos de configuração
+#     existentes em /root/onlyoffice_config_backup_<timestamp>.
+#   - O script é interativo e solicitará as informações do RabbitMQ (IP, porta,
+#     usuário, senha e vhost).
+#   - Todos os serviços do OnlyOffice serão reiniciados durante o processo.
+#
+# -----------------------------------------------------------------------------
+
 
 # Cores
 GREEN='\033[0;32m'

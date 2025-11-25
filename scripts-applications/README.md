@@ -2,49 +2,57 @@
 
 Este diretório contém scripts para automatizar a instalação e configuração de aplicações complexas, como RabbitMQ e OnlyOffice Document Server, em ambientes de servidor.
 
-## 📜 Scripts Disponíveis
+## � Estrutura de Diretórios
 
-### 🐇 **RabbitMQ**
+Os scripts estão organizados em subdiretórios de acordo com a aplicação correspondente:
 
-- **`install_rabbit_mq.sh`**:
-  - **Função**: Instala e configura um servidor RabbitMQ dedicado.
-  - **Recursos**:
-    - Interativo: Coleta informações de IP, usuários e senhas.
-    - Criação de administrador e usuários de serviço com vhosts.
-    - Habilita o painel de gerenciamento (`rabbitmq_management`).
-    - Configura o firewall (UFW) para as portas necessárias.
-    - Salva as credenciais em um arquivo seguro.
-  - **Uso**: `sudo ./install_rabbit_mq.sh`
+- **`onlyoffice-server/`**: Scripts para instalação, limpeza e solução de problemas do OnlyOffice Document Server.
+- **`rabbit-mq/`**: Scripts para instalação, reconfiguração e limpeza do RabbitMQ.
 
-- **`cleanup_rabbit_mq.sh`**:
-  - **Função**: Remove completamente uma instalação do RabbitMQ, incluindo pacotes, diretórios de dados, usuários e repositórios.
-  - **Recursos**:
-    - Confirmação de segurança para evitar remoção acidental.
-    - Limpeza completa para uma reinstalação limpa.
-  - **Uso**: `sudo ./cleanup_rabbit_mq.sh`
+## �📜 Scripts Disponíveis
 
-### 🏢 **OnlyOffice Document Server**
+### 🏢 **OnlyOffice Document Server** (`onlyoffice-server/`)
 
 - **`install_onlyoffice_server_v2.sh`**:
   - **Função**: Instala e configura o OnlyOffice Document Server, integrando-o com um servidor RabbitMQ externo e um Nextcloud.
-  - **Recursos**:
-    - Coleta interativa de IPs (OnlyOffice, Nextcloud, RabbitMQ) e credenciais.
-    - Geração automática de senhas e JWT secrets.
-    - Testa a conexão com o RabbitMQ antes de prosseguir.
-    - Configura o PostgreSQL local para o OnlyOffice.
-    - Desabilita o RabbitMQ local para usar a instância externa.
-    - Salva todas as configurações e credenciais em um arquivo.
+  - **Recursos**: Coleta interativa de IPs, geração de senhas, teste de conexão com RabbitMQ e configuração completa.
   - **Uso**: `sudo ./install_onlyoffice_server_v2.sh`
+  - **Nota**: Versão recomendada para novas instalações.
 
 - **`install_onlyoffice_server.sh`**:
   - **Função**: Versão anterior do script de instalação do OnlyOffice.
-  - **Status**: Legado. Recomenda-se o uso da `v2` para novas instalações.
+  - **Status**: Legado. Use a `v2` para novas instalações.
+
+- **`cleanup_onlyoffice.sh`**:
+  - **Função**: Remove completamente uma instalação do OnlyOffice Document Server, incluindo pacotes, configurações e dados.
+  - **Uso**: `sudo ./cleanup_onlyoffice.sh`
+
+- **`onlyoffice_troubleshooting_kit.sh`**:
+  - **Função**: Kit de ferramentas para diagnosticar e resolver problemas comuns no OnlyOffice, como falhas de conexão e erros de serviço.
+  - **Uso**: `sudo ./onlyoffice_troubleshooting_kit.sh`
+
+### 🐇 **RabbitMQ** (`rabbit-mq/`)
+
+- **`install_rabbit_mq.sh`**:
+  - **Função**: Instala e configura um servidor RabbitMQ dedicado.
+  - **Recursos**: Criação de administrador e usuários de serviço, habilitação do painel de gerenciamento e configuração de firewall.
+  - **Uso**: `sudo ./install_rabbit_mq.sh`
+
+- **`reconfigure_rabbit_mq.sh`**:
+  - **Função**: Permite reconfigurar um servidor RabbitMQ existente, adicionando novos usuários e vhosts.
+  - **Uso**: `sudo ./reconfigure_rabbit_mq.sh`
+
+- **`cleanup_rabbit_mq.sh`**:
+  - **Função**: Remove completamente uma instalação do RabbitMQ.
+  - **Uso**: `sudo ./cleanup_rabbit_mq.sh`
 
 ## 🚀 Como Usar
 
-1. **Navegue até o diretório:**
+1. **Navegue até o diretório da aplicação:**
    ```bash
-   cd scripts-applications/
+   cd scripts-applications/onlyoffice-server/
+   # ou
+   cd scripts-applications/rabbit-mq/
    ```
 
 2. **Torne o script executável:**
@@ -61,11 +69,11 @@ Este diretório contém scripts para automatizar a instalação e configuração
 
 - **Sistema Operacional**: Ubuntu Server 24.04 LTS (ou compatível).
 - **Acesso**: Permissões de `root` ou `sudo`.
-- **Conectividade**: Acesso à internet para download de pacotes e dependências.
-- **Servidores Externos**: Para o OnlyOffice, é necessário um servidor RabbitMQ e um Nextcloud já configurados e acessíveis pela rede.
+- **Conectividade**: Acesso à internet para download de pacotes.
+- **Servidores Externos**: Para o OnlyOffice, é necessário um servidor RabbitMQ e um Nextcloud já configurados.
 
 ## 🔒 Segurança
 
-- **Revisão**: Sempre revise o conteúdo dos scripts antes de executá-los em produção.
-- **Backup**: Faça backup de seus dados e configurações antes de iniciar uma nova instalação.
-- **Credenciais**: Os scripts salvam informações sensíveis em arquivos de texto no diretório `/root/`. Certifique-se de movê-los para um local seguro após a instalação.
+- **Revisão**: Sempre revise o conteúdo dos scripts antes de executá-los.
+- **Backup**: Faça backup de seus dados antes de qualquer operação.
+- **Credenciais**: Os scripts podem salvar informações sensíveis em `/root/`. Mova esses arquivos para um local seguro.

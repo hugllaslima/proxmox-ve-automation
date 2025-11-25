@@ -1,28 +1,17 @@
 #!/bin/bash
 
-################################################################################
+# -----------------------------------------------------------------------------
 # Script: install_rabbit_mq.sh
-#
-# Descrição:
-#   Este script instala e configura um servidor RabbitMQ dedicado em um sistema
-#   Ubuntu Server 24.04 LTS. Ele guia o usuário através de um processo interativo
-#   para configurar o IP do servidor, um usuário administrador e usuários de serviço
-#   com vhosts específicos. O script também habilita o plugin de gerenciamento,
-#   configura o firewall (UFW) e salva as credenciais em um local seguro.
-#
-# Autor:
-#   Hugllas R. S. Lima <hugllas.s.lima@gmail.com>
-#
-# Data de Criação: 2024-08-01
-#
+# Descrição: Instala e configura um servidor RabbitMQ dedicado em Ubuntu 24.04 LTS.
+#            O script é interativo e configura o IP do servidor, usuário admin,
+#            usuários de serviço com vhosts, firewall (UFW) e salva as
+#            credenciais de forma segura.
+# Autor: Hugllas Lima
+# Data de Criação: 01/08/2024
 # Versão: 2.2
-#
-# Licença:
-#   Este script é distribuído sob a licença GPL-3.0.
-#   Veja o arquivo LICENSE para mais detalhes.
-#
-# Repositório:
-#   https://github.com/hugllaslima/proxmox-ve-automation
+# Licença: GPL-3.0
+# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
+# -----------------------------------------------------------------------------
 #
 # Uso:
 #   sudo ./install_rabbit_mq.sh
@@ -32,12 +21,14 @@
 #   - Acesso root (sudo).
 #   - Conexão com a internet para download de pacotes.
 #
-# Notas:
+# Notas Importantes:
 #   - O script é interativo e solicitará informações durante a execução.
-#   - As credenciais geradas são salvas em /root/ para segurança.
-#   - Recomenda-se revisar as configurações antes de confirmar a instalação.
+#   - As credenciais geradas são salvas em /root/rabbitmq_credentials_*.txt.
+#     É crucial fazer backup deste arquivo em um local seguro.
+#   - Recomenda-se revisar o resumo da configuração antes de confirmar.
 #
-################################################################################
+# -----------------------------------------------------------------------------
+
 
 set -e  # Parar execução em caso de erro
 

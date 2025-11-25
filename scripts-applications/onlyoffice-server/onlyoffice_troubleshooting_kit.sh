@@ -1,28 +1,34 @@
 #!/bin/bash
 
-################################################################################
+# -----------------------------------------------------------------------------
 # Script: onlyoffice_troubleshooting_kit.sh
-#
-# Descrição:
-#   Este script oferece um conjunto de ferramentas interativas para diagnosticar
-#   e tentar corrigir problemas no OnlyOffice Document Server (Ubuntu 24.04 LTS),
-#   focando em erros de conexão com RabbitMQ e PostgreSQL, e configurações
-#   incorretas.
-#
-# Autor: Hugllas R. S. Lima <hugllas.s.lima@gmail.com> (e Assistente AI)
-#
-# Data de Criação: 2025-11-25
-# Versão: 2.0 (Interativa)
+# Descrição: Oferece um conjunto de ferramentas interativas para diagnosticar e
+#            tentar corrigir problemas comuns no OnlyOffice Document Server,
+#            focando em erros de conexão com RabbitMQ, PostgreSQL e
+#            configurações gerais.
+# Autor: Hugllas Lima
+# Data de Criação: 25/11/2025
+# Versão: 2.0
+# Licença: GPL-3.0
+# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
+# -----------------------------------------------------------------------------
 #
 # Uso:
 #   sudo ./onlyoffice_troubleshooting_kit.sh
 #
-# Notas:
-#   - Execute este script com cautela. Ele fará alterações em arquivos de
-#     configuração e reiniciará serviços.
-#   - Sempre faça backup antes de executar correções. Este script tenta fazer
-#     backups automáticos, mas uma cópia manual é sempre recomendada.
-#   - As credenciais do RabbitMQ e PostgreSQL são solicitadas ou recuperadas
+# Pré-requisitos:
+#   - OnlyOffice Document Server deve estar instalado.
+#   - Acesso root (sudo) é necessário para executar diagnósticos e correções.
+#
+# Notas Importantes:
+#   - Este script é interativo e guiará você através de um menu de opções.
+#   - Algumas ações, como reiniciar serviços ou recriar configurações, podem
+#     causar uma breve indisponibilidade do serviço.
+#   - Recomenda-se fazer backup de configurações críticas antes de aplicar
+#     correções destrutivas.
+#
+# -----------------------------------------------------------------------------
+
 #     de configurações existentes. Certifique-se de que estejam corretas.
 #
 ################################################################################

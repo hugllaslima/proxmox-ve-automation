@@ -1,26 +1,30 @@
 #!/bin/bash
 
-################################################################################
-# Script de Instalação do OnlyOffice Document Server
-# Versão: 3.1 - CORRIGIDA
-# Compatível com: Ubuntu Server 24.04 LTS
-# Uso: sudo ./install_onlyoffice.sh
-#
-# Autor: Hugllas R. S. Lima <hugllas.s.lima@gmail.com>
+# -----------------------------------------------------------------------------
+# Script: install_onlyoffice_server_v2.sh
+# Descrição: Instala e configura o OnlyOffice Document Server com RabbitMQ externo.
+# Autor: Hugllas Lima
+# Data de Criação: 20/10/2023
+# Versão: 3.1
+# Licença: MIT
 # Repositório: https://github.com/hugllaslima/proxmox-ve-automation
+# -----------------------------------------------------------------------------
 #
-# Este script instala e configura o OnlyOffice Document Server
-# com suporte a RabbitMQ externo (servidor dedicado)
+# Uso:
+#   sudo ./install_onlyoffice_server_v2.sh
 #
-# Correções na v3.1:
-# - Tempo de espera aumentado para PostgreSQL (15 segundos)
-# - Verificação de status do PostgreSQL antes de continuar
-# - Teste de conexão com banco antes da instalação do OnlyOffice
-# - DROP e CREATE do banco para instalação limpa
-# - ALTER DATABASE OWNER para ownership correto
-# - GRANT em SCHEMA public para PostgreSQL 15+
-# - Melhor tratamento de erros
-################################################################################
+# Pré-requisitos:
+#   - Ubuntu Server 24.04 LTS.
+#   - Permissões de root ou sudo.
+#   - Servidor RabbitMQ externo já configurado e acessível.
+#   - Servidor Nextcloud (opcional) para integração.
+#
+# Notas Importantes:
+#   - Este script é interativo e solicitará informações como IPs e senhas.
+#   - As credenciais geradas são salvas em /root/onlyoffice_credentials.txt.
+#   - É a versão recomendada para novas instalações.
+#
+# -----------------------------------------------------------------------------
 
 set -e  # Parar execução em caso de erro
 
