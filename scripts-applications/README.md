@@ -2,14 +2,27 @@
 
 Este diretório contém scripts para automatizar a instalação e configuração de aplicações complexas, como RabbitMQ e OnlyOffice Document Server, em ambientes de servidor.
 
-## � Estrutura de Diretórios
+## 📖 Estrutura de Diretórios
 
 Os scripts estão organizados em subdiretórios de acordo com a aplicação correspondente:
 
+- **`docker/`**: Scripts para instalação e configuração do Docker e Docker Compose.
 - **`onlyoffice-server/`**: Scripts para instalação, limpeza e solução de problemas do OnlyOffice Document Server.
 - **`rabbit-mq/`**: Scripts para instalação, reconfiguração e limpeza do RabbitMQ.
 
-## �📜 Scripts Disponíveis
+## 📜 Scripts Disponíveis
+
+### 🐳 **Docker** (`docker/`)
+
+- **`install_docker_full_ubuntu.sh`**:
+  - **Função**: Realiza a instalação completa do Docker e do Docker Compose em servidores Ubuntu.
+  - **Recursos**: Atualiza o sistema, adiciona o repositório oficial do Docker, instala o Docker CE e o Docker Compose, e adiciona o usuário ao grupo `docker`.
+  - **Uso**: `sudo ./install_docker_full_ubuntu.sh`
+
+- **`install_docker_full_zorin.sh`**:
+  - **Função**: Instala o Docker e o Docker Compose em sistemas derivados do Ubuntu, como Zorin OS, Pop!_OS e Linux Mint.
+  - **Recursos**: Detecta a distribuição, remove instalações antigas, otimiza os espelhos de pacotes e configura o ambiente de forma segura.
+  - **Uso**: `sudo ./install_docker_full_zorin.sh`
 
 ### 🏢 **OnlyOffice Document Server** (`onlyoffice-server/`)
 
@@ -50,6 +63,8 @@ Os scripts estão organizados em subdiretórios de acordo com a aplicação corr
 
 1. **Navegue até o diretório da aplicação:**
    ```bash
+   cd scripts-applications/docker/
+   # ou
    cd scripts-applications/onlyoffice-server/
    # ou
    cd scripts-applications/rabbit-mq/
