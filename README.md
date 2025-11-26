@@ -21,8 +21,6 @@ Scripts para criação e configuração de VMs no Proxmox VE:
 - `create_vm.sh` - Criação interativa de VMs via `qm` com validações e ISO opcional
 - `create_vm_v2.sh` - Versão aprimorada com interface melhorada e validações robustas
 - `ubuntu_full_config_pve.sh` - Configuração inicial completa (versão aprimorada)
-- `install_docker_full_ubuntu.sh` - Instalação do Docker e Docker Compose para Ubuntu Server
-- `install_docker_full_zorin.sh` - Instalação do Docker para Zorin OS e derivados do Ubuntu
 - `README.md` - Documentação detalhada sobre o uso dos scripts
 
 ### 🔧 **scripts-ansible/**
@@ -68,7 +66,13 @@ Scripts para instalação de agentes QEMU:
 - `README.md` - Documentação detalhada sobre o QEMU Guest Agent e uso dos scripts
 
 ### 🖥️ **scripts-applications/**
-Este diretório contém scripts para automatizar a instalação e configuração de aplicações em servidores dedicados. A estrutura é organizada em subdiretórios para cada aplicação, como `rabbit-mq` e `onlyoffice-server`, facilitando a manutenção e o uso.
+Este diretório contém scripts para automatizar a instalação e configuração de aplicações em servidores dedicados. A estrutura é organizada em subdiretórios para cada aplicação, como `docker`, `rabbit-mq` e `onlyoffice-server`, facilitando a manutenção e o uso.
+
+#### 🐳 **docker/**
+Scripts para instalação e configuração do Docker e Docker Compose.
+- `install_docker_full_ubuntu.sh` - Instalação completa do Docker e Docker Compose para Ubuntu Server.
+- `install_docker_full_zorin.sh` - Instalação completa do Docker e Docker Compose para Zorin OS e derivados do Ubuntu.
+- `README.md` - Documentação detalhada sobre os scripts de Docker.
 
 #### 🐰 **rabbit-mq/**
 Scripts para gerenciamento de um servidor RabbitMQ dedicado.
@@ -133,7 +137,6 @@ Scripts específicos para a distribuição Zorin OS:
 - ✅ Ajuste de timezone para America/Sao_Paulo
 - ✅ Configuração de usuário sudo
 - ✅ Setup completo de SSH com chaves
-- ✅ Instalação do Docker e Docker Compose (Ubuntu Server e Zorin OS)
 - ✅ Suporte a distribuições baseadas em Ubuntu (Zorin OS, Pop!_OS, Linux Mint, Elementary OS)
 - ✅ Instalação do agente QEMU
 
