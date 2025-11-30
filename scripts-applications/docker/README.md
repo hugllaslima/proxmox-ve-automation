@@ -6,6 +6,7 @@ Este diretório contém scripts para automatizar a instalação e configuração
 
 ```
 docker/
+├── install_docker_full_ubuntu_server.sh
 ├── install_docker_full_ubuntu.sh
 ├── install_docker_full_zorin.sh
 └── README.md
@@ -13,31 +14,31 @@ docker/
 
 ## 🚀 Scripts Disponíveis
 
-### 1. `install_docker_full_ubuntu.sh`
+### 1. `install_docker_full_ubuntu_server.sh` (Recomendado para Servidores)
 
 - **Função**:
-  Realiza a instalação completa do Docker e do Docker Compose em servidores **Ubuntu**.
+  Realiza a instalação completa e moderna do Docker Engine e do Docker Compose V2 em servidores **Ubuntu**. Este script utiliza os métodos de instalação mais recentes recomendados pela documentação oficial do Docker.
 
-- **Quando Utilizar**:
-  Use este script para configurar um ambiente Docker do zero em uma nova instância do Ubuntu Server. Ele garante que todas as dependências e repositórios oficiais sejam corretamente configurados.
+- **Compatibilidade**:
+  - Ubuntu Server 20.04 LTS (Focal Fossa)
+  - Ubuntu Server 22.04 LTS (Jammy Jellyfish)
+  - Ubuntu Server 24.04 LTS (Noble Numbat)
 
 - **Recursos Principais**:
-  - Atualiza a lista de pacotes do sistema (`apt-get update`).
-  - Instala dependências necessárias para adicionar repositórios via HTTPS.
-  - Adiciona a chave GPG oficial do Docker para garantir a autenticidade dos pacotes.
-  - Configura o repositório oficial do Docker.
+  - Utiliza o método seguro de `gpg --dearmor` para a chave GPG do Docker (substituindo o `apt-key` obsoleto).
+  - Instala o plugin `docker-compose` (V2) via `apt`, que é a abordagem moderna.
+  - Adiciona o repositório oficial do Docker de forma segura.
   - Instala a última versão estável do Docker Engine (`docker-ce`), CLI (`docker-ce-cli`) e `containerd.io`.
-  - Instala o **Docker Compose** para orquestração de contêineres.
-  - Adiciona o usuário que executa o script ao grupo `docker`, permitindo a execução de comandos Docker sem `sudo` (requer um novo login para ter efeito).
+  - Adiciona o usuário atual ao grupo `docker` para permitir a execução de comandos sem `sudo`.
 
 - **Como Utilizar**:
   1. **Tornar o script executável**:
      ```bash
-     chmod +x install_docker_full_ubuntu.sh
+     chmod +x install_docker_full_ubuntu_server.sh
      ```
   2. **Executar com `sudo`**:
      ```bash
-     sudo ./install_docker_full_ubuntu.sh
+     sudo ./install_docker_full_ubuntu_server.sh
      ```
 
 ### 2. `install_docker_full_zorin.sh`
@@ -63,9 +64,32 @@ docker/
      sudo ./install_docker_full_zorin.sh
      ```
 
+### 3. `install_docker_full_ubuntu.sh` (Legado)
+
+- **Função**:
+  Realiza a instalação do Docker e do Docker Compose V1 em servidores **Ubuntu**.
+
+- **Quando Utilizar**:
+  Este script utiliza métodos mais antigos (`apt-key` e download do binário do Compose V1 com `curl`). Pode ser útil para sistemas legados ou para manter a compatibilidade com ambientes que ainda dependem do `docker-compose` V1. **Para novas instalações, o uso de `install_docker_full_ubuntu_server.sh` é fortemente recomendado.**
+
+- **Recursos Principais**:
+  - Usa `apt-key` para adicionar a chave GPG (método obsoleto).
+  - Baixa e instala o binário do `docker-compose` (V1) a partir do GitHub.
+  - Configura o repositório oficial do Docker e instala o Docker Engine.
+
+- **Como Utilizar**:
+  1. **Tornar o script executável**:
+     ```bash
+     chmod +x install_docker_full_ubuntu.sh
+     ```
+  2. **Executar com `sudo`**:
+     ```bash
+     sudo ./install_docker_full_ubuntu.sh
+     ```
+
 ## ⚠️ Pré-requisitos
 
-- **Sistema Operacional**: Ubuntu Server (para `install_docker_full_ubuntu.sh`) ou Zorin OS (para `install_docker_full_zorin.sh`).
+- **Sistema Operacional**: Ubuntu Server ou Zorin OS.
 - **Acesso**: Permissões de `root` ou um usuário com privilégios `sudo`.
 - **Conectividade**: Acesso à internet para download dos pacotes e chaves de repositório.
 
