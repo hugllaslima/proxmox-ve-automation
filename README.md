@@ -41,7 +41,13 @@ Scripts para configuração de containers LXC:
 - `create_user_lxc_2.sh` - Versão alternativa do script de criação de usuários
 - `README.md` - Documentação detalhada sobre o uso dos scripts
 
-### 📊 **scripts-prometheus/**
+### � **scripts-github/**
+Scripts para automação de tarefas do Git/GitHub:
+- `git_switcher.sh` - Gerencia e alterna entre múltiplas contas Git/GitHub em um repositório local
+- `sync-branchs.sh` - Sincroniza as branches `main` e `develop` com o repositório remoto
+- `README.md` - Documentação detalhada sobre o uso dos scripts
+
+### �📊 **scripts-prometheus/**
 Scripts para monitoramento:
 - `install_node_exporter.sh` - Instalação do Prometheus Node Exporter
 - `README.md` - Documentação detalhada sobre o uso dos scripts
