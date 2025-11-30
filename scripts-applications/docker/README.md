@@ -14,7 +14,7 @@ docker/
 
 ## 🚀 Scripts Disponíveis
 
-### 1. `install_docker_full_ubuntu_server.sh` (Recomendado para Servidores)
+### 1. `install_docker_full_ubuntu_server.sh` (Recomendado para Servidores Ubuntu)
 
 - **Função**:
   Realiza a instalação completa e moderna do Docker Engine e do Docker Compose V2 em servidores **Ubuntu**. Este script utiliza os métodos de instalação mais recentes recomendados pela documentação oficial do Docker.
