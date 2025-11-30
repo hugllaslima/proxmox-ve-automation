@@ -6,14 +6,14 @@ Este diretório contém scripts projetados para simplificar e automatizar tarefa
 
 ```
 scripts-github/
-├── git_switcher.sh
+├── github_switcher.sh
 ├── sync-branchs.sh
 └── README.md
 ```
 
 ## 🚀 Scripts Disponíveis
 
-### 1. `git_switcher.sh`
+### 1. `github_switcher.sh`
 
 - **Função**:
   Gerencia e alterna entre múltiplas contas Git/GitHub em uma mesma máquina. O script automatiza a configuração do `user.name`, `user.email` e da chave SSH associada a cada perfil.
@@ -43,11 +43,11 @@ scripts-github/
      ```
   2. **Tornar o script executável**:
      ```bash
-     chmod +x git_switcher.sh
+     chmod +x github_switcher.sh
      ```
   3. **Executar o script**:
      ```bash
-     ./git_switcher.sh
+     ./github_switcher.sh
      ```
      Selecione o perfil desejado no menu.
 
