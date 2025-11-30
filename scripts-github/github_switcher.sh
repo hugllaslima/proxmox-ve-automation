@@ -24,8 +24,8 @@
 #    respectivas contas no GitHub.
 #
 # Uso:
-# 1. Salve o script (ex: git_switcher.sh) e torne-o executável: chmod +x git_switcher.sh
-# 2. Execute o script de qualquer lugar: ./git_switcher.sh
+# 1. Salve o script (ex: github_switcher.sh) e torne-o executável: chmod +x github_switcher.sh
+# 2. Execute o script de qualquer lugar: ./github_switcher.sh
 # 3. Siga as instruções interativas. Se for configurar um repositório, navegue
 #    até a pasta raiz do seu projeto Git antes de escolher a opção.
 # ==============================================================================
