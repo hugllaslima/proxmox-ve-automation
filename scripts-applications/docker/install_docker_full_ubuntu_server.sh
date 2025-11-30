@@ -77,19 +77,20 @@ echo "\n[PASSO 5/6] Instalando Docker Engine, CLI, Containerd e Docker Compose..
 # 6. CONFIGURAÇÕES PÓS-INSTALAÇÃO
 echo "\n[PASSO 6/6] Realizando configurações pós-instalação..."
 
-# Adicionar usuário atual ao grupo docker
-# Obtém o nome do usuário atual
-    CURRENT_USER=$(whoami)
-echo "Adicionando o usuário '$CURRENT_USER' ao grupo 'docker'..."
-    sudo usermod -aG docker "$CURRENT_USER"
+    # Adicionar usuário atual ao grupo docker
+        # Obtém o nome do usuário atual
+        CURRENT_USER=$(whoami)
+        echo "Adicionando o usuário '$CURRENT_USER' ao grupo 'docker'..."
+        sudo usermod -aG docker "$CURRENT_USER"
 
-# Habilitar o serviço do Docker
-echo "Habilitando o serviço do Docker para iniciar com o sistema..."
-sudo systemctl enable docker
-sudo systemctl start docker
+        # Habilitar o serviço do Docker
+        echo "Habilitando o serviço do Docker para iniciar com o sistema..."
+        sudo systemctl enable docker
+        sudo systemctl start docker
 
-# --- Verificação Final ---
-echo "\n======================================================"
+# 7. VERIFICAÇÕES FINAIS
+echo "\n[PASSO 7/6] Verificando as versões instaladas..."
+echo "========================================================"
 echo "           Verificando as versões instaladas            "
 echo "========================================================"
 
@@ -101,14 +102,14 @@ else
 fi
 
 if docker compose version &> /dev/null; then
-    echo "\nDocker Compose (plugin V2):"
+    echo "\n[PASSO 7/6] Docker Compose (plugin V2):"
     docker compose version
 else
     echo "ERRO: Docker Compose não parece ter sido instalado corretamente."
 fi
 
-echo "\n======================================================"
+echo "\n========================================================"
 echo "🎉 Instalação concluída com sucesso!"
 echo ""
 echo "IMPORTANTE: Para usar o Docker sem 'sudo', você precisa fazer logout e login novamente ou reiniciar o sistema."
-echo "======================================================"
+echo "=========================================================="
