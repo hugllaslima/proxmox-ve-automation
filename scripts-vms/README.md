@@ -1,156 +1,64 @@
-# Scripts para VMs no Proxmox VE
+# 🤖 Scripts de Automação para Máquinas Virtuais (VMs) em Proxmox
 
-Este diretório contém scripts para criação e configuração de máquinas virtuais no Proxmox VE, incluindo criação de VMs e configuração inicial de Ubuntu Server.
+Este diretório contém scripts para automatizar a criação, configuração e gerenciamento de Máquinas Virtuais (VMs) no ambiente de virtualização **Proxmox VE**.
 
-## 📋 Scripts Disponíveis
+## 📜 Estrutura de Diretórios
 
-
-
-
-
-### 🧩 `create_vm.sh`
-**Criação interativa de VMs no Proxmox VE (qm)**
-
-**Funcionalidades:**
-- Verificação de execução como root
-- Coleta interativa de ID, nome, RAM, núcleos de CPU, tamanho de disco
-- Seleção de storage para o disco (conteúdo `images`)
-- Seleção do tipo de OS (`l26`, `win10`, `other`)
-- Anexo opcional de imagem ISO a partir de storages com conteúdo `iso`
-- Resumo final e confirmação antes da criação
-- Criação via `qm create` com parâmetros padrão (virtio-scsi, virtio net, boot order)
-
-**Uso:**
-```bash
-chmod +x create_vm.sh
-sudo ./create_vm.sh
+```
+scripts-vms/
+├── create_vm_ubuntu_server.sh
+└── README.md
 ```
 
-**Pré-requisitos:**
-- Proxmox VE com ferramentas CLI: `pvesh`, `pvesm`, `qm`
-- `jq` instalado (utilizado para parse de JSON)
-- Execução como `root` ou com `sudo`
+## 🚀 Scripts Disponíveis
 
----
+### 1. `create_vm_ubuntu_server.sh`
 
-### 🧩 `create_vm_v2.sh`
-**Criação interativa de VMs no Proxmox VE - Versão Aprimorada**
+- **Função**:
+  Automatiza a criação de uma nova Máquina Virtual (VM) no Proxmox VE, configurada com **Ubuntu Server 22.04 LTS**. O script utiliza a imagem de cloud-init para provisionamento rápido e personalizável.
 
-**Funcionalidades:**
-- Todas as funcionalidades do `create_vm.sh` com melhorias significativas
-- Listagem inteligente de storages por tipo de conteúdo (sem dependência obrigatória do `jq`)
-- Listagem automática de ISOs disponíveis em cada storage
-- Interface mais amigável com confirmações em cada etapa
-- Melhor tratamento de erros e validações
-- Suporte aprimorado a diferentes tipos de OS com nomes amigáveis
-- Validação robusta de formato de tamanho de disco (G/M)
-- Verificação automática de duplicidade de VMID
-- Processo de configuração mais intuitivo e seguro
+- **Quando Utilizar**:
+  Use este script para provisionar rapidamente novas VMs Ubuntu Server em seu cluster Proxmox. É ideal para criar ambientes de desenvolvimento, teste ou produção de forma padronizada e repetível, economizando tempo e evitando erros manuais.
 
-**Melhorias da V2:**
-- ✅ Dependência opcional do `jq` (funciona sem ele)
-- ✅ Listagem dinâmica de recursos do Proxmox
-- ✅ Interface de usuário aprimorada
-- ✅ Validações mais rigorosas
-- ✅ Melhor documentação e comentários
-- ✅ Tratamento de erros mais robusto
+- **Recursos Principais**:
+  - **Criação a partir de Template**: Clona uma VM a partir de um template de cloud-init (ID 9000 por padrão), garantindo consistência.
+  - **Coleta Interativa de Dados**: Solicita ao usuário informações essenciais para a nova VM:
+    - **VM ID**: O identificador único da nova VM no Proxmox.
+    - **Hostname**: O nome da máquina na rede.
+    - **Endereço IP**: O endereço IP estático (com CIDR, ex: `192.168.1.100/24`).
+    - **Gateway**: O gateway padrão da rede.
+  - **Configuração de Hardware**: Define os recursos de hardware da VM:
+    - **Memória**: 4 GB de RAM.
+    - **Cores**: 2 núcleos de CPU.
+    - **Disco**: Redimensiona o disco principal para 50 GB.
+  - **Configuração de Cloud-Init**:
+    - **Usuário**: Cria um usuário padrão (`hugomrt`) e importa uma chave SSH pública (`~/.ssh/id_rsa.pub`) para acesso sem senha.
+    - **Rede**: Configura a interface de rede com o IP estático e gateway fornecidos.
+  - **Inicialização Automática**: Inicia a VM automaticamente após a criação.
 
-**Uso:**
-```bash
-chmod +x create_vm_v2.sh
-sudo ./create_vm_v2.sh
-```
-
-**Pré-requisitos:**
-- Proxmox VE com ferramentas CLI: `pvesh`, `pvesm`, `qm`
-- `jq` (opcional, mas recomendado para melhor performance)
-- Execução como `root` ou com `sudo`
-- Storages configurados no Proxmox para 'images' e 'iso'
-
----
-
-
-
-### ⚙️ `ubuntu_full_config_pve.sh`
-**Versão aprimorada do script de configuração inicial**
-
-**Melhorias:**
-- Interface de usuário aprimorada com melhor feedback visual
-- Tratamento de erros mais robusto
-- Validações adicionais de segurança
-- Processo de configuração SSH otimizado
-- Melhor gerenciamento de permissões
-- Logs mais detalhados das operações
-
-**Funcionalidades:** 
-- Melhor tratamento de exceções
-- Validações de entrada mais rigorosas
-- Feedback visual aprimorado durante a execução
-
-**Uso:**
-```bash
-chmod +x ubuntu_full_config_pve.sh
-sudo ./ubuntu_full_config_pve.sh
-```
-
-## 🚀 Fluxo de Uso Recomendado
-
-### Para Criação de Nova VM:
-1. **Recomendado:** Execute `create_vm_v2.sh` para criação com interface aprimorada e validações robustas
-2. **Alternativo:** Use `create_vm.sh` se preferir a versão original mais simples
-
-### Para Nova VM Ubuntu:
-1. **Primeiro:** Execute `create_vm_v2.sh` ou `create_vm.sh` para criar a VM
-2. **Segundo:** Execute `ubuntu_full_config_pve.sh` para configuração inicial completa
+- **Como Utilizar**:
+  1. **Preparar o Template de Cloud-Init**:
+     - Antes de usar o script, você precisa de um template de VM com uma imagem de cloud-init do Ubuntu Server. Certifique-se de que este template tenha o **VM ID 9000** (ou altere a variável `TEMPLATE_ID` no script).
+     - O template deve ter o `qemu-guest-agent` instalado para comunicação com o host Proxmox.
+  2. **Tornar o script executável**:
+     ```bash
+     chmod +x create_vm_ubuntu_server.sh
+     ```
+  3. **Executar o script no nó Proxmox**:
+     Execute o script diretamente em um dos nós do seu cluster Proxmox via SSH.
+     ```bash
+     ./create_vm_ubuntu_server.sh
+     ```
+  4. **Fornecer as Informações**: Responda às perguntas do script para configurar a nova VM.
 
 ## ⚠️ Pré-requisitos
 
-- Proxmox VE com ferramentas CLI
-- Ubuntu Server 20.04 LTS ou superior (para scripts de configuração de Ubuntu)
-- Acesso root ou sudo
-- Conexão com a internet
-- Chave SSH pública (para configuração SSH no v2)
-- VM criada no Proxmox VE
+- **Ambiente**: Um cluster Proxmox VE funcional.
+- **Template de Cloud-Init**: Uma VM template (ID 9000) com uma imagem cloud do Ubuntu Server 22.04 e o `qemu-guest-agent` instalado.
+- **Chave SSH**: Uma chave SSH pública (`~/.ssh/id_rsa.pub`) deve existir no host Proxmox para ser injetada na nova VM.
+- **Acesso**: O script deve ser executado em um nó do Proxmox com permissões para gerenciar VMs (`qm`).
 
-## 🔒 Considerações de Segurança
+## 💡 Dicas
 
-- **Backup:** Sempre faça snapshot da VM antes de executar os scripts
-- **Chaves SSH:** O script v2 solicita chave pública e preserva chaves existentes
-- **Teste SSH:** Sempre teste o acesso SSH em outra sessão antes de reiniciar
-- **Sudo:** Scripts configuram sudo sem senha apenas para o usuário 'ubuntu'
-
-## 📝 Logs e Troubleshooting
-
-### Verificações Pós-Execução:
-```bash
-# Verificar timezone
-timedatectl
-
-# Verificar serviços
-systemctl status qemu-guest-agent
-systemctl status docker
-systemctl status ssh
-
-# Verificar usuário no grupo docker
-groups ubuntu
-
-# Testar Docker
-docker --version
-docker-compose --version
-```
-
-### Arquivos de Configuração Importantes:
-- `/etc/ssh/sshd_config` - Configuração SSH
-- `/etc/sudoers.d/ubuntu` - Configuração sudo
-- `/home/ubuntu/.ssh/` - Chaves SSH do usuário
-
-## 🤝 Contribuição
-
-Para melhorias ou correções:
-1. Teste em ambiente de desenvolvimento
-2. Documente mudanças no cabeçalho do script
-3. Mantenha compatibilidade com versões LTS do Ubuntu
-
-## 📄 Licença
-
-GPL-3.0 - Veja o arquivo LICENSE no diretório raiz.
+- **Personalização**: Modifique as variáveis no início do script (como `TEMPLATE_ID`, `STORAGE`, `BRIDGE`, `CORES`, `MEMORY`) para adaptar a criação da VM às suas necessidades específicas.
+- **Automação em Larga Escala**: Este script pode ser integrado a ferramentas de automação como o Ansible para provisionar múltiplas VMs de uma só vez, lendo os parâmetros de um arquivo de inventário em vez de solicitá-los interativamente.

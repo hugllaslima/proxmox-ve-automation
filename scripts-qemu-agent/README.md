@@ -1,175 +1,72 @@
-# Scripts de Instalação do Agente QEMU
+# 📦 Scripts para QEMU Guest Agent
 
-Este diretório contém scripts para instalação automática do `qemu-guest-agent` em máquinas virtuais executando no Proxmox VE.
+Este diretório contém scripts para gerenciar o **QEMU Guest Agent** em máquinas virtuais (VMs) Linux, facilitando a comunicação e a integração entre o host (hipervisor, como o Proxmox VE) e o guest (VM).
 
-## Scripts Disponíveis
+## 📜 Estrutura de Diretórios
 
-### 1. apt_install_agent_qemu.sh
-**Objetivo:** Instalar o agente QEMU em sistemas baseados em Debian/Ubuntu usando APT.
-
-**Funcionalidades:**
-- Instalação automática do `qemu-guest-agent`
-- Inicialização do serviço
-- Habilitação para inicialização automática
-- Reinicialização automática do sistema (com aviso de 10 segundos)
-
-### 2. yum_install_agent_qemu.sh
-**Objetivo:** Instalar o agente QEMU em sistemas baseados em Red Hat/CentOS usando YUM.
-
-**Funcionalidades:**
-- Instalação automática do `qemu-guest-agent`
-- Inicialização do serviço
-- Habilitação para inicialização automática
-- Reinicialização automática do sistema (com aviso de 10 segundos)
-
-## O que é o QEMU Guest Agent?
-
-O `qemu-guest-agent` é um daemon auxiliar instalado no sistema convidado (VM) que permite:
-
-- **Comunicação bidirecional** entre o host Proxmox VE e a VM
-- **Execução de comandos** no sistema convidado a partir do host
-- **Sincronização de tempo** mais precisa
-- **Shutdown/restart** mais limpo das VMs
-- **Informações detalhadas** sobre o sistema convidado
-- **Snapshots consistentes** com freeze/unfreeze do filesystem
-
-## Uso
-
-### Para Sistemas Debian/Ubuntu
-```bash
-# Executar como root
-sudo ./apt_install_agent_qemu.sh
+```
+scripts-qemu-agent/
+├── install_qemu_agent_v2.sh
+├── install_qemu_agent.sh
+└── README.md
 ```
 
-### Para Sistemas Red Hat/CentOS
-```bash
-# Executar como root
-sudo ./yum_install_agent_qemu.sh
-```
+## 🚀 Scripts Disponíveis
 
-### Fluxo de Execução
-1. **Aviso inicial:** Exibe mensagem de início da instalação
-2. **Instalação:** Instala o pacote `qemu-guest-agent`
-3. **Inicialização:** Inicia o serviço imediatamente
-4. **Habilitação:** Configura inicialização automática
-5. **Aviso de reinicialização:** Conta regressiva de 10 segundos
-6. **Reinicialização:** Reinicia o sistema automaticamente
+### 1. `install_qemu_agent_v2.sh` (Recomendado)
 
-## Pós-Instalação
+- **Função**:
+  Instala e habilita o QEMU Guest Agent em uma VM Linux (Debian/Ubuntu). Esta é a versão mais completa e segura, com validações e feedback claro.
 
-### Habilitação no Proxmox VE
-Após a instalação e reinicialização da VM, você deve habilitar o agente na interface do Proxmox VE:
+- **Quando Utilizar**:
+  Execute este script em **todas as VMs** que rodam em um hipervisor como o Proxmox VE. A instalação do agente é crucial para habilitar funcionalidades avançadas, como:
+  - **Desligamento/Reinicialização Graciosa**: Permite que o hipervisor desligue ou reinicie a VM de forma segura, sem corromper dados.
+  - **Obtenção de Informações**: Fornece ao host detalhes sobre a VM, como endereços IP, status do sistema e uso de memória.
+  - **Snapshots Consistentes**: Ajuda a "congelar" o sistema de arquivos da VM antes de um snapshot, garantindo a consistência dos dados.
+  - **Execução de Comandos**: Permite que o host execute comandos dentro da VM.
 
-1. Acesse a interface web do Proxmox VE
-2. Selecione a VM
-3. Vá para **Options** → **QEMU Guest Agent**
-4. Marque **Enabled**
-5. Clique em **OK**
+- **Recursos Principais**:
+  - **Instalação do Pacote**: Instala o pacote `qemu-guest-agent`.
+  - **Habilitação do Serviço**: Inicia e habilita o serviço para que ele seja executado na inicialização da VM.
+  - **Verificação de Status**: Confirma que o serviço está ativo e funcionando após a instalação.
+  - **Saída Informativa**: Exibe mensagens claras sobre o progresso e o resultado da operação.
 
-### Verificação da Instalação
-```bash
-# Verificar status do serviço
-systemctl status qemu-guest-agent
+- **Como Utilizar**:
+  1. **Copiar para a VM**: Transfira o script para a máquina virtual que você deseja configurar.
+  2. **Tornar o script executável**:
+     ```bash
+     chmod +x install_qemu_agent_v2.sh
+     ```
+  3. **Executar com `sudo`**:
+     ```bash
+     sudo ./install_qemu_agent_v2.sh
+     ```
 
-# Verificar se está rodando
-ps aux | grep qemu-guest-agent
+### 2. `install_qemu_agent.sh` (Legado)
 
-# Verificar logs
-journalctl -u qemu-guest-agent
-```
+- **Função**:
+  Versão mais antiga e simplificada do script de instalação. É funcional, mas menos robusta.
 
-## Compatibilidade
+- **Quando Utilizar**:
+  Pode ser usada como referência ou em scripts de automação mais simples. No entanto, a **versão 2 é recomendada** para garantir uma instalação mais confiável.
 
-### Sistemas Suportados
+- **Recursos Principais**:
+  - Instala o pacote e inicia o serviço, mas com menos feedback e sem a etapa de habilitação explícita (`enable`).
 
-**apt_install_agent_qemu.sh:**
-- Ubuntu (todas as versões LTS)
-- Debian (8+)
-- Linux Mint
-- Outros derivados Debian
+## ✅ Verificação no Proxmox VE
 
-**yum_install_agent_qemu.sh:**
-- CentOS (6+)
-- Red Hat Enterprise Linux (RHEL)
-- Fedora (versões antigas)
-- Oracle Linux
+Após executar o script na VM, você pode confirmar que o QEMU Guest Agent está funcionando corretamente no painel do Proxmox VE:
 
-## Considerações Importantes
+1. Selecione a VM na interface web.
+2. Vá para a aba **Summary**.
+3. Na seção **IPs**, você deverá ver os endereços IP da VM listados. Se a mensagem "No guest agent configured" desapareceu e os IPs são exibidos, a comunicação foi estabelecida com sucesso.
 
-### Segurança
-- O agente permite execução de comandos pelo host
-- Use apenas em ambientes confiáveis
-- Mantenha o Proxmox VE atualizado
+## ⚠️ Pré-requisitos
 
-### Reinicialização Automática
-⚠️ **Atenção:** Os scripts reiniciam o sistema automaticamente após 10 segundos
-- Para cancelar: pressione `Ctrl+C` durante a contagem
-- Salve trabalhos importantes antes da execução
+- **Sistema Operacional da VM**: Debian, Ubuntu ou um derivado.
+- **Acesso na VM**: Um usuário com privilégios `sudo`.
+- **Configuração no Hipervisor**: O hipervisor (Proxmox VE) deve estar configurado para usar o QEMU Guest Agent. Isso é feito na aba **Options** da VM, marcando a caixa de seleção **QEMU Guest Agent**.
 
-### Dependências
-- Acesso root na VM
-- Conexão com a internet (para download dos pacotes)
-- Repositórios do sistema configurados
+## 💡 Dica
 
-## Solução de Problemas
-
-### Falha na Instalação
-```bash
-# Atualizar repositórios
-apt update  # ou yum update
-
-# Verificar conectividade
-ping 8.8.8.8
-
-# Verificar espaço em disco
-df -h
-```
-
-### Serviço não Inicia
-```bash
-# Verificar logs de erro
-journalctl -u qemu-guest-agent -f
-
-# Reiniciar manualmente
-systemctl restart qemu-guest-agent
-
-# Verificar configuração
-systemctl is-enabled qemu-guest-agent
-```
-
-### Problemas de Comunicação
-- Verifique se o agente está habilitado no Proxmox VE
-- Confirme que a VM foi reiniciada após a instalação
-- Verifique se não há firewall bloqueando a comunicação
-
-## Benefícios da Instalação
-
-### Para Administradores
-- Shutdown mais limpo das VMs
-- Informações detalhadas do sistema convidado
-- Melhor integração com ferramentas de backup
-- Snapshots mais consistentes
-
-### Para Usuários
-- Melhor sincronização de tempo
-- Operações de sistema mais estáveis
-- Melhor experiência geral da VM
-
-## Contribuição
-
-Contribuições são bem-vindas! Por favor:
-1. Faça fork do repositório
-2. Crie uma branch para sua feature
-3. Commit suas mudanças
-4. Abra um Pull Request
-
-## Licença
-
-Este projeto está licenciado sob a GPL - veja o arquivo LICENSE para detalhes.
-
-## Autor
-
-**Hugllas R S Lima**
-- Email: hugllaslima@gmail.com
-- Data: 20.07.2024
-- Versão: 1.0
+- **Templates de VM**: A melhor prática é instalar o QEMU Guest Agent em uma VM base e, em seguida, convertê-la em um template. Todas as novas VMs criadas a partir deste template já terão o agente instalado e configurado, economizando tempo e garantindo consistência.

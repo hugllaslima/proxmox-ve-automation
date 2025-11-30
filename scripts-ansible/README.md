@@ -1,205 +1,89 @@
-# Scripts de Configuração para Automação com Ansible
+# Automação de Configuração de Hosts para Ansible
 
-Este diretório contém scripts para preparar hosts (VMs e containers LXC) para gerenciamento e automação via Ansible no ambiente Proxmox VE.
+Este diretório contém scripts para preparar hosts (VMs ou contêineres LXC) para serem gerenciados via automação com Ansible.
 
-## 📋 Scripts Disponíveis
+## Estrutura do Diretório
 
-### 🔧 `add_host_ansible.sh`
-**Configuração de hosts para gerenciamento via Ansible**
+```
+scripts-ansible/
+|-- README.md
+`-- add_host_ansible.sh
+```
 
-**Objetivo:**
-Preparar máquinas virtuais e containers LXC para serem gerenciados remotamente pelo Ansible, configurando acesso SSH seguro com chaves públicas.
+---
 
-**Funcionalidades:**
+## Descrição do Script
 
-#### 🔍 **Verificação de Dependências (Opcional)**
-- Verificação e instalação automática do `sudo`
-- Verificação e instalação automática do `openssh-client`
-- Opção de pular esta etapa se as dependências já estiverem instaladas
+### `add_host_ansible.sh`
 
-#### 🔄 **Atualização do Sistema (Opcional)**
-- Atualização completa do sistema operacional (`apt update && apt upgrade -y`)
-- Recomendado para ambientes de inicialização ou manutenção
-- Opção de pular para ambientes já atualizados
+Este script interativo configura um usuário em um host de destino para permitir o acesso SSH via chave pública, que é o método de autenticação padrão e mais seguro para o Ansible.
 
-#### 🔐 **Configuração SSH para Ansible**
-- **Detecção automática do diretório home:** Funciona com qualquer usuário (ubuntu, debian, ansible, root, etc.)
-- **Suporte a diferentes tipos de host:** VMs Linux e Containers LXC
-- **Configuração segura de chaves SSH:**
-  - Criação do diretório `.ssh` com permissões adequadas
-  - Adição da chave pública ao `authorized_keys`
-  - Remoção de duplicatas automática
-  - Configuração correta de permissões (600 para authorized_keys, 700 para .ssh)
-  - Configuração correta de ownership
-  - **Comentários identificando proprietário:** Inclui descrição da chave, quem adicionou e data/hora
-  - **Validação de formato SSH:** Verifica se a chave está em formato válido
-  - **Confirmação interativa:** Todas as informações são confirmadas antes da execução
+#### O que o script faz?
 
-## 📝 Notas da Versão 1.6
-- Correção do comentário da chave: usa `SUDO_USER` para identificar quem adicionou
-- Comentários incluem data/hora (`YYYY-MM-DD HH:MM:SS`)
-- Removido `sort -u` para preservar ordem e manter comentários associados às chaves
-- Não altera `sshd_config` nem `sudoers`; foco em preparar `.ssh` e `authorized_keys`
-- Pré-visualização de chave e validação de formato aprimoradas
-- Verificação robusta de existência do usuário e diretório home
+- **Verificação de Dependências (Opcional):** Pergunta se o usuário deseja verificar e instalar `sudo` e `openssh-client` se não estiverem presentes.
+- **Atualização do Sistema (Opcional):** Pergunta se o usuário deseja executar `apt update && apt upgrade`.
+- **Seleção de Usuário de Destino:** Solicita o nome do usuário no host que será usado pelo Ansible para se conectar (ex: `ubuntu`, `debian`, `ansible`, `root`).
+- **Validação do Usuário:** Verifica se o usuário informado realmente existe no sistema e se possui um diretório home válido.
+- **Adição de Chave Pública:**
+    - Solicita que o usuário cole a chave pública do nó de controle do Ansible.
+    - Pede uma descrição para a chave, que será adicionada como um comentário no arquivo `authorized_keys`.
+    - O comentário inclui a descrição, o nome do usuário que executou o script e a data/hora da adição (ex: `# Key for: Ansible Server (added by hugllas on 2025-10-20 15:30:00)`).
+    - Valida o formato da chave SSH para evitar erros.
+    - Verifica se a chave já existe para evitar duplicatas.
+- **Configuração de Permissões:**
+    - Cria o diretório `~/.ssh` se ele não existir.
+    - Adiciona a chave pública e o comentário ao arquivo `~/.ssh/authorized_keys`.
+    - Define as permissões de segurança corretas (`700` para `~/.ssh` e `600` para `~/.ssh/authorized_keys`).
+    - Ajusta o proprietário dos arquivos e diretórios para o usuário de destino.
 
-#### 🛡️ **Hardening SSH Recomendado**
-- Orientações para configuração segura do SSH
-- Recomendações para desabilitar autenticação por senha
-- Instruções para habilitar apenas autenticação por chave pública
+#### Quando utilizar?
 
-**Uso:**
+Utilize este script durante o provisionamento de um novo servidor, VM ou contêiner que será gerenciado pelo Ansible. Ele é o primeiro passo para estabelecer a comunicação segura entre o nó de controle do Ansible e o host gerenciado.
+
+#### Recursos Principais
+
+- **Interatividade e Segurança:** O script pede confirmação para todas as ações críticas, evitando erros acidentais.
+- **Flexibilidade:** Permite pular etapas de verificação e atualização, tornando-o útil em diferentes cenários.
+- **Rastreabilidade:** Adiciona comentários detalhados às chaves SSH, facilitando a auditoria e o gerenciamento de chaves.
+- **Validação Abrangente:** Realiza múltiplas verificações para garantir que o usuário, os diretórios e a chave estejam corretos antes de aplicar qualquer alteração.
+- **Feedback Claro:** Fornece instruções detalhadas sobre os próximos passos, como a verificação da configuração do `sshd_config`.
+
+#### Como Utilizar
+
+1.  **Acesse o host de destino** (a máquina que será gerenciada pelo Ansible) via SSH ou console.
+2.  **Copie o script** para o host.
+3.  **Dê permissão de execução**:
+    ```bash
+    chmod +x add_host_ansible.sh
+    ```
+4.  **Execute o script com `sudo`**, pois ele precisa de privilégios para modificar arquivos em diretórios de outros usuários:
+    ```bash
+    sudo ./add_host_ansible.sh
+    ```
+5.  **Siga as instruções interativas:**
+    - Responda se deseja verificar dependências e atualizar o sistema.
+    - Informe o nome do usuário de destino.
+    - Forneça uma descrição para a chave.
+    - Cole a chave pública do seu servidor Ansible quando solicitado.
+
+---
+
+## Pré-requisitos
+
+- Acesso `root` ou um usuário com privilégios `sudo` no host de destino.
+- O host de destino deve ser baseado em Debian ou Ubuntu para que o gerenciador de pacotes `apt` funcione.
+- Você deve ter a chave pública do seu nó de controle Ansible pronta para ser copiada.
+
+## Pós-execução
+
+Após executar o script, o host estará pronto para ser acessado pelo Ansible. Você pode testar a conexão a partir do seu nó de controle Ansible com o comando:
+
 ```bash
-chmod +x add_host_ansible.sh
-sudo ./add_host_ansible.sh
+ansible -i <seu_inventario> <nome_do_host> -m ping
 ```
 
-**Fluxo Interativo:**
-1. **Verificação de Dependências:** Escolha se deseja verificar/instalar sudo e openssh-client
-2. **Atualização do Sistema:** Escolha se deseja atualizar o sistema operacional
-3. **Configuração do Usuário:** Informe o usuário que receberá a chave SSH
-4. **Tipo de Host:** Identifique se é VM Linux ou Container LXC (para logs)
-5. **Descrição da Chave:** Informe uma descrição identificando o proprietário da chave
-6. **Chave Pública:** Cole a chave pública do usuário Ansible
+Ou testar o acesso SSH diretamente:
 
-**Exemplo de Execução:**
 ```bash
-$ sudo ./add_host_ansible.sh
-
-Deseja verificar se 'sudo' e 'openssh-client' estão instalados?
-Digite 1 para SIM (verificar e instalar se faltar)
-Digite 2 para NÃO (pular essa etapa)
-Sua escolha: 1
-
-Deseja atualizar o sistema operacional (apt update/upgrade)?
-Digite 1 para SIM (recomendado em ambientes de manutenção ou inicialização)
-Digite 2 para NÃO (pular essa etapa)
-Sua escolha: 2
-
-Informe o usuário do HOST que irá receber a chave pública para acesso via SSH (ex: ubuntu, debian, ansible, root).
-ubuntu
-
-Esta máquina é:
-1) VM Linux (usuário ubuntu)
-2) Container LXC (usuário ubuntu)
-Digite 1 ou 2 (só para log/registro): 1
-
-Qual a descrição desta chave pública? (Ex: 'Hugllas Lima (Linux)', 'Ansible (Server)', 'Servidor de Backup'):
-Ansible Control Node
-
-Cole a chave pública do usuário "ansible" (linha única):
-ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAB... ansible@control-node
+ssh -i /caminho/para/sua/chave_privada <usuario>@<ip_do_host>
 ```
-
-## 🔗 Scripts Relacionados
-
-### Configuração Adicional de SSH
-Para configurações mais avançadas de SSH ou adição de chaves a usuários específicos, utilize:
-- **`../scripts-ssh/add_key_ssh_public.sh`** - Adição dedicada de chaves SSH com validação de formato, comentários e preservação de permissões
-- **`../scripts-ssh/add_key_ssh_public_login_block.sh`** - Hardening SSH completo (desabilita login por senha), validações robustas e opção de `sudo NOPASSWD`
-
-**Diferenças entre os scripts:**
-- **`add_host_ansible.sh`**: Prepara usuários existentes para Ansible; não altera `sshd_config` nem `sudoers`
-- **`add_key_ssh_public.sh`**: Focado exclusivamente na adição segura de chaves a qualquer usuário
-- **`add_key_ssh_public_login_block.sh`**: Aplica hardening SSH completo e pode configurar `sudo NOPASSWD`
-
-## 🎯 Casos de Uso
-
-### Para Infraestrutura Ansible:
-- **Servidor de Controle Ansible:** Configure hosts para serem gerenciados
-- **Inventário Dinâmico:** Prepare múltiplos hosts rapidamente
-- **Automação em Larga Escala:** Padronize configuração SSH em toda infraestrutura
-
-### Para Administração Remota:
-- **Acesso Seguro:** Configure acesso SSH sem senha
-- **Manutenção Remota:** Prepare hosts para administração centralizada
-- **Backup e Monitoramento:** Configure acesso para scripts automatizados
-
-## ⚠️ Pré-requisitos
-
-- Sistema Ubuntu/Debian (VM ou Container LXC)
-- Acesso root ou sudo
-- Usuário de destino já criado no sistema
-- Chave pública SSH do servidor Ansible/controle
-
-## 🔒 Configuração SSH Recomendada
-
-Após executar o script, configure o SSH para máxima segurança:
-
-### Editar `/etc/ssh/sshd_config`:
-```bash
-sudo nano /etc/ssh/sshd_config
-```
-
-### Configurações recomendadas:
-```bash
-# Habilitar autenticação por chave pública
-PubkeyAuthentication yes
-
-# Desabilitar autenticação por senha
-PasswordAuthentication no
-
-# Desabilitar autenticação interativa
-KbdInteractiveAuthentication no
-
-# Especificar arquivo de chaves autorizadas
-AuthorizedKeysFile .ssh/authorized_keys
-```
-
-### Reiniciar o serviço SSH:
-```bash
-sudo systemctl restart ssh
-```
-
-## 📝 Verificações Pós-Configuração
-
-### Testar conexão SSH:
-```bash
-# Do servidor Ansible/controle
-ssh usuario@ip-do-host
-
-# Testar com chave específica
-ssh -i /path/to/private/key usuario@ip-do-host
-```
-
-### Verificar configurações:
-```bash
-# Verificar permissões
-ls -la ~/.ssh/
-ls -la ~/.ssh/authorized_keys
-
-# Verificar conteúdo das chaves
-cat ~/.ssh/authorized_keys
-
-# Verificar status SSH
-sudo systemctl status ssh
-```
-
-## 🚀 Integração com Ansible
-
-### Exemplo de inventário:
-```ini
-[proxmox_vms]
-vm1 ansible_host=192.168.1.10 ansible_user=ubuntu
-vm2 ansible_host=192.168.1.11 ansible_user=ubuntu
-
-[proxmox_lxc]
-lxc1 ansible_host=192.168.1.20 ansible_user=debian
-lxc2 ansible_host=192.168.1.21 ansible_user=debian
-```
-
-### Teste de conectividade:
-```bash
-ansible all -i inventory.ini -m ping
-```
-
-## 🤝 Contribuição
-
-Para melhorias ou correções:
-1. Teste em ambiente de desenvolvimento
-2. Mantenha compatibilidade com Ubuntu/Debian
-3. Documente mudanças no cabeçalho do script
-
-## 📄 Licença
-
-GPL-3.0 - Veja o arquivo LICENSE no diretório raiz.

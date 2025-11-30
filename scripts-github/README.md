@@ -1,83 +1,91 @@
-# Scripts para Automação de Tarefas do Git/GitHub
+# 🐙 Scripts de Automação para Git e GitHub
 
-Este diretório contém uma coleção de scripts Bash projetados para automatizar e simplificar tarefas comuns relacionadas ao controle de versão com Git e GitHub. Cada script foi criado para resolver um problema específico, desde a sincronização de branches até o gerenciamento de múltiplas contas de usuário em um mesmo ambiente de desenvolvimento.
+Este diretório contém scripts projetados para simplificar e automatizar tarefas comuns de gerenciamento de repositórios Git e GitHub, como a troca de perfis de usuário e a sincronização de branches.
 
-## Estrutura de Diretórios
+## 📜 Estrutura de Diretórios
 
 ```
 scripts-github/
 ├── git_switcher.sh
-├── sync_branchs.sh
+├── sync-branchs.sh
 └── README.md
 ```
 
-## Scripts Disponíveis
-
-Abaixo estão os detalhes sobre cada script, incluindo suas funcionalidades, pré-requisitos e instruções de uso.
+## 🚀 Scripts Disponíveis
 
 ### 1. `git_switcher.sh`
 
-O `git_switcher.sh` é um script robusto para gerenciar e alternar entre múltiplas contas Git/GitHub em um repositório local. É ideal para desenvolvedores que trabalham com contas pessoais e profissionais em uma mesma máquina.
+- **Função**:
+  Gerencia e alterna entre múltiplas contas Git/GitHub em uma mesma máquina. O script automatiza a configuração do `user.name`, `user.email` e da chave SSH associada a cada perfil.
 
-#### Funcionalidades Principais
+- **Quando Utilizar**:
+  Indispensável para desenvolvedores que trabalham com contas pessoais e profissionais (ou de clientes) na mesma máquina. Ele evita a necessidade de reconfigurar manualmente o Git a cada troca de projeto, prevenindo commits com a identidade errada.
 
-- **Gerenciamento de Contas**: Adicione, remova e liste múltiplas contas Git, armazenando `user.name`, `user.email`, `github_user` e o caminho para a chave SSH.
-- **Configuração de Repositório**: Alterne a configuração `user.name` e `user.email` de um repositório Git local para uma das contas pré-configuradas.
-- **Gerenciamento de Chaves SSH**: Atualiza automaticamente a URL do `remote 'origin'` para usar um host SSH específico da conta, garantindo que a chave SSH correta seja usada para autenticação.
-- **Configuração Automatizada do `~/.ssh/config`**: Adiciona, atualiza e remove de forma segura as configurações de host SSH necessárias no arquivo `~/.ssh/config`, preservando outras configurações manuais.
+- **Recursos Principais**:
+  - **Menu Interativo**: Oferece uma lista de perfis pré-configurados para seleção.
+  - **Configuração Global e Local**: Aplica as configurações de usuário (`user.name`, `user.email`) tanto globalmente quanto no repositório local, se aplicável.
+  - **Gerenciamento de Chaves SSH**:
+    - Verifica se o `ssh-agent` está em execução e o inicia, se necessário.
+    - Remove identidades SSH antigas.
+    - Adiciona a chave SSH correta (`~/.ssh/<chave>`) para o perfil selecionado.
+  - **Validação de Conexão**: Testa a conexão com o GitHub para confirmar que a autenticação foi bem-sucedida.
+  - **Flexibilidade**: Permite adicionar facilmente novos perfis editando o script.
 
-#### Pré-requisitos
+- **Como Utilizar**:
+  1. **Configurar Perfis**: Edite o script e adicione suas contas na seção `case "$choice" in`.
+     ```bash
+     # Exemplo de um novo perfil
+     "Pessoal")
+         USER_NAME="Seu Nome"
+         USER_EMAIL="seu-email@pessoal.com"
+         SSH_KEY="id_rsa_pessoal"
+         ;;
+     ```
+  2. **Tornar o script executável**:
+     ```bash
+     chmod +x git_switcher.sh
+     ```
+  3. **Executar o script**:
+     ```bash
+     ./git_switcher.sh
+     ```
+     Selecione o perfil desejado no menu.
 
-1. **Chaves SSH**: Você deve ter um par de chaves SSH (pública e privada) gerado para cada conta GitHub que deseja gerenciar.
-2. **Chaves no GitHub**: As chaves públicas (`.pub`) correspondentes devem ser adicionadas às suas respectivas contas no GitHub.
+### 2. `sync-branchs.sh`
 
-#### Como Utilizar
+- **Função**:
+  Sincroniza as branches `main` e `develop` de um repositório local com seus respectivos remotos (`origin`).
 
-1. **Tornar o script executável**:
-   ```bash
-   chmod +x git_switcher.sh
-   ```
+- **Quando Utilizar**:
+  Use este script para manter suas branches de longa duração atualizadas com as últimas alterações do repositório remoto. É uma forma rápida de garantir que seu ambiente de desenvolvimento local não esteja defasado antes de iniciar um novo trabalho.
 
-2. **Executar o script**:
-   Execute o script de qualquer diretório. Para configurar um repositório, navegue até a pasta raiz do projeto antes de executar.
-   ```bash
-   ./git_switcher.sh
-   ```
+- **Recursos Principais**:
+  - **Atualização Segura**: Executa `git fetch` para buscar as alterações do `origin`.
+  - **Sincronização de `main`**: Faz o checkout da branch `main` e aplica as alterações remotas usando `git pull`.
+  - **Sincronização de `develop`**: Faz o mesmo para a branch `develop`.
+  - **Retorno à Branch Original**: Ao final, retorna para a branch em que você estava trabalhando antes de executar o script.
 
-3. **Siga as Instruções**:
-   O script oferece um menu interativo para:
-   - **Listar contas salvas**.
-   - **Adicionar uma nova conta**.
-   - **Remover uma conta existente**.
-   - **Configurar o repositório atual** para usar uma das contas.
+- **Como Utilizar**:
+  1. **Tornar o script executável**:
+     ```bash
+     chmod +x sync-branchs.sh
+     ```
+  2. **Executar a partir da raiz do seu repositório Git**:
+     ```bash
+     ./sync-branchs.sh
+     ```
 
-### 2. `sync_branchs.sh`
+## ⚠️ Pré-requisitos
 
-O `sync_branchs.sh` é um script simples e eficiente para sincronizar as branches `main` e `develop` com seus respectivos remotos (`origin`).
+- **Git**: O Git deve estar instalado e configurado no sistema.
+- **SSH**: O `ssh-agent` deve estar funcional, e as chaves SSH para cada perfil do `git_switcher.sh` devem ser geradas e adicionadas à sua conta do GitHub.
+- **Estrutura do Repositório**: O script `sync-branchs.sh` assume que o repositório possui as branches `main` e `develop` e que o remoto se chama `origin`.
 
-#### Funcionalidades Principais
+## 💡 Dicas
 
-- **Sincronização Rápida**: Atualiza as branches `main` e `develop` com um único comando.
-- **Feedback Visual**: Exibe mensagens claras sobre o status da sincronização.
-- **Verificação Final**: Lista as branches e seus commits mais recentes para confirmar a atualização.
-
-#### Quando Utilizar
-
-Use este script no início do seu dia de trabalho ou sempre que precisar garantir que suas branches locais principais estejam alinhadas com o repositório remoto.
-
-#### Como Utilizar
-
-1. **Tornar o script executável**:
-   ```bash
-   chmod +x sync-branchs.sh
-   ```
-
-2. **Executar o script**:
-   Navegue até a pasta raiz do seu repositório Git e execute o script.
-   ```bash
-   ./sync-branchs.sh
-   ```
-
-## Contribuições
-
-Contribuições são bem-vindas! Se você tiver ideias para novos scripts, melhorias ou correções, sinta-se à vontade para abrir uma *issue* ou enviar um *pull request*.
+- **Alias de Shell**: Para facilitar o uso, crie aliases em seu arquivo de configuração de shell (como `.bashrc` ou `.zshrc`).
+  ```bash
+  # Exemplo de aliases
+  alias switcher='~/caminho/para/scripts-github/git_switcher.sh'
+  alias sync='~/caminho/para/scripts-github/sync-branchs.sh'
+  ```

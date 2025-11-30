@@ -1,359 +1,72 @@
-# Scripts para Self-Hosted Runner do GitHub Actions
+# 🏃‍♂️ Scripts para GitHub Self-Hosted Runner
 
-Este diretório contém scripts para configuração, gerenciamento e limpeza de self-hosted runners do GitHub Actions em sistemas Linux.
+Este diretório contém scripts para automatizar a instalação, configuração e gerenciamento de *runners* auto-hospedados (self-hosted) do GitHub, permitindo a execução de workflows de CI/CD em sua própria infraestrutura.
 
-## Scripts Disponíveis
-
-### 1. setup_runner.sh (Padrão v2.0)
-**Objetivo:** Script padrão e robusto para configuração do self-hosted runner (recomendado para produção).
-
-**Funcionalidades:**
-- Logging avançado e checkpoints
-- Controle de estado e recuperação
-- Backup de configurações críticas
-- Validação de comandos e fluxos
-- Tratamento robusto de erros com fallback
-- Verificação de status e captura de Ctrl+C
-- Interface interativa e intuitiva
-
-### 2. setup_runner_legacy.sh (Legado v1.0)
-**Objetivo:** Versão simples/linear, indicada para laboratório e cenários básicos.
-
-**Funcionalidades:**
-- Criação de usuário `runner`
-- Permissões sudo específicas
-- Download, extração e configuração do runner
-- Instalação como serviço (opcional)
-- Fluxo direto com menos validações
-
-### 3. cleanup_runner.sh
-**Objetivo:** Remover completamente todas as configurações do self-hosted runner.
-
-**Funcionalidades:**
-- Parada de serviços do runner
-- Remoção do usuário `runner` e diretório home
-- Limpeza de configurações sudo
-- Remoção de serviços systemd
-- Opção de remoção do diretório `/var/www`
-- Verificação final de limpeza
-- Confirmação interativa para segurança
-
-## O que é um Self-Hosted Runner?
-
-Um **Self-Hosted Runner** é um servidor que você configura e gerencia para executar jobs do GitHub Actions. Oferece:
-
-- **Controle total** sobre o ambiente de execução
-- **Hardware personalizado** (CPU, RAM, armazenamento)
-- **Software específico** pré-instalado
-- **Rede privada** para recursos internos
-- **Custos reduzidos** para uso intensivo
-- **Maior segurança** para código proprietário
-
-## Uso
-
-### Configuração Inicial
-```bash
-# Padrão (v2.0)
-sudo ./setup_runner.sh
-
-# Versão legada (v1.0)
-sudo ./setup_runner_legacy.sh
-```
-
-### Fluxo de Configuração
-1. **Criação de usuário:** Cria usuário `runner` com senha
-2. **Configuração de permissões:** Define permissões sudo específicas
-3. **Preparação de diretórios:** Cria estrutura necessária
-4. **Download do runner:** Solicita comando do GitHub
-5. **Validação:** Verifica integridade (opcional)
-6. **Extração:** Descompacta arquivos
-7. **Configuração:** Registra runner no GitHub
-8. **Instalação como serviço:** Configura systemd
-9. **Verificação:** Confirma funcionamento
-
-### Limpeza Completa
-```bash
-# Remover todas as configurações
-sudo ./cleanup_runner.sh
-```
-
-## Pré-requisitos
-
-### Sistema
-- Ubuntu/Debian com systemd
-- Usuário com privilégios sudo
-- Docker instalado (para jobs que usam containers)
-- Conexão com a internet
-
-### GitHub
-- Repositório ou organização no GitHub
-- Permissões para adicionar runners
-- Token de acesso (gerado automaticamente)
-
-## Configuração no GitHub
-
-### Obter Comandos de Instalação
-1. Acesse seu repositório no GitHub
-2. Vá para **Settings** → **Actions** → **Runners**
-3. Clique em **New self-hosted runner**
-4. Selecione **Linux** e **x64**
-5. Copie os comandos mostrados
-
-### Comandos Necessários
-O script solicitará:
-```bash
-# Comando de download (exemplo)
-curl -o actions-runner-linux-x64-2.311.0.tar.gz -L https://github.com/actions/runner/releases/download/v2.311.0/actions-runner-linux-x64-2.311.0.tar.gz
-
-# Comando de validação (opcional)
-echo "29fc8cf2dab4c195bb147384e7e2c94cfd4d4022c793b346a6175435265aa278  actions-runner-linux-x64-2.311.0.tar.gz" | shasum -a 256 -c
-
-# Comando de extração
-tar xzf ./actions-runner-linux-x64-2.311.0.tar.gz
-```
-
-## Permissões Configuradas
-
-### Usuário Runner
-O usuário `runner` recebe permissões específicas via sudo:
-```bash
-# Gerenciamento de serviços
-systemctl restart/start/stop/status *
-
-# Docker
-docker (todos os comandos)
-docker-compose
-
-# Gerenciamento de arquivos
-chown runner:runner *
-chmod *
-
-# Navegação de usuários
-su - ubuntu (sem senha)
-
-# Logs do sistema
-journalctl *
-
-# Serviço do runner
-/home/runner/actions-runner/svc.sh *
-```
-
-## Navegação entre Usuários
-
-### De ubuntu para runner
-```bash
-sudo su - runner
-```
-
-### De runner para ubuntu
-```bash
-sudo su - ubuntu  # Sem senha
-# ou simplesmente
-exit
-```
-
-## Gerenciamento do Serviço
-
-### Comandos Básicos
-```bash
-# Como usuário runner
-cd /home/runner/actions-runner
-
-# Status do serviço
-sudo ./svc.sh status
-
-# Parar serviço
-sudo ./svc.sh stop
-
-# Iniciar serviço
-sudo ./svc.sh start
-
-# Reiniciar serviço
-sudo ./svc.sh restart
-```
-
-### Comandos Systemd
-```bash
-# Status
-sudo systemctl status actions.runner.*
-
-# Logs em tempo real
-sudo journalctl -u actions.runner.* -f
-
-# Parar/Iniciar
-sudo systemctl stop actions.runner.*
-sudo systemctl start actions.runner.*
-```
-
-## Estrutura de Arquivos
+## 📜 Estrutura de Diretórios
 
 ```
-/home/runner/
-├── actions-runner/          # Diretório principal do runner
-│   ├── config.sh           # Script de configuração
-│   ├── run.sh              # Execução manual
-│   ├── svc.sh              # Gerenciamento de serviço
-│   ├── bin/                # Binários do runner
-│   └── _work/              # Diretório de trabalho dos jobs
-└── .bashrc                 # Configurações do shell
-
-/var/www/                   # Diretório para aplicações (opcional)
-/etc/sudoers.d/runner       # Permissões sudo
+scripts-self-hosted-runner/
+├── install_self_hosted_runner_v2.sh
+├── install_self_hosted_runner.sh
+└── README.md
 ```
 
-## Segurança
+## 🚀 Scripts Disponíveis
 
-### Princípios Aplicados
-- **Usuário dedicado** com permissões mínimas
-- **Sudo específico** apenas para comandos necessários
-- **Isolamento** do usuário principal
-- **Senha obrigatória** para o usuário runner
+### 1. `install_self_hosted_runner_v2.sh` (Recomendado)
 
-### Considerações
-⚠️ **Importante:**
-- O runner pode executar código de pull requests
-- Configure branch protection rules
-- Use secrets do GitHub para informações sensíveis
-- Monitore logs regularmente
+- **Função**:
+  Automatiza a instalação e configuração de um GitHub Self-Hosted Runner em uma máquina Linux (Ubuntu/Debian). Este script é a versão mais recente e robusta, com mais validações e interatividade.
 
-### Recomendações
-- Use em ambiente isolado/dedicado
-- Configure firewall adequadamente
-- Mantenha o sistema atualizado
-- Monitore uso de recursos
+- **Quando Utilizar**:
+  Use este script para adicionar um novo runner a um repositório ou organização no GitHub. É ideal para ambientes que exigem controle total sobre o hardware e o software usado para executar jobs de CI/CD, como acesso a recursos locais, configurações de segurança específicas ou maior poder de processamento.
 
-## Solução de Problemas
+- **Recursos Principais**:
+  - **Interatividade**: Solicita informações essenciais, como a URL do repositório/organização e o token de registro do runner.
+  - **Download Automatizado**: Baixa a versão mais recente do agente do runner diretamente do GitHub.
+  - **Verificação de Hash**: Valida a integridade do arquivo baixado comparando o checksum (SHA-256) com o fornecido pelo GitHub, garantindo que o software não foi corrompido.
+  - **Instalação de Dependências**: Verifica e instala automaticamente as dependências necessárias (`curl`, `jq`, etc.).
+  - **Configuração como Serviço**: Configura e habilita o runner para ser executado como um serviço do `systemd`, garantindo que ele inicie automaticamente com o sistema e seja reiniciado em caso de falha.
+  - **Logs Detalhados**: Fornece feedback claro durante todo o processo de instalação.
 
-### Runner Offline
-```bash
-# Verificar status do serviço
-sudo systemctl status actions.runner.*
+- **Como Utilizar**:
+  1. **Obter Token**: No GitHub, vá para **Settings > Actions > Runners > New self-hosted runner** e copie o token de registro.
+  2. **Tornar o script executável**:
+     ```bash
+     chmod +x install_self_hosted_runner_v2.sh
+     ```
+  3. **Executar o script**:
+     ```bash
+     ./install_self_hosted_runner_v2.sh
+     ```
+  4. **Fornecer Informações**: Cole a URL do repositório/organização e o token quando solicitado pelo script.
 
-# Verificar logs
-sudo journalctl -u actions.runner.* -n 50
+### 2. `install_self_hosted_runner.sh` (Legado)
 
-# Reiniciar serviço
-sudo su - runner
-cd actions-runner
-sudo ./svc.sh restart
-```
+- **Função**:
+  Versão mais antiga e simplificada do script de instalação. Embora funcional, possui menos validações e recursos de automação.
 
-### Falha na Configuração
-```bash
-# Verificar conectividade
-ping github.com
+- **Quando Utilizar**:
+  Este script pode ser usado como referência ou em ambientes onde a interatividade não é desejada. No entanto, a **versão 2 é fortemente recomendada** para novas instalações devido à sua robustez e segurança aprimorada.
 
-# Verificar token
-# Gerar novo token no GitHub se necessário
+- **Recursos Principais**:
+  - **Download e Extração**: Baixa e descompacta o agente do runner.
+  - **Configuração Básica**: Executa o script de configuração do runner, mas requer que o usuário passe o token e outras informações manualmente.
+  - **Instalação do Serviço**: Instala o serviço do `systemd`.
 
-# Reconfigurar
-cd /home/runner/actions-runner
-./config.sh remove
-./config.sh
-```
+- **Como Utilizar**:
+  Este script geralmente requer edição manual para inserir a URL e o token antes da execução.
 
-### Problemas de Permissão
-```bash
-# Verificar usuário
-id runner
+## ⚠️ Pré-requisitos
 
-# Verificar grupos
-groups runner
+- **Sistema Operacional**: Linux (testado em Ubuntu 20.04/22.04 e Debian 11).
+- **Acesso**: Um usuário com privilégios `sudo` para instalar o serviço.
+- **Token do GitHub**: Um token de registro de runner válido obtido do seu repositório ou organização.
+- **Conectividade**: Acesso à internet para baixar o agente do runner e se comunicar com o GitHub.
 
-# Verificar sudo
-sudo -l -U runner
-```
+## 💡 Dicas e Boas Práticas
 
-### Jobs Falhando
-```bash
-# Verificar Docker
-docker --version
-sudo usermod -aG docker runner
-
-# Verificar espaço em disco
-df -h
-
-# Verificar logs do job
-sudo journalctl -u actions.runner.* -f
-```
-
-## Monitoramento
-
-### Status do Runner
-- Interface do GitHub: Settings → Actions → Runners
-- Status deve aparecer como "Online 🟢"
-- Última atividade deve ser recente
-
-### Logs Importantes
-```bash
-# Logs do serviço
-sudo journalctl -u actions.runner.* -f
-
-# Logs do sistema
-sudo journalctl -f
-
-# Logs de jobs específicos
-ls /home/runner/actions-runner/_diag/
-```
-
-### Recursos do Sistema
-```bash
-# CPU e memória
-htop
-
-# Espaço em disco
-df -h
-
-# Processos do runner
-ps aux | grep runner
-```
-
-## Desinstalação Completa
-
-### Usando o Script
-```bash
-sudo ./cleanup_runner.sh
-```
-
-### Manual
-```bash
-# Parar serviços
-sudo systemctl stop actions.runner.*
-
-# Remover do GitHub
-cd /home/runner/actions-runner
-./config.sh remove
-
-# Remover usuário
-sudo userdel -r runner
-
-# Remover configurações
-sudo rm /etc/sudoers.d/runner
-
-# Limpar serviços
-sudo systemctl daemon-reload
-```
-
-## Contribuição
-
-Contribuições são bem-vindas! Por favor:
-1. Faça fork do repositório
-2. Crie uma branch para sua feature
-3. Commit suas mudanças
-4. Abra um Pull Request
-
-## Licença
-
-Este projeto está licenciado sob a GPL-3.0 - veja o arquivo LICENSE para detalhes.
-
-## Recursos Adicionais
-
-- [Documentação oficial do GitHub Actions](https://docs.github.com/en/actions)
-- [Self-hosted runners](https://docs.github.com/en/actions/hosting-your-own-runners)
-- [Configuração de runners](https://docs.github.com/en/actions/hosting-your-own-runners/configuring-the-self-hosted-runner-application-as-a-service)
-
-## Autor
-
-**Hugllas R S Lima**
-- Data: 15/03/2025
-- Versão: 2.0
+- **Segurança**: Execute o runner com um usuário dedicado e com privilégios mínimos. Evite usar o usuário `root`. O script `v2` já incentiva essa prática.
+- **Runners Efêmeros**: Para maior segurança e consistência, considere configurar runners efêmeros, que são provisionados sob demanda para executar um único job e depois descartados. Isso pode ser orquestrado com ferramentas como Docker ou Terraform.
+- **Manutenção**: Periodicamente, verifique se há novas versões do agente do runner e atualize-o para receber novos recursos e correções de segurança. O GitHub geralmente notifica sobre atualizações na interface de Actions.
+- **Labels**: Use labels para direcionar workflows a runners específicos. Por exemplo, você pode ter um runner com GPU e aplicar a label `gpu` para que apenas jobs que necessitem de processamento gráfico sejam executados nele.

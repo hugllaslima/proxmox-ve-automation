@@ -1,220 +1,118 @@
-# Scripts de Backup para Proxmox VE
+# Automação de Backups no Proxmox VE
 
-Este diretório contém scripts especializados para backup e proteção de dados no ambiente Proxmox VE, incluindo backup das configurações do sistema e montagem de dispositivos externos.
+Este diretório contém scripts para automatizar rotinas de backup no Proxmox VE, incluindo o backup das configurações do host e a montagem de dispositivos de armazenamento externo.
 
-## 📋 Scripts Disponíveis
+## Estrutura do Diretório
 
-### 💾 `backup_full_proxmox_ve.sh`
-**Backup completo das configurações do Proxmox VE**
-
-**Objetivo:**
-Realizar backup completo de todas as configurações críticas do Proxmox VE, permitindo restauração completa do sistema em caso de falha.
-
-**Funcionalidades:**
-
-#### 📦 **Backup de Configurações Críticas**
-- **Cluster PVE:** `/var/lib/pve-cluster` - Configurações do cluster Proxmox
-- **Chaves SSH:** `/root/.ssh` - Chaves SSH do usuário root
-- **Corosync:** `/etc/corosync` - Configurações do cluster Corosync
-- **iSCSI:** `/etc/iscsi` - Configurações de armazenamento iSCSI
-- **Sistema:** `/etc` - Configurações gerais do sistema
-
-#### 📋 **Backup de Configurações de Rede**
-- **Hosts:** `/etc/hosts` - Arquivo de hosts do sistema
-- **Interfaces:** `/etc/network/interfaces` - Configurações de rede
-
-#### 📦 **Backup de Repositórios e Pacotes**
-- **APT:** `/etc/apt` - Configurações de repositórios APT
-- **Pacotes Instalados:** Lista de todos os pacotes instalados manualmente
-
-#### 🗂️ **Organização Automática**
-- Criação de diretório com timestamp (formato: `HOSTNAME.ddmmyy-HHMM`)
-- Compactação individual de cada componente em arquivos `.tar.gz`
-- Compactação final de todo o backup
-- Limpeza automática de arquivos temporários
-
-**Estrutura do Backup:**
 ```
-HOSTNAME.ddmmyy-HHMM/
-├── pve-cluster-backup.tar.gz    # Configurações do cluster PVE
-├── ssh-backup.tar.gz            # Chaves SSH
-├── corosync-backup.tar.gz       # Configurações Corosync
-├── iscsi-backup.tar.gz          # Configurações iSCSI
-├── etc-backup.tar.gz            # Configurações do sistema
-├── apt-backup.tar.gz            # Repositórios APT
-├── hosts                        # Arquivo hosts
-├── interfaces                   # Configurações de rede
-└── pkg.instalados              # Lista de pacotes instalados
+scripts-backups/
+|-- README.md
+|-- backup_full_proxmox_ve.sh
+`-- backups_usb_external.sh
 ```
-
-**Uso:**
-```bash
-chmod +x backup_full_proxmox_ve.sh
-sudo ./backup_full_proxmox_ve.sh
-```
-
-**Localização dos Backups:**
-- Diretório: `/root/backup/`
-- Arquivo final: `HOSTNAME.ddmmyy-HHMM.tar.gz`
-
-**Agendamento Recomendado (Crontab):**
-```bash
-# Backup todo sábado às 18:40
-40 18 * * 6 /root/backup/backup_full_proxmox_ve.sh
-```
-
-#### 🔄 **Instruções de Restauração**
-Para restaurar o sistema após reinstalação:
-
-1. **Extrair o backup:**
-   ```bash
-   tar -xzf HOSTNAME.ddmmyy-HHMM.tar.gz
-   cd HOSTNAME.ddmmyy-HHMM/
-   ```
-
-2. **Restaurar componentes essenciais:**
-   ```bash
-   # Restaurar configurações PVE (CRÍTICO)
-   tar -xzf pve-cluster-backup.tar.gz -C /
-   
-   # Restaurar chaves SSH
-   tar -xzf ssh-backup.tar.gz -C /
-   
-   # Restaurar Corosync
-   tar -xzf corosync-backup.tar.gz -C /
-   
-   # Restaurar configurações de rede
-   cp hosts /etc/hosts
-   cp interfaces /etc/network/interfaces
-   ```
-
-3. **Reinstalar pacotes:**
-   ```bash
-   sudo xargs aptitude --schedule-only install < pkg.instalados
-   sudo aptitude install
-   ```
 
 ---
 
-### 🔌 `backups_usb_external.sh`
-**Montagem automática de dispositivos USB externos para backup**
+## Descrição dos Scripts
 
-**Objetivo:**
-Automatizar a montagem de dispositivos USB externos dedicados ao armazenamento de backups, especialmente útil para execução automática na inicialização do sistema.
+### 1. `backup_full_proxmox_ve.sh`
 
-**Funcionalidades:**
+Este script realiza um backup completo e essencial das configurações do nó (host) do Proxmox VE. Ele é projetado para salvar todos os arquivos críticos necessários para reconstruir o host em caso de falha.
 
-#### 🔧 **Montagem Automática**
-- Montagem do dispositivo USB (`/dev/sdc1`) no ponto de montagem padrão do Proxmox (`/mnt/pve/backups-usb`)
-- Verificação do status da montagem com `df -h`
-- Feedback visual do sucesso da operação
+#### 1.1. O que o script faz?
 
-#### 📊 **Verificação de Status**
-- Exibição do espaço disponível no dispositivo montado
-- Confirmação visual da montagem bem-sucedida
+- **Cria um diretório de backup** nomeado com o hostname e a data/hora atual (ex: `pve.240825-1030`).
+- **Faz backup de diretórios críticos** do Proxmox e do sistema, incluindo:
+    - `/var/lib/pve-cluster`: Configurações do cluster Proxmox.
+    - `/root/.ssh`: Chaves SSH do usuário root.
+    - `/etc/corosync`: Configurações do Corosync (comunicação do cluster).
+    - `/etc/iscsi`: Configurações de iSCSI.
+    - `/etc`: Diretório completo de configurações do sistema.
+    - `/etc/apt`: Fontes de repositórios de software.
+- **Salva arquivos de configuração de rede**:
+    - `/etc/hosts`
+    - `/etc/network/interfaces`
+- **Gera uma lista de todos os pacotes instalados** no sistema.
+- **Compacta todos os arquivos de backup** em um único arquivo `tar.gz` e remove o diretório temporário.
 
-**Uso:**
-```bash
-chmod +x backups_usb_external.sh
-sudo ./backups_usb_external.sh
-```
+#### 1.2. Quando utilizar?
 
-**Configuração Automática (Crontab):**
-```bash
-# Montar USB automaticamente na inicialização
-@reboot /root/Scripts/backups_usb_external.sh
-```
+Utilize este script para criar um ponto de restauração completo das configurações do seu host Proxmox. É ideal para ser executado:
 
-**Personalização:**
-Para adaptar a diferentes dispositivos USB, edite as variáveis no script:
-```bash
-# Alterar dispositivo (exemplo: /dev/sdb1, /dev/sdd1)
-mount /dev/sdc1 /mnt/pve/backups-usb
+- **Antes de atualizações importantes** do sistema ou do Proxmox.
+- **Periodicamente (via `cron`)** para manter um backup regular das configurações do host.
+- **Como parte de uma estratégia de recuperação de desastres**.
 
-# Alterar ponto de montagem se necessário
-mount /dev/sdc1 /seu/ponto/de/montagem
-```
+> **Nota:** Este script **não** faz backup dos dados das VMs e contêineres, apenas das configurações do host. Para o backup das máquinas virtuais, utilize a funcionalidade nativa de backup do Proxmox.
 
-## 🎯 Estratégia de Backup Recomendada
+#### 1.3. Recursos Principais
 
-### 📅 **Agendamento Sugerido**
-```bash
-# Editar crontab do root
-sudo crontab -e
+- **Backup Abrangente:** Cobre os arquivos de configuração mais importantes do Proxmox e do Debian subjacente.
+- **Organização:** Salva cada backup em um arquivo compactado com data e hora, facilitando a identificação.
+- **Automatizável:** Pode ser facilmente agendado com `cron` para execuções regulares.
 
-# Backup completo semanal (sábados 18:40)
-40 18 * * 6 /root/backup/backup_full_proxmox_ve.sh
+#### 1.4. Como Utilizar
 
-# Montagem USB na inicialização
-@reboot /root/Scripts/backups_usb_external.sh
-```
+1.  **Acesse o host Proxmox** via SSH ou console como `root`.
+2.  **Copie o script** para um diretório (ex: `/root/scripts`).
+3.  **Dê permissão de execução**:
+    ```bash
+    chmod +x backup_full_proxmox_ve.sh
+    ```
+4.  **Execute o script**:
+    ```bash
+    ./backup_full_proxmox_ve.sh
+    ```
+    O backup será salvo no diretório `/root/backup/`.
 
-### 🔄 **Rotação de Backups**
-Implemente rotação manual ou automatizada:
-```bash
-# Manter apenas os últimos 4 backups semanais
-find /root/backup/ -name "*.tar.gz" -mtime +28 -delete
-```
+---
 
-### 💾 **Armazenamento Múltiplo**
-1. **Local:** `/root/backup/` (backup primário)
-2. **USB Externo:** `/mnt/pve/backups-usb/` (backup secundário)
-3. **Remoto:** Considere rsync ou rclone para backup offsite
+### 2. `backups_usb_external.sh`
 
-## ⚠️ Pré-requisitos
+Este é um script auxiliar simples para montar um dispositivo de armazenamento USB externo, geralmente usado como um destino para backups.
 
-### Para `backup_full_proxmox_ve.sh`:
-- Proxmox VE instalado e configurado
-- Acesso root
-- Espaço suficiente em `/root/backup/`
-- Pacote `aptitude` instalado
+#### 2.1. O que o script faz?
 
-### Para `backups_usb_external.sh`:
-- Dispositivo USB conectado (padrão: `/dev/sdc1`)
-- Ponto de montagem criado (`/mnt/pve/backups-usb`)
-- Permissões de montagem
+- **Monta uma partição específica** (`/dev/sdc1`) em um diretório de destino (`/mnt/pve/backups-usb`).
+- **Exibe o espaço em disco** dos sistemas de arquivos montados (`df -h`).
+- **Exibe uma mensagem de sucesso** confirmando que o disco foi montado.
 
-## 🔒 Considerações de Segurança
+#### 2.2. Quando utilizar?
 
-- **Teste de Restauração:** Teste periodicamente a restauração dos backups
-- **Criptografia:** Considere criptografar backups sensíveis
-- **Acesso:** Mantenha backups em local seguro e com acesso restrito
-- **Verificação:** Valide a integridade dos arquivos de backup regularmente
+Use este script para montar rapidamente um disco USB que será usado para armazenar backups. Ele é útil em cenários onde o disco não é mantido permanentemente montado.
 
-## 📝 Verificações e Troubleshooting
+> **Atenção:** Este script é **estático** e assume que o dispositivo a ser montado é sempre `/dev/sdc1`. Em sistemas com múltiplos discos, essa identificação pode mudar. Para uma solução mais robusta, considere o uso de `UUID` ou `LABEL` no arquivo `/etc/fstab`.
 
-### Verificar espaço disponível:
-```bash
-df -h /root/backup/
-df -h /mnt/pve/backups-usb/
-```
+#### 2.3. Recursos Principais
 
-### Verificar dispositivos USB:
-```bash
-lsblk
-fdisk -l
-```
+- **Simplicidade:** Monta o disco com um único comando.
+- **Feedback:** Confirma a montagem e exibe o uso do disco.
 
-### Testar montagem manual:
-```bash
-sudo mount /dev/sdc1 /mnt/pve/backups-usb
-sudo umount /mnt/pve/backups-usb
-```
+#### 2.4. Como Utilizar
 
-### Verificar logs de backup:
-```bash
-ls -la /root/backup/
-tail -f /var/log/syslog | grep backup
-```
+1.  **Conecte o disco USB** ao host Proxmox.
+2.  **Identifique o nome do dispositivo** (ex: `fdisk -l`). Se não for `/dev/sdc1`, edite o script.
+3.  **Certifique-se de que o diretório de montagem exista**:
+    ```bash
+    mkdir -p /mnt/pve/backups-usb
+    ```
+4.  **Execute o script** como `root`:
+    ```bash
+    ./backups_usb_external.sh
+    ```
 
-## 🤝 Contribuição
+---
 
-Para melhorias ou correções:
-1. Teste em ambiente de desenvolvimento
-2. Mantenha compatibilidade com Proxmox VE
-3. Documente mudanças no cabeçalho do script
-4. Considere diferentes cenários de hardware
+## Pré-requisitos
 
-## 📄 Licença
+- Acesso `root` ao host Proxmox VE.
+- Para `backups_usb_external.sh`, um dispositivo de armazenamento USB formatado com um sistema de arquivos compatível (ex: `ext4`).
 
-GPL-3.0 - Veja o arquivo LICENSE no diretório raiz.
+## Dicas e Boas Práticas
+
+- **Agendamento de Backups:** Para automatizar o `backup_full_proxmox_ve.sh`, adicione-o ao `crontab` do root. Exemplo para executar todo dia às 2h da manhã:
+    ```crontab
+    0 2 * * * /root/scripts/backup_full_proxmox_ve.sh
+    ```
+- **Armazenamento Externo:** Combine os dois scripts. Use `backups_usb_external.sh` para montar um disco e, em seguida, modifique `backup_full_proxmox_ve.sh` para salvar os backups nesse disco montado. Não se esqueça de desmontar o disco após o backup para protegê-lo.
+- **UUID para Montagem:** Para evitar problemas com a nomeação de dispositivos, modifique `backups_usb_external.sh` para usar o UUID do disco. Encontre o UUID com `blkid` e use-o no comando `mount`.

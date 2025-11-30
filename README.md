@@ -1,178 +1,142 @@
-# Proxmox VE Automation Scripts
+# Proxmox VE Automation Suite
 
-Este repositório contém uma coleção de scripts de automação para Proxmox VE, desenvolvidos para facilitar a configuração, manutenção e gerenciamento de infraestruturas virtualizadas locais.
+<p align="center">
+  <img src="https://img.shields.io/github/license/hugllaslima/proxmox-ve-automation?style=for-the-badge" alt="Licença">
+  <img src="https://img.shields.io/github/stars/hugllaslima/proxmox-ve-automation?style=for-the-badge" alt="Estrelas">
+  <img src="https://img.shields.io/github/forks/hugllaslima/proxmox-ve-automation?style=for-the-badge" alt="Forks">
+</p>
 
-## 🎯 Objetivo
+Bem-vindo à **Proxmox VE Automation Suite**, uma coleção completa de scripts de automação projetados para simplificar o gerenciamento, a configuração e a manutenção de infraestruturas de virtualização baseadas em Proxmox VE.
 
-Automatizar processos repetitivos e padronizar configurações em ambientes Proxmox VE, incluindo:
-- Configuração inicial de VMs Ubuntu
-- Instalação e configuração do Docker
-- Setup de agentes QEMU
-- Backup automatizado do Proxmox VE
-- Configuração de containers LXC
-- Preparação de hosts para Ansible
-- Monitoramento com Prometheus
-- Setup de Self-Hosted Runners
+---
 
-## 📁 Estrutura do Repositório
+## 📖 Índice
 
-### 🖥️ **scripts-vms/**
-Scripts para criação e configuração de VMs no Proxmox VE:
-- `create_vm.sh` - Criação interativa de VMs via `qm` com validações e ISO opcional
-- `create_vm_v2.sh` - Versão aprimorada com interface melhorada e validações robustas
-- `ubuntu_full_config_pve.sh` - Configuração inicial completa (versão aprimorada)
-- `README.md` - Documentação detalhada sobre o uso dos scripts
+- [🎯 Por que usar este projeto?](#por-que-usar-este-projeto)
+- [📁 Estrutura de Scripts](#estrutura-de-scripts)
+- [🚀 Primeiros Passos](#primeiros-passos)
+- [💡 Casos de Uso](#casos-de-uso)
+- [🛡️ Segurança em Primeiro Lugar](#segurança-em-primeiro-lugar)
+- [🤝 Como Contribuir](#como-contribuir)
+- [📄 Licença](#licença)
+- [👨‍💻 Autor](#autor)
 
-### 🔧 **scripts-ansible/**
-Scripts para preparação de hosts para automação com Ansible:
-- `add_host_ansible.sh` - Prepara usuários existentes para gerenciamento Ansible: checagens opcionais de dependências e atualização do SO, validações robustas de usuário/home, adição de chave pública com comentário incluindo quem adicionou (via `SUDO_USER`) e data/hora, preview e validação de formato, prevenção de duplicidade. Não cria usuário, não altera `sudoers` e não modifica `sshd_config`.
-  - Para hardening completo do SSH e `NOPASSWD` opcional, use `scripts-ssh/add_key_ssh_public_login_block.sh`.
-- `README.md` - Documentação detalhada sobre o uso dos scripts
+---
 
-### 💾 **scripts-backups/**
-Scripts para backup e proteção de dados:
-- `backup_full_proxmox_ve.sh` - Backup completo das configurações do Proxmox VE
-- `backups_usb_external.sh` - Backup para dispositivos USB externos
-- `README.md` - Documentação detalhada sobre o uso dos scripts
+## 🎯 Por que usar este projeto?
 
-### 📦 **scripts-container-lxc/**
-Scripts para configuração de containers LXC:
-- `create_user_lxc.sh` - Criação e configuração de usuários em containers LXC
-- `create_user_lxc_2.sh` - Versão alternativa do script de criação de usuários
-- `README.md` - Documentação detalhada sobre o uso dos scripts
+Gerenciar um ambiente de virtualização pode ser complexo e repetitivo. Esta suíte de scripts foi criada para resolver esses desafios, oferecendo:
 
-### � **scripts-github/**
-Scripts para automação de tarefas do Git/GitHub:
-- `git_switcher.sh` - Gerencia e alterna entre múltiplas contas Git/GitHub em um repositório local
-- `sync-branchs.sh` - Sincroniza as branches `main` e `develop` com o repositório remoto
-- `README.md` - Documentação detalhada sobre o uso dos scripts
+- **Automação Inteligente:** Scripts interativos que validam dados, tratam erros e fornecem feedback claro.
+- **Padronização:** Garanta que todas as suas VMs e contêineres sejam configurados de maneira consistente.
+- **Economia de Tempo:** Reduza horas de trabalho manual em tarefas como provisionamento, configuração e manutenção.
+- **Segurança Aprimorada:** Scripts que seguem boas práticas, como configuração de chaves SSH, permissões de arquivos e backups.
 
-### �📊 **scripts-prometheus/**
-Scripts para monitoramento:
-- `install_node_exporter.sh` - Instalação do Prometheus Node Exporter
-- `README.md` - Documentação detalhada sobre o uso dos scripts
+---
 
-### 🏃 **scripts-self-hosted-runner/**
-Scripts para configuração de runners:
-- `setup_runner.sh` - Script padrão (v2.0), robusto e recomendado para produção: logging, checkpoints, validação de comandos, rollback e recuperação, captura de Ctrl+C, verificações de status e interface interativa.
-- `setup_runner_legacy.sh` - Versão legada (v1.0), fluxo simples/linear para laboratório e cenários básicos.
-- `cleanup_runner.sh` - Limpeza e remoção de runners
-- `README.md` - Documentação detalhada sobre o uso dos scripts
+## 📁 Estrutura de Scripts
 
-### 🔑 **scripts-ssh/**
-Scripts para configuração de acesso SSH:
-- `add_key_ssh_public.sh` - Adiciona chave pública SSH com validação de formato, comentários identificando proprietário, confirmação interativa e preservação de permissões
-- `add_key_ssh_public_login_block.sh` - Versão avançada com hardening SSH completo, desabilitação de login por senha, configuração opcional de sudo NOPASSWD, validação robusta de usuário, prévia de chave aprimorada e opções para chaves duplicadas (substituir, excluir ou manter)
-- `README.md` - Documentação detalhada sobre o uso dos scripts
+Os scripts são organizados em diretórios modulares, cada um com seu próprio `README.md` detalhado.
 
-### 🔌 **Agentes QEMU/**
-Scripts para instalação de agentes QEMU:
-- `apt_install_agent_qemu.sh` - Instalação do agente QEMU em sistemas baseados em APT
-- `yum_install_agent_qemu.sh` - Instalação do agente QEMU em sistemas baseados em YUM
-- `README.md` - Documentação detalhada sobre o QEMU Guest Agent e uso dos scripts
+| Categoria | Diretório | Descrição |
+| :--- | :--- | :--- |
+| **Gestão de VMs** | [`scripts-vms/`](./scripts-vms) | Criação e configuração completa de VMs Ubuntu e derivados. |
+| **Gestão de Contêineres** | [`scripts-container-lxc/`](./scripts-container-lxc) | Criação e configuração de usuários em contêineres LXC. |
+| **Aplicações** | [`scripts-applications/`](./scripts-applications) | Instalação de Docker, RabbitMQ, OnlyOffice e mais. |
+| **Automação (Ansible)** | [`scripts-ansible/`](./scripts-ansible) | Preparação de hosts para serem gerenciados pelo Ansible. |
+| **Monitoramento** | [`scripts-prometheus/`](./scripts-prometheus) | Instalação do Node Exporter para Prometheus. |
+| **Monitoramento (Zabbix)** | [`scripts-zabbix/`](./scripts-zabbix) | Instalação e configuração do Zabbix Agent. |
+| **CI/CD** | [`scripts-self-hosted-runner/`](./scripts-self-hosted-runner) | Configuração de Self-Hosted Runners para GitHub Actions. |
+| **Segurança e Acesso** | [`scripts-ssh/`](./scripts-ssh) | Gerenciamento avançado de chaves SSH com hardening. |
+| **Backups** | [`scripts-backups/`](./scripts-backups) | Backup completo das configurações do Proxmox VE. |
+| **Integração Proxmox** | [`scripts-qemu-agent/`](./scripts-qemu-agent) | Instalação do QEMU Guest Agent para comunicação com o host. |
+| **Utilitários Git** | [`scripts-github/`](./scripts-github) | Ferramentas para gerenciamento de contas e sincronização de branches. |
+| **Utilitários de SO** | [`scripts-zorin-os/`](./scripts-zorin-os) | Scripts específicos para Zorin OS e derivados. |
 
-### 🖥️ **scripts-applications/**
-Este diretório contém scripts para automatizar a instalação e configuração de aplicações em servidores dedicados. A estrutura é organizada em subdiretórios para cada aplicação, como `docker`, `rabbit-mq` e `onlyoffice-server`, facilitando a manutenção e o uso.
+---
 
-#### 🐳 **docker/**
-Scripts para instalação e configuração do Docker e Docker Compose.
-- `install_docker_full_ubuntu.sh` - Instalação completa do Docker e Docker Compose para Ubuntu Server.
-- `install_docker_full_zorin.sh` - Instalação completa do Docker e Docker Compose para Zorin OS e derivados do Ubuntu.
-- `README.md` - Documentação detalhada sobre os scripts de Docker.
+## 🚀 Primeiros Passos
 
-#### 🐰 **rabbit-mq/**
-Scripts para gerenciamento de um servidor RabbitMQ dedicado.
-- `install_rabbit_mq.sh` - Instala e configura o RabbitMQ, incluindo a criação de um usuário administrador e a configuração de um cluster opcional.
-- `reconfigure_rabbit_mq.sh` - Corrige problemas de conexão do RabbitMQ, recriando o usuário e reconfigurando permissões.
-- `cleanup_rabbit_mq.sh` - Remove completamente uma instalação do RabbitMQ, incluindo pacotes, logs e configurações.
-- `README.md` - Documentação detalhada sobre os scripts de RabbitMQ.
+Siga estes passos para começar a usar os scripts em seu ambiente.
 
-#### 🏢 **onlyoffice-server/**
-Scripts para implantação e manutenção do OnlyOffice Document Server.
-- `install_onlyoffice_server_v2.sh` - Instala a versão mais recente e recomendada do OnlyOffice Document Server, com todas as dependências e configurações otimizadas.
-- `install_onlyoffice_server.sh` - Instala uma versão legada do OnlyOffice Document Server, mantida para compatibilidade.
-- `onlyoffice_troubleshooting_kit.sh` - Um kit de ferramentas interativo para diagnosticar e resolver problemas comuns do OnlyOffice, como erros de conexão, falhas em serviços e problemas de certificado.
-- `cleanup_onlyoffice.sh` - Remove completamente o OnlyOffice Document Server e suas dependências.
-- `README.md` - Documentação detalhada sobre os scripts do OnlyOffice.
+### 1. Clone o Repositório
 
-### 🖥️ **scripts-zorin-os/**
-Scripts específicos para a distribuição Zorin OS:
-- `read_only_mounted_disk.sh` - Corrige problemas de disco montado como somente leitura
-- `README.md` - Documentação detalhada sobre o uso dos scripts
+Clone este repositório para o seu servidor Proxmox VE ou para a máquina que você usará para gerenciar seu ambiente.
 
-## 🚀 Como Usar
+```bash
+git clone https://github.com/hugllaslima/proxmox-ve-automation.git
+cd proxmox-ve-automation
+```
 
-1. **Clone o repositório:**
-   ```bash
-   git clone https://github.com/hugllaslima/proxmox-ve-automation.git
-   cd proxmox-ve-automation
-   ```
+### 2. Explore os Scripts
 
-2. **Navegue até o diretório desejado:**
-   ```bash
-   cd scripts-vms/
-   ```
+Navegue até o diretório do script que você deseja usar. Por exemplo, para criar uma nova VM:
 
-3. **Torne o script executável:**
-   ```bash
-   chmod +x nome_do_script.sh
-   ```
+```bash
+cd scripts-vms
+```
 
-4. **Execute o script:**
-   ```bash
-   sudo ./nome_do_script.sh
-   ```
+Leia o `README.md` do diretório para entender os pré-requisitos e as funcionalidades específicas do script.
 
-## ⚠️ Pré-requisitos
+### 3. Dê Permissão de Execução
 
-- Proxmox VE instalado e configurado
-- Acesso root ou sudo nos sistemas alvo
-- Conexão com a internet para download de pacotes
-- Backup dos sistemas antes de executar os scripts
+Antes de executar um script, você precisa torná-lo executável:
 
-## 🔒 Segurança
+```bash
+chmod +x nome_do_script.sh
+```
 
-- **Sempre** faça backup antes de executar qualquer script
-- Revise o conteúdo dos scripts antes da execução
-- Execute em ambiente de teste primeiro
-- Mantenha credenciais em arquivos `.env` (nunca no código)
+### 4. Execute com Segurança
 
-## 📋 Funcionalidades Principais
+A maioria dos scripts precisa de privilégios de superusuário para executar tarefas administrativas. Use `sudo` para executá-los:
 
-### Configuração de VMs Ubuntu e Derivados
-- ✅ Ajuste de timezone para America/Sao_Paulo
-- ✅ Configuração de usuário sudo
-- ✅ Setup completo de SSH com chaves
-- ✅ Suporte a distribuições baseadas em Ubuntu (Zorin OS, Pop!_OS, Linux Mint, Elementary OS)
-- ✅ Instalação do agente QEMU
+```bash
+sudo ./nome_do_script.sh
+```
 
-### Backup e Segurança
-- ✅ Backup completo das configurações do Proxmox
-- ✅ Backup de chaves SSH e certificados
-- ✅ Backup para dispositivos externos
+Siga as instruções interativas. Os scripts foram projetados para serem autoexplicativos e seguros.
 
-### Monitoramento
-- ✅ Instalação do Node Exporter para Prometheus
-- ✅ Configuração automática de serviços
+---
 
-## 🤝 Contribuição
+## 💡 Casos de Uso
 
-Contribuições são bem-vindas! Por favor:
-1. Faça um fork do projeto
-2. Crie uma branch para sua feature
-3. Commit suas mudanças
-4. Abra um Pull Request
+- **Provisionamento Rápido:** Crie e configure uma nova VM Ubuntu com Docker e um usuário `sudo` em minutos.
+- **Ambiente de Desenvolvimento:** Automatize a criação de contêineres LXC para seus projetos de desenvolvimento.
+- **Monitoramento Centralizado:** Instale e configure agentes do Prometheus ou Zabbix em toda a sua infraestrutura.
+- **Integração Contínua:** Configure um Self-Hosted Runner para suas pipelines de CI/CD do GitHub Actions.
+
+---
+
+## 🛡️ Segurança em Primeiro Lugar
+
+- **Revise o Código:** Sempre leia e entenda o que um script faz antes de executá-lo.
+- **Teste em Ambiente Seguro:** Execute os scripts em um ambiente de teste ou em uma VM de laboratório antes de aplicá-los em produção.
+- **Faça Backups:** Antes de qualquer operação crítica, garanta que você tenha um backup funcional do seu sistema.
+- **Não Armazene Credenciais:** Nunca insira senhas ou chaves privadas diretamente no código. Use gerenciadores de segredos ou arquivos `.env` quando aplicável.
+
+---
+
+## 🤝 Como Contribuir
+
+Contribuições são sempre bem-vindas! Se você tem uma ideia para um novo script ou uma melhoria, siga estes passos:
+
+1.  **Faça um Fork** do projeto.
+2.  **Crie uma Nova Branch** (`git checkout -b feature/sua-feature`).
+3.  **Faça o Commit** de suas alterações (`git commit -m 'Adiciona sua feature'`).
+4.  **Faça o Push** para a sua branch (`git push origin feature/sua-feature`).
+5.  **Abra um Pull Request**.
+
+---
 
 ## 📄 Licença
 
-Este projeto está licenciado sob a GPL-3.0 - veja o arquivo LICENSE para detalhes.
+Este projeto está licenciado sob a **Licença MIT**. Veja o arquivo [LICENSE.md](./LICENSE.md) para mais detalhes.
+
+---
 
 ## 👨‍💻 Autor
 
 **Hugllas R S Lima**
-- Email: hugllaslima@gmail.com
-- GitHub: [@hugllaslima](https://github.com/hugllaslima)
 
-## 📚 Documentação Adicional
-
-Cada diretório contém seu próprio README.md com instruções detalhadas e específicas para os scripts contidos nele.
+- **GitHub:** [@hugllaslima](https://github.com/hugllaslima)
+- **LinkedIn:** [hugllas-lima](https://www.linkedin.com/in/hugllas-lima/)
