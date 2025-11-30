@@ -50,7 +50,7 @@ Os scripts são organizados em diretórios modulares, cada um com seu próprio `
 | **Segurança e Acesso** | [`scripts-ssh/`](./scripts-ssh) | Gerenciamento avançado de chaves SSH com hardening. |
 | **Backups** | [`scripts-backups/`](./scripts-backups) | Backup completo das configurações do Proxmox VE. |
 | **Integração Proxmox** | [`scripts-qemu-agent/`](./scripts-qemu-agent) | Instalação do QEMU Guest Agent para comunicação com o host. |
-| **Utilitários Git** | [`scripts-github/`](./scripts-git) | Ferramentas para gerenciamento de contas Git/GitLab e sincronização de branches. |
+| **Utilitários Git** | [`scripts-git/`](./scripts-git) | Ferramentas para gerenciamento de contas Github/GitLab e sincronização de branches. |
 | **Utilitários de SO** | [`scripts-zorin-os/`](./scripts-zorin-os) | Scripts específicos para Zorin OS e derivados. |
 
 ---
