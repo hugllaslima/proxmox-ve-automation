@@ -11,6 +11,15 @@ scripts-prometheus/
 └── README.md
 ```
 
+##  Compatibilidade
+
+Os scripts de instalação do Node Exporter são projetados para sistemas operacionais baseados em Debian que utilizam `systemd` para gerenciamento de serviços e `UFW` (Uncomplicated Firewall) para configuração de firewall. A compatibilidade inclui, mas não se limita a:
+
+- **Ubuntu Server**: 20.04 LTS, 22.04 LTS, 24.04 LTS
+- **Debian**: 10, 11, 12
+
+Embora possam funcionar em outras distribuições Linux com `systemd`, a automação do firewall é específica para `UFW`, que é padrão no Ubuntu.
+
 ## 🚀 Scripts Disponíveis
 
 ### 1. `install_node_exporter_v2.sh` (Recomendado)

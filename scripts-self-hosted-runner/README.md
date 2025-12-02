@@ -2,18 +2,33 @@
 
 Este diretório contém scripts para automatizar a instalação, configuração e gerenciamento de *runners* auto-hospedados (self-hosted) do GitHub, permitindo a execução de workflows de CI/CD em sua própria infraestrutura.
 
+##  Compatibilidade
+
+Os scripts são projetados para sistemas operacionais baseados em Debian que utilizam `systemd` como gerenciador de serviços. A compatibilidade foi testada e verificada nas seguintes distribuições:
+
+- **Ubuntu**:
+  - 24.04 LTS (Noble Numbat)
+  - 22.04 LTS (Jammy Jellyfish)
+  - 20.04 LTS (Focal Fossa)
+- **Debian**:
+  - 12 (Bookworm)
+  - 11 (Bullseye)
+  - 10 (Buster)
+
+O principal requisito é a presença do gerenciador de pacotes `apt` e do `systemd`.
+
 ## 📜 Estrutura de Diretórios
 
 ```
 scripts-self-hosted-runner/
-├── install_self_hosted_runner_v2.sh
-├── install_self_hosted_runner.sh
+├── setup_runner.sh
+├── setup_runner_legacy.sh
 └── README.md
 ```
 
 ## 🚀 Scripts Disponíveis
 
-### 1. `install_self_hosted_runner_v2.sh` (Recomendado)
+### 1. `setup_runner.sh` (Recomendado)
 
 - **Função**:
   Automatiza a instalação e configuração de um GitHub Self-Hosted Runner em uma máquina Linux (Ubuntu/Debian). Este script é a versão mais recente e robusta, com mais validações e interatividade.
@@ -33,21 +48,21 @@ scripts-self-hosted-runner/
   1. **Obter Token**: No GitHub, vá para **Settings > Actions > Runners > New self-hosted runner** e copie o token de registro.
   2. **Tornar o script executável**:
      ```bash
-     chmod +x install_self_hosted_runner_v2.sh
+     chmod +x setup_runner.sh
      ```
   3. **Executar o script**:
      ```bash
-     ./install_self_hosted_runner_v2.sh
+     ./setup_runner.sh
      ```
   4. **Fornecer Informações**: Cole a URL do repositório/organização e o token quando solicitado pelo script.
 
-### 2. `install_self_hosted_runner.sh` (Legado)
+### 2. `setup_runner_legacy.sh` (Legado)
 
 - **Função**:
   Versão mais antiga e simplificada do script de instalação. Embora funcional, possui menos validações e recursos de automação.
 
 - **Quando Utilizar**:
-  Este script pode ser usado como referência ou em ambientes onde a interatividade não é desejada. No entanto, a **versão 2 é fortemente recomendada** para novas instalações devido à sua robustez e segurança aprimorada.
+  Este script pode ser usado como referência ou em ambientes onde a interatividade não é desejada. No entanto, a **versão mais recente é fortemente recomendada** para novas instalações devido à sua robustez e segurança aprimorada.
 
 - **Recursos Principais**:
   - **Download e Extração**: Baixa e descompacta o agente do runner.
@@ -59,7 +74,7 @@ scripts-self-hosted-runner/
 
 ## ⚠️ Pré-requisitos
 
-- **Sistema Operacional**: Linux (testado em Ubuntu 20.04/22.04 e Debian 11).
+- **Sistema Operacional**: Linux (distribuições baseadas em Debian, como Ubuntu ou o próprio Debian).
 - **Acesso**: Um usuário com privilégios `sudo` para instalar o serviço.
 - **Token do GitHub**: Um token de registro de runner válido obtido do seu repositório ou organização.
 - **Conectividade**: Acesso à internet para baixar o agente do runner e se comunicar com o GitHub.

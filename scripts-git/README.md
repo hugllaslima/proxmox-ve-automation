@@ -2,6 +2,16 @@
 
 Este diretório contém scripts para automatizar tarefas relacionadas ao GitHub e GitLab, como alternar entre diferentes contas de usuário (pessoal, trabalho, etc.) em repositórios locais.
 
+## Compatibilidade
+
+Os scripts deste diretório são compatíveis com qualquer sistema operacional que possua um ambiente de shell `bash` e o `git` instalado. Isso inclui:
+
+- **Linux**: Qualquer distribuição (Ubuntu, Debian, Fedora, Arch, etc.).
+- **macOS**: Qualquer versão com um terminal `bash` ou `zsh`.
+- **Windows**: Utilizando o **Git Bash** (incluído na instalação do Git para Windows) ou o **Windows Subsystem for Linux (WSL)**.
+
+Os scripts não possuem dependências de gerenciadores de pacotes específicos do sistema (`apt`, `yum`, etc.), tornando-os altamente portáteis.
+
 ## Estrutura do Diretório
 
 ```

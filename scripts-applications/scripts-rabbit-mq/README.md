@@ -12,7 +12,16 @@ rabbit-mq/
 └── README.md
 ```
 
-## 🚀 Scripts Disponíveis
+## Compatibilidade
+
+Os scripts deste diretório são compatíveis com as seguintes distribuições Linux baseadas em Debian:
+
+- **Ubuntu Server**: 22.04 LTS, 24.04 LTS
+- **Debian**: 11, 12
+
+A recomendação oficial é utilizar **Ubuntu Server 24.04 LTS** para garantir a melhor compatibilidade com as dependências do Erlang e RabbitMQ.
+
+
 
 ### 1. `install_rabbit_mq.sh`
 

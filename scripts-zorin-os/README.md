@@ -2,6 +2,15 @@
 
 Este diretório contém scripts úteis e de manutenção para o **Zorin OS**.
 
+## compatibilidade
+
+| Sistema Operacional | Arquitetura | Dependências |
+| ------------------- | ----------- | ------------------------------------ |
+| Zorin OS (todas as versões) | `amd64` | `bash`, `sudo`, `ntfs-3g`, `fuser` |
+| Ubuntu (e derivados) | `amd64` | `bash`, `sudo`, `ntfs-3g`, `fuser` |
+
+---
+
 ## 📜 Estrutura de Diretórios
 
 ```

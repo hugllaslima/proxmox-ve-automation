@@ -13,7 +13,16 @@ scripts-container-lxc/
 
 ---
 
-## Descrição dos Scripts
+## Compatibilidade
+
+Os scripts deste diretório são projetados para serem executados dentro de **Contêineres LXC** baseados em distribuições Linux que utilizam o gerenciador de pacotes `apt`.
+
+- **Ubuntu**: 20.04 LTS, 22.04 LTS, 24.04 LTS
+- **Debian**: 10, 11, 12
+
+Embora possam funcionar em outras distribuições baseadas em Debian, a compatibilidade é garantida para as versões listadas acima.
+
+
 
 ### 1. `create_user_lxc.sh`
 

@@ -2,6 +2,17 @@
 
 Este diretório contém scripts para preparar hosts (VMs ou contêineres LXC) para serem gerenciados via automação com Ansible.
 
+## Compatibilidade
+
+- **Sistema Operacional**: Qualquer distribuição baseada em Debian, como:
+  - Ubuntu (20.04 LTS, 22.04 LTS, 24.04 LTS e mais recentes)
+  - Debian (10, 11, 12 e mais recentes)
+  - Zorin OS
+  - Pop!_OS
+  - Linux Mint
+
+---
+
 ## Estrutura do Diretório
 
 ```

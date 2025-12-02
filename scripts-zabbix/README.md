@@ -2,6 +2,16 @@
 
 Este diretório contém scripts para automatizar a instalação e configuração do Zabbix Agent, facilitando o monitoramento de hosts em ambientes Proxmox VE.
 
+## compatibilidade
+
+| Sistema Operacional | Arquitetura | Dependências |
+| ------------------- | ----------- | ------------------------------------------------------------ |
+| Ubuntu 24.04 LTS (Recomendado) | `amd64` | `bash`, `systemd`, `apt`, `curl`, `sudo`, `telnet` |
+| Ubuntu 22.04 LTS | `amd64` | `bash`, `systemd`, `apt`, `curl`, `sudo`, `telnet` |
+| Ubuntu 20.04 LTS | `amd64` | `bash`, `systemd`, `apt`, `curl`, `sudo`, `telnet` |
+
+---
+
 ## Estrutura do Diretório
 
 ```

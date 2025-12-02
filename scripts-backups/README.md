@@ -13,7 +13,15 @@ scripts-backups/
 
 ---
 
-## Descrição dos Scripts
+## Compatibilidade
+
+Os scripts deste diretório são projetados para serem executados diretamente no **Proxmox VE**.
+
+- **Proxmox VE**: 7.x, 8.x
+
+Como o Proxmox VE é baseado em Debian, os scripts utilizam comandos e estruturas de diretórios padrão do Debian. A execução em um sistema Debian puro pode ser possível com adaptações, mas o foco principal é o ambiente Proxmox.
+
+
 
 ### 1. `backup_full_proxmox_ve.sh`
 

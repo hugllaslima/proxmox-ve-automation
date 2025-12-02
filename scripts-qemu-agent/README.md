@@ -2,56 +2,69 @@
 
 Este diretório contém scripts para gerenciar o **QEMU Guest Agent** em máquinas virtuais (VMs) Linux, facilitando a comunicação e a integração entre o host (hipervisor, como o Proxmox VE) e o guest (VM).
 
+## Compatibilidade
+
+Os scripts são específicos para diferentes famílias de distribuições Linux, com base no gerenciador de pacotes utilizado:
+
+- **`apt_install_agent_qemu.sh`**:
+  - **Sistemas Operacionais**: Distribuições baseadas em Debian.
+  - **Exemplos**: Ubuntu (20.04, 22.04, 24.04), Debian (10, 11, 12), e outros derivados.
+
+- **`yum_install_agent_qemu.sh`**:
+  - **Sistemas Operacionais**: Distribuições baseadas em Red Hat.
+  - **Exemplos**: CentOS, Rocky Linux, AlmaLinux, e outros que utilizam `yum` ou `dnf` (já que `dnf` mantém compatibilidade com `yum`).
+
 ## 📜 Estrutura de Diretórios
 
 ```
 scripts-qemu-agent/
-├── install_qemu_agent_v2.sh
-├── install_qemu_agent.sh
+├── apt_install_agent_qemu.sh
+├── yum_install_agent_qemu.sh
 └── README.md
 ```
 
 ## 🚀 Scripts Disponíveis
 
-### 1. `install_qemu_agent_v2.sh` (Recomendado)
+### 1. `apt_install_agent_qemu.sh`
 
 - **Função**:
-  Instala e habilita o QEMU Guest Agent em uma VM Linux (Debian/Ubuntu). Esta é a versão mais completa e segura, com validações e feedback claro.
+  Instala e habilita o QEMU Guest Agent em uma VM Linux baseada em **Debian/Ubuntu**.
 
 - **Quando Utilizar**:
-  Execute este script em **todas as VMs** que rodam em um hipervisor como o Proxmox VE. A instalação do agente é crucial para habilitar funcionalidades avançadas, como:
-  - **Desligamento/Reinicialização Graciosa**: Permite que o hipervisor desligue ou reinicie a VM de forma segura, sem corromper dados.
-  - **Obtenção de Informações**: Fornece ao host detalhes sobre a VM, como endereços IP, status do sistema e uso de memória.
-  - **Snapshots Consistentes**: Ajuda a "congelar" o sistema de arquivos da VM antes de um snapshot, garantindo a consistência dos dados.
-  - **Execução de Comandos**: Permite que o host execute comandos dentro da VM.
-
-- **Recursos Principais**:
-  - **Instalação do Pacote**: Instala o pacote `qemu-guest-agent`.
-  - **Habilitação do Serviço**: Inicia e habilita o serviço para que ele seja executado na inicialização da VM.
-  - **Verificação de Status**: Confirma que o serviço está ativo e funcionando após a instalação.
-  - **Saída Informativa**: Exibe mensagens claras sobre o progresso e o resultado da operação.
+  Execute este script em **VMs com sistemas operacionais como Ubuntu, Debian** ou derivados que rodam em um hipervisor como o Proxmox VE. A instalação do agente é crucial para habilitar funcionalidades avançadas, como:
+  - **Desligamento/Reinicialização Graciosa**: Permite que o hipervisor desligue ou reinicie a VM de forma segura.
+  - **Obtenção de Informações**: Fornece ao host detalhes sobre a VM, como endereços IP.
+  - **Snapshots Consistentes**: Ajuda a "congelar" o sistema de arquivos da VM antes de um snapshot.
 
 - **Como Utilizar**:
-  1. **Copiar para a VM**: Transfira o script para a máquina virtual que você deseja configurar.
+  1. **Copiar para a VM**: Transfira o script para a máquina virtual.
   2. **Tornar o script executável**:
      ```bash
-     chmod +x install_qemu_agent_v2.sh
+     chmod +x apt_install_agent_qemu.sh
      ```
   3. **Executar com `sudo`**:
      ```bash
-     sudo ./install_qemu_agent_v2.sh
+     sudo ./apt_install_agent_qemu.sh
      ```
 
-### 2. `install_qemu_agent.sh` (Legado)
+### 2. `yum_install_agent_qemu.sh`
 
 - **Função**:
-  Versão mais antiga e simplificada do script de instalação. É funcional, mas menos robusta.
+  Instala e habilita o QEMU Guest Agent em uma VM Linux baseada em **Red Hat/CentOS**.
 
 - **Quando Utilizar**:
-  Pode ser usada como referência ou em scripts de automação mais simples. No entanto, a **versão 2 é recomendada** para garantir uma instalação mais confiável.
+  Use este script em **VMs com sistemas como CentOS, Rocky Linux, AlmaLinux** ou outros que usam o gerenciador de pacotes `yum`/`dnf`.
 
-- **Recursos Principais**:
-  - Instala o pacote e inicia o serviço, mas com menos feedback e sem a etapa de habilitação explícita (`enable`).
+- **Como Utilizar**:
+  1. **Copiar para a VM**: Transfira o script para a máquina virtual.
+  2. **Tornar o script executável**:
+     ```bash
+     chmod +x yum_install_agent_qemu.sh
+     ```
+  3. **Executar com `sudo`**:
+     ```bash
+     sudo ./yum_install_agent_qemu.sh
+     ```
 
 ## ✅ Verificação no Proxmox VE
 
@@ -63,10 +76,9 @@ Após executar o script na VM, você pode confirmar que o QEMU Guest Agent está
 
 ## ⚠️ Pré-requisitos
 
-- **Sistema Operacional da VM**: Debian, Ubuntu ou um derivado.
-- **Acesso na VM**: Um usuário com privilégios `sudo`.
+- **Acesso na VM**: Um usuário com privilégios `sudo` ou `root`.
 - **Configuração no Hipervisor**: O hipervisor (Proxmox VE) deve estar configurado para usar o QEMU Guest Agent. Isso é feito na aba **Options** da VM, marcando a caixa de seleção **QEMU Guest Agent**.
 
 ## 💡 Dica
 
-- **Templates de VM**: A melhor prática é instalar o QEMU Guest Agent em uma VM base e, em seguida, convertê-la em um template. Todas as novas VMs criadas a partir deste template já terão o agente instalado e configurado, economizando tempo e garantindo consistência.
+- **Templates de VM**: A melhor prática é instalar o QEMU Guest Agent em uma VM base e, em seguida, convertê-la em um template. Todas as novas VMs criadas a partir deste template já terão o agente instalado e configurado.
