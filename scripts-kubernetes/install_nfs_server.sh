@@ -32,7 +32,7 @@
 #  24/07/2024
 #
 # Pré-requisitos:
-#  - Sistema operacional baseado em Debian (Ubuntu 22.04 LTS recomendado).
+#  - Sistema operacional baseado em Debian (Ubuntu 22.04 ou 24.04 LTS recomendado).
 #  - Acesso root ou um usuário com privilégios sudo.
 #  - Conectividade de rede.
 #
