@@ -43,7 +43,8 @@ Os scripts são organizados em diretórios modulares, cada um com seu próprio `
 | **Gestão de VMs** | [`scripts-vms/`](./scripts-vms) | Criação e configuração completa de VMs Ubuntu e derivados. |
 | **Gestão de Contêineres** | [`scripts-container-lxc/`](./scripts-container-lxc) | Criação e configuração de usuários em contêineres LXC. |
 | **Docker** | [`scripts-docker/`](./scripts-docker) | Instalação e configuração do Docker em diferentes sistemas. |
-| **Aplicações** | [`scripts-applications/`](./scripts-applications) | Instalação de RabbitMQ, OnlyOffice e mais. |
+| **OnlyOffice Server** | [`scripts-onlyoffice-server/`](./scripts-onlyoffice-server) | Instalação e manutenção do OnlyOffice Server. |
+| **RabbitMQ** | [`scripts-rabbit-mq/`](./scripts-rabbit-mq) | Instalação e configuração do RabbitMQ. |
 | **Automação (Ansible)** | [`scripts-ansible/`](./scripts-ansible) | Preparação de hosts para serem gerenciados pelo Ansible. |
 | **Monitoramento** | [`scripts-prometheus/`](./scripts-prometheus) | Instalação do Node Exporter para Prometheus. |
 | **Monitoramento (Zabbix)** | [`scripts-zabbix/`](./scripts-zabbix) | Instalação e configuração do Zabbix Agent. |
