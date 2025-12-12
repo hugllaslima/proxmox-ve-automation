@@ -96,42 +96,62 @@ echo "Este script irá configurar o servidor NFS na sua VM Debian 12."
 echo "Por favor, forneça as informações solicitadas."
 
 # Coletar informações do usuário
-get_user_input "Digite o caminho do diretório de compartilhamento NFS" "$NFS_SHARE_PATH" "NFS_SHARE_PATH"
-get_user_input "Digite a rede que terá permissão para acessar o NFS (ex: 10.10.0.0/22)" "$NFS_ALLOWED_NETWORK" "NFS_ALLOWED_NETWORK"
+    get_user_input "Digite o caminho do diretório de compartilhamento NFS" "$NFS_SHARE_PATH" "NFS_SHARE_PATH"
+    get_user_input "Digite a rede que terá permissão para acessar o NFS (ex: 10.10.0.0/22)" "$NFS_ALLOWED_NETWORK" "NFS_ALLOWED_NETWORK"
 
+echo " "
 echo "--- 1. Preparação do Sistema Operacional ---"
+echo " "
+echo "Verificando se o sistema operacional é baseado em Debian..."
+    if ! grep -q "Debian" /etc/os-release; then
+        error_exit "Este script é projetado para sistemas operacionais baseados em Debian (como Ubuntu)."
+    fi
+
+echo " "
 echo "Atualizando pacotes..."
-sudo apt update && sudo apt upgrade -y
-check_command "Falha ao atualizar pacotes."
-sudo apt autoremove -y
+echo " "
+    sudo apt update && sudo apt upgrade -y
+    check_command "Falha ao atualizar pacotes."
+    sudo apt autoremove -y
 
+echo " "
 echo "--- 2. Instalação do Servidor NFS ---"
-sudo apt install -y nfs-kernel-server
-check_command "Falha ao instalar nfs-kernel-server."
+echo " "
+    sudo apt install -y nfs-kernel-server
+    check_command "Falha ao instalar nfs-kernel-server."
 
+echo " "
 echo "--- 3. Criando e configurando o diretório de compartilhamento ---"
-sudo mkdir -p "$NFS_SHARE_PATH"
-check_command "Falha ao criar o diretório $NFS_SHARE_PATH."
-sudo chown nobody:nogroup "$NFS_SHARE_PATH"
-sudo chmod 777 "$NFS_SHARE_PATH"
-echo "Diretório $NFS_SHARE_PATH criado e permissões configuradas."
+echo " "
+    sudo mkdir -p "$NFS_SHARE_PATH"
+    check_command "Falha ao criar o diretório $NFS_SHARE_PATH."
+    sudo chown nobody:nogroup "$NFS_SHARE_PATH"
+    sudo chmod 777 "$NFS_SHARE_PATH"
+    echo "Diretório $NFS_SHARE_PATH criado e permissões configuradas."
 
+echo " "
 echo "--- 4. Configurando o arquivo /etc/exports ---"
-# Remover entradas antigas para evitar duplicatas
-sudo sed -i "\%$NFS_SHARE_PATH%d" /etc/exports
+echo " "
+    sudo sed -i "\%$NFS_SHARE_PATH%d" /etc/exports
 
 echo "$NFS_SHARE_PATH $NFS_ALLOWED_NETWORK(rw,sync,no_subtree_check,no_root_squash)" | sudo tee -a /etc/exports > /dev/null
-check_command "Falha ao configurar /etc/exports."
+    check_command "Falha ao configurar /etc/exports."
 echo "Entrada adicionada ao /etc/exports."
 
+echo " "
 echo "--- 5. Exportando compartilhamentos e reiniciando o serviço NFS ---"
-sudo exportfs -a
-check_command "Falha ao exportar compartilhamentos NFS."
-sudo systemctl restart nfs-kernel-server
-check_command "Falha ao reiniciar o serviço nfs-kernel-server."
-sudo systemctl enable nfs-kernel-server
-echo "Serviço NFS configurado e iniciado."
+echo " "
+    sudo exportfs -a
+    check_command "Falha ao exportar compartilhamentos NFS."
+    sudo systemctl restart nfs-kernel-server
+    check_command "Falha ao reiniciar o serviço nfs-kernel-server."
+    sudo systemctl enable nfs-kernel-server
+    check_command "Falha ao habilitar o serviço nfs-kernel-server."
+    echo "Serviço NFS configurado e iniciado."
 
+echo " "
 echo "--- 6. Verificando o compartilhamento NFS ---"
-showmount -e localhost
+echo " "
+    showmount -e localhost
+    check_command "Falha ao verificar o compartilhamento NFS."
 echo "Servidor NFS configurado com sucesso!"
