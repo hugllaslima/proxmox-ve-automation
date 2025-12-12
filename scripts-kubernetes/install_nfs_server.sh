@@ -46,9 +46,7 @@
 #
 # -----------------------------------------------------------------------------
 
-# --- Variáveis de Configuração (Serão preenchidas pelo usuário) ---
-NFS_SHARE_PATH="/mnt/k3s-share-nfs/"
-NFS_ALLOWED_NETWORK="10.10.0.0/22" # Sua rede de datacenter
+# As variáveis de configuração serão solicitadas durante a execução do script.
 
 # --- Funções Auxiliares ---
 
@@ -70,6 +68,7 @@ function get_user_input {
     local prompt_message="$1"
     local default_value="$2"
     local var_name="$3"
+    local is_path_check="$4" # Novo parâmetro para indicar verificação de caminho
 
     if [ -n "$default_value" ]; then
         prompt_message="$prompt_message (Padrão: $default_value)"
@@ -77,33 +76,47 @@ function get_user_input {
 
     while true; do
         read -p "$prompt_message: " input_value
+        local final_value=""
+
         if [ -z "$input_value" ] && [ -n "$default_value" ]; then
-            eval "$var_name=\"$default_value\""
-            break
+            final_value="$default_value"
         elif [ -n "$input_value" ]; then
-            eval "$var_name=\"$input_value\""
-            break
+            final_value="$input_value"
         else
             echo "Entrada não pode ser vazia. Por favor, tente novamente."
+            continue
         fi
+
+        # Se for uma verificação de caminho, valide o prefixo
+        if [ "$is_path_check" = "true" ]; then
+            if [[ "$final_value" != /mnt/* ]]; then
+                echo "ERRO: O caminho do compartilhamento deve estar dentro de /mnt/ (ex: /mnt/meu-share)."
+                continue # Volta ao início do loop
+            fi
+        fi
+
+        eval "$var_name=\"$final_value\""
+        break
     done
 }
 
 # --- Início do Script ---
 
 echo "--- Configuração do Servidor NFS ---"
-echo "Este script irá configurar o servidor NFS na sua VM Debian 12."
+echo " "
+echo "Este script irá configurar o servidor NFS."
+echo " "
 echo "Por favor, forneça as informações solicitadas."
 
 # Coletar informações do usuário
-    get_user_input "Digite o caminho do diretório de compartilhamento NFS" "$NFS_SHARE_PATH" "NFS_SHARE_PATH"
-    get_user_input "Digite a rede que terá permissão para acessar o NFS (ex: 10.10.0.0/22)" "$NFS_ALLOWED_NETWORK" "NFS_ALLOWED_NETWORK"
+    get_user_input "Digite o caminho do diretório de compartilhamento NFS" "/mnt/k3s-share-nfs/" "NFS_SHARE_PATH" "true"
+    get_user_input "Digite a rede que terá permissão para acessar o NFS (ex: 10.10.0.0/22)" "10.10.0.0/22" "NFS_ALLOWED_NETWORK"
 
 echo " "
 echo "--- 1. Preparação do Sistema Operacional ---"
 echo " "
 echo "Verificando se o sistema operacional é baseado em Debian..."
-    if ! grep -q "Debian" /etc/os-release; then
+    if ! grep -iq "Debian" /etc/os-release; then
         error_exit "Este script é projetado para sistemas operacionais baseados em Debian (como Ubuntu)."
     fi
 
