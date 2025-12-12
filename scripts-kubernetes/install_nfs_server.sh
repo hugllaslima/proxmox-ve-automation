@@ -12,7 +12,7 @@
 #
 #  Funcionalidades:
 #  - Instala os pacotes necessários para o servidor NFS.
-#  - Cria um diretório de compartilhamento padrão (/srv/nfs/kubedata).
+#  - Cria um diretório de compartilhamento padrão (/mnt/k3s-share-nfs/).
 #  - Configura as permissões do diretório de compartilhamento.
 #  - Adiciona uma entrada ao arquivo /etc/exports para permitir o acesso de
 #    qualquer cliente na rede (*).
@@ -47,7 +47,7 @@
 # -----------------------------------------------------------------------------
 
 # --- Variáveis de Configuração (Serão preenchidas pelo usuário) ---
-NFS_SHARE_PATH="/mnt/nfs_share"
+NFS_SHARE_PATH="/mnt/k3s-share-nfs/"
 NFS_ALLOWED_NETWORK="10.10.0.0/22" # Sua rede de datacenter
 
 # --- Funções Auxiliares ---
