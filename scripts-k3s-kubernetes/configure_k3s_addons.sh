@@ -14,7 +14,7 @@
 #
 # Autor:
 #   Hugllas Lima <hugllas.l@gmail.com>
-#   GitHub: https://github.com/hugllas
+#   GitHub: https://github.com/hugllas-lima
 #   LinkedIn: https://www.linkedin.com/in/hugllas-lima/
 #
 # Versão:
