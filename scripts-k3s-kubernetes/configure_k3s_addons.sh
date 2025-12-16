@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # -----------------------------------------------------------------------------
-# Script: configure_k8s_addons.sh
+# Script: configure_k3s_addons.sh
 #
 # Descrição:
 #   Este script automatiza a configuração de addons essenciais para um cluster
