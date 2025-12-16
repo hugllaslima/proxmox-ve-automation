@@ -93,7 +93,7 @@ Para implantar o cluster do zero, siga a ordem abaixo. Lembre-se de dar permiss�
     - Após o cluster estar no ar, execute o script de configuração dos addons para instalar `kubectl`, `helm` e os componentes essenciais.
     - **Recomendação**: Voê pode utilizar seu PC/Desktop, mas para maior segurança e isolamento, é preferível utilizar uma VM dedicada (`k3s-management`) para a gerência do cluster, em vez de executar os comandos a partir da sua máquina local.
     ```bash
-    ./configure_k3s_addons.sh
+    sudo ./configure_k3s_addons.sh
     ```
 
 ## 🧹 Limpeza do Ambiente
