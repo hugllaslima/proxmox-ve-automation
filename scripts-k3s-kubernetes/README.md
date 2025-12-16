@@ -100,9 +100,16 @@ Para implantar o cluster do zero, siga a ordem abaixo. Lembre-se de dar permiss�
 
 Para desmontar o ambiente, utilize os scripts `cleanup_*.sh`. É recomendado seguir a ordem inversa da instalação:
 
-1.  **Na máquina de gerenciamento**: Execute `cleanup_k3s_addons.sh`.
-2.  **Nos nós workers**: Execute `cleanup_k3s_worker.sh`.
-3.  **Nos nós masters**: Execute `cleanup_k3s_master.sh`.
-4.  **Na VM de armazenamento**: Execute `cleanup_nfs_server.sh`.
+1.  **Na máquina de gerenciamento**: Execute `sudo ./cleanup_k3s_addons.sh`.
+2.  **Nos nós workers**: Execute `sudo ./cleanup_k3s_worker.sh`.
+3.  **Nos nós masters**: Execute `sudo ./cleanup_k3s_master.sh`.
+4.  **Na VM de armazenamento**: Execute `sudo ./cleanup_nfs_server.sh`.
 
 Isso garantirá que os servidores fiquem em um estado limpo e prontos para serem reutilizados.
+
+## 👨‍💻 Autor
+
+**Hugllas R S Lima**
+
+- **GitHub:** [@hugllaslima](https://github.com/hugllaslima)
+- **LinkedIn:** [hugllas-lima](https://www.linkedin.com/in/hugllas-lima/)
