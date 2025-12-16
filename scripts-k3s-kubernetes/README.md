@@ -1,8 +1,37 @@
 # ☸️ Automação de Cluster K3s para Proxmox VE
 
-Este diretório contém uma suíte de scripts `bash` para automatizar a implantação e configuração de um cluster Kubernetes leve e de alta disponibilidade usando K3s. O ambiente foi projetado para ser eficiente e rodar em uma infraestrutura modesta, como a fornecida pelo Proxmox VE.
+Este diretório contém uma suíte de scripts `bash` para automatizar a implantação e configuração de um cluster Kubernetes leve e de alta disponibilidade usando K3s. O ambiente foi projetado para ser eficiente e rodar em uma infraestrutura modesta, como a fornecida pelo Proxmox VE. 
 
-## 🏗️ Arquitetura de Referência
+## 🤔 Por que K3s? Uma Análise Comparativa
+
+A escolha pelo **K3s** para este projeto foi estratégica, visando um equilíbrio ideal entre robustez, simplicidade e eficiência de recursos, especialmente em um ambiente virtualizado como o Proxmox VE.
+
+O K3s é uma distribuição Kubernetes **leve e certificada pela CNCF**, desenvolvida pela Rancher. Ele é projetado para cenários com recursos limitados (como Edge, IoT e desenvolvimento) por ser empacotado em um **único binário com menos de 100MB**. Essa abordagem simplifica drasticamente a instalação e o gerenciamento, mantendo total compatibilidade com as APIs do Kubernetes.
+
+### K3s vs. K8s (Vanilla): Principais Diferenças
+
+Para entender a decisão, veja um comparativo direto entre as duas abordagens:
+
+#### **K8s (Kubernetes "Vanilla" / `kubeadm`)**
+- **Implementação Completa**: É a versão oficial e mais abrangente do Kubernetes, contendo todos os componentes tradicionais (API Server, Scheduler, etcd, etc.).
+- **Padrão da Indústria**: Considerado o "padrão ouro" que define o ecossistema Kubernetes.
+- **Curva de Aprendizagem e Recursos**: A instalação e configuração, mesmo com `kubeadm`, exigem mais recursos de hardware e um conhecimento mais aprofundado da arquitetura.
+
+#### **K3s (Lightweight Kubernetes)**
+- **Certificado e 100% Compatível**: Passa em todos os testes de conformidade da CNCF, garantindo que suas aplicações funcionarão como esperado.
+- **Otimizado para Leveza**:
+    - Remove componentes legados e não essenciais (como drivers de armazenamento *in-tree*).
+    - Empacota todos os processos em um **único binário**, o que reduz o *overhead* e a superfície de ataque.
+    - Utiliza `containerd` como runtime padrão, que é mais leve e eficiente que o Docker para o contexto do Kubernetes.
+- **Banco de Dados Flexível**:
+    - Para nós únicos, pode usar **SQLite** embutido, tornando-o extremamente leve.
+    - Para alta disponibilidade (HA), suporta bancos de dados externos como **PostgreSQL**, que é a abordagem de alta disponibilidade utilizada neste projeto.
+
+Em resumo, o K3s oferece a mesma funcionalidade e segurança do Kubernetes tradicional, mas com uma fração do custo operacional e da complexidade, tornando-o a escolha ideal para este ambiente.
+
+O cluster resultante é configurado com dois nós de controle (masters), dois nós de trabalho (workers), um servidor NFS para armazenamento persistente e, por fim, um servidor de gerenciamento para execução de comandos `kubectl` e `helm`.
+
+## 🏗️ Arquitetura de Referência Utilizada no Proxmox VE
 
 Este projeto foi desenvolvido e testado com a seguinte arquitetura de Máquinas Virtuais (VMs) no Proxmox VE. Os IPs e nomes são sugestões e podem ser adaptados nos scripts interativos.
 
