@@ -76,48 +76,53 @@ echo " "
 configura_ssh_ubuntu() {
     echo "[SSH para usuário ubuntu]"
 
-    SSH_DIR="/home/ubuntu/.ssh"
-    AUTH_KEYS="$SSH_DIR/authorized_keys"
+    read -p "Deseja configurar uma chave SSH para o usuário ubuntu? (s/n): " CONFIGURAR_SSH
+    if [[ "$CONFIGURAR_SSH" =~ ^([sS][iI][mM]|[sS])$ ]]; then
+        SSH_DIR="/home/ubuntu/.ssh"
+        AUTH_KEYS="$SSH_DIR/authorized_keys"
 
-    echo "Criando diretório SSH para o usuário ubuntu..."
-    sudo -u ubuntu mkdir -p $SSH_DIR
-    sudo chown ubuntu:ubuntu $SSH_DIR
-    sudo chmod 700 $SSH_DIR
+        echo "Criando diretório SSH para o usuário ubuntu..."
+        sudo -u ubuntu mkdir -p $SSH_DIR
+        sudo chown ubuntu:ubuntu $SSH_DIR
+        sudo chmod 700 $SSH_DIR
 
-    # Entrada manual da chave pública
-    echo "Por favor, cole a chave PÚBLICA do usuário ubuntu."
-    echo "Finalize com Ctrl+D numa linha em branco."
-    
-    # Lê a chave pública fornecida pelo usuário
-    CHAVE_PUBLICA=$(sudo -u ubuntu tee /tmp/temp_pubkey)
-    
-    # Valida se parece com uma chave pública SSH
-    if [[ ! "$CHAVE_PUBLICA" =~ ^ssh-(rsa|dss|ecdsa|ed25519) ]]; then
-        echo "ERRO: A entrada não parece ser uma chave pública SSH válida."
-        echo "Uma chave pública deve começar com 'ssh-rsa', 'ssh-dss', 'ssh-ecdsa' ou 'ssh-ed25519'."
+        # Entrada manual da chave pública
+        echo "Por favor, cole a chave PÚBLICA do usuário ubuntu."
+        echo "Finalize com Ctrl+D numa linha em branco."
+        
+        # Lê a chave pública fornecida pelo usuário
+        CHAVE_PUBLICA=$(sudo -u ubuntu tee /tmp/temp_pubkey)
+        
+        # Valida se parece com uma chave pública SSH
+        if [[ ! "$CHAVE_PUBLICA" =~ ^ssh-(rsa|dss|ecdsa|ed25519) ]]; then
+            echo "ERRO: A entrada não parece ser uma chave pública SSH válida."
+            echo "Uma chave pública deve começar com 'ssh-rsa', 'ssh-dss', 'ssh-ecdsa' ou 'ssh-ed25519'."
+            rm -f /tmp/temp_pubkey
+            exit 1
+        fi
+        echo " "
+
+        # Cria ou atualiza o authorized_keys sem apagar chaves existentes
+        sudo -u ubuntu touch $AUTH_KEYS
+        
+        # Verifica se a chave já existe para evitar duplicatas
+        if ! grep -qF "$CHAVE_PUBLICA" $AUTH_KEYS; then
+            echo "$CHAVE_PUBLICA" | sudo tee -a $AUTH_KEYS > /dev/null
+            echo "Nova chave pública adicionada ao authorized_keys."
+        else
+            echo "Esta chave pública já existe no authorized_keys."
+        fi
+        
+        sudo chmod 600 $AUTH_KEYS
+        sudo chown ubuntu:ubuntu $AUTH_KEYS
+
+        # Remove arquivo temporário
         rm -f /tmp/temp_pubkey
-        exit 1
-    fi
-echo " "
 
-# Cria ou atualiza o authorized_keys sem apagar chaves existentes
-    sudo -u ubuntu touch $AUTH_KEYS
-    
-    # Verifica se a chave já existe para evitar duplicatas
-    if ! grep -qF "$CHAVE_PUBLICA" $AUTH_KEYS; then
-        echo "$CHAVE_PUBLICA" | sudo tee -a $AUTH_KEYS > /dev/null
-        echo "Nova chave pública adicionada ao authorized_keys."
+        echo "Chave SSH configurada para o usuário ubuntu (chaves existentes preservadas)."
     else
-        echo "Esta chave pública já existe no authorized_keys."
+        echo "Configuração de chave SSH IGNORADA."
     fi
-    
-    sudo chmod 600 $AUTH_KEYS
-    sudo chown ubuntu:ubuntu $AUTH_KEYS
-
-    # Remove arquivo temporário
-    rm -f /tmp/temp_pubkey
-
-    echo "Chave SSH configurada para o usuário ubuntu (chaves existentes preservadas)."
 }
 echo " "
 
@@ -197,7 +202,12 @@ instala_docker() {
 if [[ $(id -u) -eq 0 ]]; then
     configuracao_inicial
     configura_ssh_ubuntu
-    ajusta_sshd
+
+    # Só ajusta o sshd se a configuração da chave foi feita para evitar bloqueio
+    if [[ "$CONFIGURAR_SSH" =~ ^([sS][iI][mM]|[sS])$ ]]; then
+        ajusta_sshd
+    fi
+
     instala_docker
     reiniciar
 else

@@ -67,9 +67,9 @@ scripts-vms/
 - **Recursos Principais**:
   - **Configuração do Sistema**: Ajusta o fuso horário e atualiza todos os pacotes.
   - **QEMU Guest Agent**: Instala e habilita o `qemu-guest-agent` para melhor integração com o host Proxmox.
-  - **Segurança SSH**: Configura o acesso via chave SSH, desabilita a autenticação por senha e ajusta as permissões.
+  - **Segurança SSH (Opcional)**: Oferece a configuração de acesso via chave SSH. Se ativado, a autenticação por senha é desabilitada para aumentar a segurança.
   - **Usuário Sudo**: Concede permissões `sudo` sem senha a um usuário padrão (`ubuntu`).
-  - **Instalação de Ferramentas**: Instala Docker, Docker Compose e outras utilidades.
+  - **Instalação de Ferramentas (Opcional)**: Oferece a instalação do Docker e Docker Compose.
 - **Como Utilizar**:
   1. **Copiar para a VM**: Após criar uma VM Ubuntu, copie este script para dentro dela.
      ```bash
