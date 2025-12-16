@@ -28,7 +28,7 @@ set -euo pipefail
 
 reiniciar() {
     echo
-    echo "ATENÇÃO: Antes de reiniciar, teste o acesso SSH com sua chave em outra aba/terminal!"
+    echo "ATENÇÃO: Caso tenha configurado uma chave SSH, teste o acesso com sua chave em outro terminal antes de reiniciar!"
     read -p "Deseja reiniciar o servidor agora para aplicar as alterações? (s/n): " RESP_REBOOT
     if [[ "$RESP_REBOOT" =~ ^([sS][iI][mM]|[sS])$ ]]; then
         echo "Reiniciando o servidor..."
