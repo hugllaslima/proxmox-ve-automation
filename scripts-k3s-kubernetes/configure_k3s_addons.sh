@@ -10,11 +10,12 @@
 #   MetalLB e Nginx Ingress Controller.
 #
 #   O script é interativo e solicita as informações necessárias, como IPs
+#   do cluster K3s, IP do servidor NFS, caminho do compartilhamento NFS,
 #   e caminhos de rede, para personalizar a instalação.
 #
 # Autor:
 #   Hugllas Lima <hugllas.l@gmail.com>
-#   GitHub: https://github.com/hugllas-lima
+#   GitHub: https://github.com/hugllaslima
 #   LinkedIn: https://www.linkedin.com/in/hugllas-lima/
 #
 # Versão:
