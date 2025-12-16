@@ -8,12 +8,12 @@ Este projeto foi desenvolvido e testado com a seguinte arquitetura de Máquinas 
 
 | VM | Nome | SO | IP/CIDR (Exemplo) | CPU | RAM | Volume |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `k8s-master-1` | Ubuntu 24.04 LTS | `192.168.10.20/24` | 4c | 6GB | 50GB |
-| 2 | `k8s-master-2` | Ubuntu 24.04 LTS | `192.168.10.21/24` | 4c | 6GB | 50GB |
-| 3 | `k8s-worker-1` | Ubuntu 24.04 LTS | `192.168.10.22/24` | 4c | 6GB | 50GB |
-| 4 | `k8s-worker-2` | Ubuntu 24.04 LTS | `192.168.10.23/24` | 4c | 6GB | 50GB |
-| 5 | `k8s-storage-nfs` | Ubuntu 24.04 LTS | `192.168.10.24/24` | 4c | 4GB | 100GB |
-| 6 | `k8s-management` | Ubuntu 24.04 LTS | `192.168.10.25/24` | 4c | 4GB | 40GB |
+| 1 | `k3s-master-1` | Ubuntu 24.04 LTS | `192.168.10.20/24` | 4c | 6GB | 50GB |
+| 2 | `k3s-master-2` | Ubuntu 24.04 LTS | `192.168.10.21/24` | 4c | 6GB | 50GB |
+| 3 | `k3s-worker-1` | Ubuntu 24.04 LTS | `192.168.10.22/24` | 4c | 6GB | 50GB |
+| 4 | `k3s-worker-2` | Ubuntu 24.04 LTS | `192.168.10.23/24` | 4c | 6GB | 50GB |
+| 5 | `k3s-storage-nfs` | Ubuntu 24.04 LTS | `192.168.10.24/24` | 4c | 4GB | 100GB |
+| 6 | `k3s-management` | Ubuntu 24.04 LTS | `192.168.10.25/24` | 4c | 4GB | 40GB |
 
 ## 📜 Scripts Disponíveis
 
