@@ -108,16 +108,27 @@ echo ""
 print_info "--- 3. Revertendo Configurações do Sistema ---"
 
 print_info "Limpando /etc/hosts..."
-sed -i '/k8s-master-1/d' /etc/hosts
-sed -i '/k8s-master-2/d' /etc/hosts
-sed -i '/k8s-worker-1/d' /etc/hosts
-sed -i '/k8s-worker-2/d' /etc/hosts
-sed -i '/k8s-storage-nfs/d' /etc/hosts
-print_info "Entradas do Kubernetes removidas do /etc/hosts."
+sed -i '/k3s-master-1/d' /etc/hosts
+sed -i '/k3s-master-2/d' /etc/hosts
+sed -i '/k3s-worker-1/d' /etc/hosts
+sed -i '/k3s-worker-2/d' /etc/hosts
+sed -i '/k3s-storage-nfs/d' /etc/hosts
+print_info "Entradas do K3s removidas do /etc/hosts."
+
+print_info "Removendo arquivo de configuração do cluster..."
+# Encontra o arquivo de configuração no mesmo diretório do script de limpeza
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+CONFIG_FILE_PATH="$SCRIPT_DIR/k3s_cluster_vars.sh"
+if [ -f "$CONFIG_FILE_PATH" ]; then
+    rm -f "$CONFIG_FILE_PATH"
+    print_info "Arquivo de configuração 'k3s_cluster_vars.sh' removido."
+else
+    print_warning "Arquivo de configuração 'k3s_cluster_vars.sh' não encontrado."
+fi
 
 print_info "Removendo configurações do kernel para Kubernetes..."
 rm -f /etc/sysctl.d/99-kubernetes-cri.conf
-sysctl --system
+sysctl --system >/dev/null 2>&1 || print_warning "Não foi possível recarregar sysctl (pode já ter sido removido)."
 print_info "Arquivo de sysctl do Kubernetes removido."
 
 print_info "Reabilitando swap..."
