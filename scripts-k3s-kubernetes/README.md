@@ -98,9 +98,9 @@ A localização dos logs depende do que você está tentando depurar:
 - **`cleanup_k3s_worker.sh`**: Desinstala o agente K3s e limpa as configurações de um nó de trabalho.
 - **`cleanup_k3s_addons.sh`**: Remove todos os addons (NFS Provisioner, MetalLB, Nginx) e a configuração local do `kubectl`.
 
-## 🚀 Ordem de Execução Sugerida (Novo Fluxo Automatizado)
+## 🚀 Ordem de Execução (Novo Fluxo Automatizado)
 
-Com a refatoração dos scripts, o processo de implantação se tornou mais inteligente e seguro. O script `install_k3s_master.sh` agora detecta automaticamente o seu papel (primeiro ou segundo master), eliminando a necessidade de intervenção manual para gerenciar tokens.
+Com a refatoração dos scripts, o processo de implantação se tornou mais inteligente e seguro. O script `install_k3s_master.sh` agora detecta automaticamente o seu papel (primeiro, segundo ou terceiro master), eliminando a necessidade de intervenção manual para gerenciar tokens.
 
 Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts antes de começar.
 
@@ -116,7 +116,7 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     sudo ./install_k3s_master.sh
     ```
     - Como o script não encontrará um arquivo de configuração, ele fará uma série de perguntas para coletar os dados do cluster.
-    - Ao final, ele gerará o arquivo `k3s_cluster_vars.sh` com todas as informações e instalará o K3s. O token do cluster será **salvo automaticamente** neste arquivo.
+    - Ao final, ele gerará o arquivo `k3s_cluster_vars.sh` no diretório atual com todas as informações e instalará o K3s. O token do cluster será **salvo automaticamente** neste arquivo.
 
 3.  **Transferência do Arquivo de Configuração**
     - Antes de configurar o segundo master, copie o arquivo de configuração gerado no `master-1` para o `master-2`.
