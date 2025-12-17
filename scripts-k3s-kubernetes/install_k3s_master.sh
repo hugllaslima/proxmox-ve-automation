@@ -209,7 +209,7 @@ EOF
 check_command "Falha ao configurar /etc/hosts."
 success_message "/etc/hosts configurado."
 
-echo "Configurando o firewall (UFW)..."
+echo "Configurando e ativando o firewall (UFW)..."
 sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
 sudo ufw allow 6443/tcp comment 'K3s API Server'
 sudo ufw allow 10250/tcp comment 'Kubelet'
@@ -222,9 +222,12 @@ if [ "$NODE_ROLE" == "MASTER_1" ]; then
     check_command "Falha ao adicionar regra do PostgreSQL ao firewall."
 fi
 
-success_message "Regras de firewall para K3s adicionadas."
-warning_message "O script NÃO ativou, desativou ou resetou o firewall. Apenas adicionou as regras."
-warning_message "Verifique o status com 'sudo ufw status' e ative-o com 'sudo ufw enable' se necessário."
+# Ativa o firewall de forma não interativa. A regra da porta 22 já foi adicionada.
+sudo ufw --force enable
+check_command "Falha ao ativar o UFW."
+
+success_message "Regras de firewall adicionadas e UFW ativado."
+warning_message "A conexão SSH foi mantida pela regra na porta 22/tcp."
 
 
 # --- 2. Instalação do K3s (Lógica Principal) ---
