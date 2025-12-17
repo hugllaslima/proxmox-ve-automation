@@ -197,11 +197,31 @@ EOF
 check_command "Falha ao configurar /etc/hosts."
 success_message "/etc/hosts configurado."
 
-echo "Desabilitando UFW..."
-sudo ufw disable > /dev/null 2>&1
-sudo systemctl stop ufw > /dev/null 2>&1
-sudo systemctl disable ufw > /dev/null 2>&1
-success_message "UFW desabilitado (se estava ativo)."
+echo "Configurando o firewall (UFW)..."
+# Resetar para garantir um estado limpo
+sudo ufw reset > /dev/null
+check_command "Falha ao resetar o UFW."
+
+# Definir políticas padrão
+sudo ufw default deny incoming
+sudo ufw default allow outgoing
+
+# Regras essenciais para K3s Master
+sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
+sudo ufw allow 6443/tcp comment 'K3s API Server'
+sudo ufw allow 10250/tcp comment 'Kubelet'
+sudo ufw allow 8472/udp comment 'Flannel VXLAN'
+
+# Regra específica para o Master 1 (servidor PostgreSQL)
+if [ "$NODE_ROLE" == "MASTER_1" ]; then
+    echo "Adicionando regra de firewall para PostgreSQL no Master 1..."
+    sudo ufw allow from $K3S_MASTER_2_IP to any port 5432 proto tcp comment 'Acesso do Master 2 ao PostgreSQL'
+fi
+
+# Habilitar o UFW sem prompt interativo
+echo "y" | sudo ufw enable > /dev/null
+check_command "Falha ao habilitar o UFW."
+success_message "Firewall configurado e ativado com as regras necessárias para o K3s Master."
 
 echo -e "\n\e[34m--- 2. Instalação do K3s ---\e[0m"
 
