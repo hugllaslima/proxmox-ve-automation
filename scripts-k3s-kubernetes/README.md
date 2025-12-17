@@ -44,6 +44,13 @@ Este projeto foi desenvolvido e testado com a seguinte arquitetura de Máquinas 
 | 5 | `k3s-storage-nfs` | Ubuntu 24.04 LTS | `192.168.10.24/24` | 4c | 4GB | 100GB |
 | 6 | `k3s-management` | Ubuntu 24.04 LTS | `192.168.10.25/24` | 2c | 4GB | 30GB |
 
+### Como as VMs trabalham na prática?
+
+- **`k3s-master-1` e `k3s-master-2`**: São os nós de controle do cluster K3s. Eles são responsáveis por gerenciar o estado do cluster e distribuir as cargas de trabalho entre os nós de trabalho.
+- **`k3s-worker-1` e `k3s-worker-2`**: São os nós de trabalho do cluster K3s. Eles são responsáveis por executar as cargas de trabalho distribuídas pelo cluster.
+- **`k3s-storage-nfs`**: É a VM que atua como um servidor NFS. Ela fornece armazenamento persistente para o cluster, permitindo que os dados sejam persistidos mesmo em caso de falha de um nó.
+- **`k3s-management`**: É a VM que atua como um servidor de gerenciamento. Ela é usada para executar comandos `kubectl` e `helm`, bem como para implantar addons essenciais para o cluster.
+
 ## 📜 Scripts Disponíveis
 
 ### Scripts de Instalação
