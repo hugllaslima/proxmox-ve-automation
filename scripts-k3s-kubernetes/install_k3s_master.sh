@@ -106,8 +106,8 @@ function get_user_input {
 }
 
 # --- Início do Script ---
-
 echo "--- Instalação do K3s Master Node ---"
+echo " "
 echo "Este script irá configurar um nó K3s Master (Control Plane)."
 echo "Por favor, forneça as informações solicitadas."
 
