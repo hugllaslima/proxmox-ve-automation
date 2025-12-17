@@ -152,7 +152,7 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
 
 Você notará um arquivo `.gitignore` neste diretório. Sua finalidade é ser uma **medida de segurança preventiva para o seu ambiente de desenvolvimento local**.
 
-Durante testes, é possível que você execute os scripts na sua própria máquina, o que geraria o arquivo de configuração `k3s_cluster_vars.sh` com dados sensíveis. O `.gitignore` está configurado para **ignorar explicitamente** este tipo de arquivo gerado localmente, garantindo que você nunca o envie acidentalmente para o seu repositório público no GitHub.
+Durante testes, é possível que você execute os scripts na sua própria máquina, o que geraria o arquivo de configuração `k3s_cluster_vars.sh` com dados sensíveis. O `.gitignore` está configurado para ignorar explicitamente este tipo de arquivo gerado localmente, garantindo que você nunca o envie acidentalmente para o seu repositório público no GitHub.
 
 Ele garante que apenas os scripts principais do projeto sejam rastreados pelo Git, mantendo seus dados de configuração seguros.
 
