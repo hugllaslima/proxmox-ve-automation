@@ -44,12 +44,29 @@ Este projeto foi desenvolvido e testado com a seguinte arquitetura de Máquinas 
 | 5 | `k3s-storage-nfs` | Ubuntu 24.04 LTS | `192.168.10.24/24` | 4c | 4GB | 100GB |
 | 6 | `k3s-management` | Ubuntu 24.04 LTS | `192.168.10.25/24` | 2c | 4GB | 30GB |
 
-### Como Este Ambiente K3s Funciona na Prática?
+## ⚙️ Como o Ambiente Funciona?
 
-- **`k3s-master-1` e `k3s-master-2`**: São os nós de controle do cluster K3s. Eles são responsáveis por gerenciar o estado do cluster e distribuir as cargas de trabalho entre os nós de trabalho.
-- **`k3s-worker-1` e `k3s-worker-2`**: São os nós de trabalho do cluster K3s. Eles são responsáveis por executar as cargas de trabalho distribuídas pelo cluster.
-- **`k3s-storage-nfs`**: É a VM que atua como um servidor NFS. Ela fornece armazenamento persistente para o cluster, permitindo que os dados sejam persistidos mesmo em caso de falha de um nó.
-- **`k3s-management`**: É a VM que atua como um servidor de gerenciamento. Ela é usada para executar comandos `kubectl` e `helm`, bem como para implantar addons essenciais para o cluster.
+Esta seção detalha o papel de cada componente e como eles interagem para formar um cluster funcional e resiliente.
+
+### Papel de Cada VM
+
+- **`k3s-master-1` e `k3s-master-2` (Nós de Controle)**: Gerenciam o estado do cluster, agendam aplicações e expõem a API do Kubernetes. A configuração com dois masters e um banco de dados externo (PostgreSQL) garante a **alta disponibilidade (HA)** do *control plane*.
+- **`k3s-worker-1` e `k3s-worker-2` (Nós de Trabalho)**: Executam as aplicações e serviços (em Pods) conforme orquestrado pelos nós de controle.
+- **`k3s-storage-nfs` (Armazenamento Persistente)**: Atua como um servidor NFS centralizado. Quando uma aplicação precisa de dados persistentes (através de um `PersistentVolumeClaim`), o K3s provisiona um diretório neste servidor. Isso garante que os dados sobrevivam a reinicializações de Pods e possam ser compartilhados entre eles.
+- **`k3s-management` (Gerenciamento Centralizado)**: É a VM de onde todos os comandos de gerenciamento (`kubectl`, `helm`) são executados. Centralizar o gerenciamento em um nó dedicado é uma **boa prática de segurança**, pois isola as credenciais de acesso ao cluster.
+
+### O que é Armazenado em Cada Nó?
+
+- **Nós Master**: A configuração e o estado do cluster (objetos Kubernetes como `Deployments`, `Services`, etc.), que são mantidos no banco de dados PostgreSQL.
+- **Nós Worker**: As imagens de contêiner das aplicações em execução e dados temporários.
+- **Nó de Armazenamento (NFS)**: Todos os dados persistentes das aplicações. É o "disco rígido" do cluster.
+- **Nó de Gerenciamento**: Os arquivos de configuração do `kubectl`, charts do Helm e manifestos YAML usados para gerenciar o cluster.
+
+### Onde Encontrar os Logs?
+
+- **Logs do K3s (Masters e Workers)**: A forma mais moderna e recomendada é via `journalctl -u k3s`. Os arquivos de log também podem ser encontrados em `/var/log/`.
+- **Logs das Aplicações (Pods)**: Use o comando `kubectl logs <nome-do-pod>`.
+- **Logs do Servidor NFS**: No diretório `/var/log/` da VM `k3s-storage-nfs`.
 
 ## 📜 Scripts Disponíveis
 
