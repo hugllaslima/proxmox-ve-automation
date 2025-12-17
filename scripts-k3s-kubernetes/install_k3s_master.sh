@@ -213,10 +213,15 @@ success_message "/etc/hosts configurado."
 
 echo -e "\n\e[34m--- 2. Instalação do K3s ---\e[0m"
 
-# Desativa o firewall temporariamente para evitar conflitos durante a instalação
-echo "Desativando temporariamente o firewall (UFW) antes da instalação do K3s..."
-sudo ufw disable
-success_message "UFW desativado temporariamente."
+# Renomeia temporariamente o executável do UFW para impedir que o K3s o ative
+echo "Movendo temporariamente o executável do UFW para prevenir interferência..."
+if [ -f /usr/sbin/ufw ]; then
+    sudo mv /usr/sbin/ufw /usr/sbin/ufw.bak
+    check_command "Falha ao mover o executável do UFW."
+    success_message "UFW temporariamente desabilitado para a instalação do K3s."
+else
+    warning_message "O executável do UFW não foi encontrado em /usr/sbin/ufw. A instalação continuará, mas isso é inesperado."
+fi
 
 if [ "$NODE_ROLE" == "MASTER_1" ]; then
     # --- Instalação do Master 1 ---
@@ -288,6 +293,15 @@ fi
 
 # --- 4. Configuração Final do Firewall ---
 echo -e "\n\e[34m--- 4. Configuração Final do Firewall ---\e[0m"
+
+# Restaura o executável do UFW
+echo "Restaurando o executável do UFW..."
+if [ -f /usr/sbin/ufw.bak ]; then
+    sudo mv /usr/sbin/ufw.bak /usr/sbin/ufw
+    check_command "Falha ao restaurar o executável do UFW."
+    success_message "UFW restaurado."
+fi
+
 echo "Configurando e reativando o firewall (UFW)..."
 sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
 sudo ufw allow 6443/tcp comment 'K3s API Server'
