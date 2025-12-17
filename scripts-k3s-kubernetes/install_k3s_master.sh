@@ -209,13 +209,11 @@ EOF
 check_command "Falha ao configurar /etc/hosts."
 success_message "/etc/hosts configurado."
 
-# --- 2. Instalação do K3s (Lógica Principal) ---
-
-echo -e "\n\e[34m--- 2. Instalação do K3s ---\e[0m"
+# --- 2. Instalação e Configuração por Nó ---
 
 if [ "$NODE_ROLE" == "MASTER_1" ]; then
-    # --- Instalação do Master 1 ---
-    echo "Configurando PostgreSQL para K3s..."
+    # --- ETAPAS PARA O MASTER 1 ---
+    echo -e "\n\e[34m--- 2.1. Configurando PostgreSQL para K3s (Master 1) ---\e[0m"
     sudo apt install -y postgresql postgresql-contrib
     check_command "Falha ao instalar PostgreSQL."
 
@@ -242,14 +240,51 @@ if [ "$NODE_ROLE" == "MASTER_1" ]; then
     sudo systemctl enable postgresql
     success_message "PostgreSQL configurado e iniciado."
 
+    echo -e "\n\e[34m--- 2.2. Instalando K3s (Master 1) ---\e[0m"
     echo "Instalando K3s como o primeiro Master (sem iniciar o serviço)..."
     curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC="--node-ip $K3S_MASTER_1_IP --tls-san $K3S_MASTER_1_IP --tls-san $K3S_MASTER_2_IP --cluster-cidr $K3S_CLUSTER_CIDR --datastore-endpoint=\"postgres://k3s:$K3S_DB_PASSWORD@$K3S_MASTER_1_IP:5432/k3s\"" sh -
     check_command "Falha ao instalar K3s no Master 1."
     success_message "Binários e serviço do K3s instalados no Master 1."
 
-    # O token é gerado durante a instalação, mesmo sem iniciar o serviço
+    echo -e "\n\e[34m--- 2.3. Configurando Firewall e Iniciando Serviço (Master 1) ---\e[0m"
+    echo "Configurando e ativando o firewall (UFW)..."
+    sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
+    sudo ufw allow 6443/tcp comment 'K3s API Server'
+    sudo ufw allow 10250/tcp comment 'Kubelet'
+    sudo ufw allow 8472/udp comment 'Flannel VXLAN'
+    echo "Adicionando regra de firewall para PostgreSQL no Master 1..."
+    sudo ufw allow from $K3S_MASTER_2_IP to any port 5432 proto tcp comment 'Acesso do Master 2 ao PostgreSQL'
+    check_command "Falha ao adicionar regras do firewall."
+    sudo ufw --force enable
+    check_command "Falha ao ativar o UFW."
+    success_message "Regras de firewall adicionadas e UFW ativado."
+
+    echo "Iniciando o serviço K3s..."
+    sudo systemctl start k3s
+    check_command "Falha ao iniciar o serviço K3s."
+    
+    echo "Aguardando o serviço K3s estabilizar e gerar arquivos..."
+    sleep 15 # Aguarda um pouco para o serviço estabilizar
+
+    if ! sudo systemctl is-active --quiet k3s; then
+        error_exit "O serviço K3s falhou ao iniciar. Verifique os logs com 'sudo journalctl -u k3s'"
+    fi
+    success_message "Serviço K3s iniciado e ativo."
+
+    echo -e "\n\e[34m--- 2.4. Obtendo Token e Configurando kubectl (Master 1) ---\e[0m"
     echo "Obtendo K3s token e salvando no arquivo de configuração..."
-    K3S_TOKEN_VALUE=$(sudo cat /var/lib/rancher/k3s/server/node-token)
+    TOKEN_FILE="/var/lib/rancher/k3s/server/node-token"
+    for i in {1..12}; do
+        if sudo [ -f "$TOKEN_FILE" ]; then break; fi
+        echo "Aguardando arquivo de token... (tentativa $i/12)"
+        sleep 5
+    done
+
+    if ! sudo [ -f "$TOKEN_FILE" ]; then
+        error_exit "Arquivo de token K3s não foi encontrado após aguardar. Verifique os logs do K3s."
+    fi
+
+    K3S_TOKEN_VALUE=$(sudo cat "$TOKEN_FILE")
     check_command "Falha ao obter o token do K3s."
     add_token_to_config "$K3S_TOKEN_VALUE"
     
@@ -258,65 +293,58 @@ if [ "$NODE_ROLE" == "MASTER_1" ]; then
     echo -e "\e[32m--------------------------------------------------------------------------------\e[0m"
     warning_message "O token foi salvo em '$CONFIG_FILE'. Copie todo o diretório '$SCRIPT_DIR' para o k3s-master-2 e execute este script novamente lá."
 
-elif [ "$NODE_ROLE" == "MASTER_2" ]; then
-    # --- Instalação do Master 2 ---
-    echo "Instalando K3s como o segundo Master (sem iniciar o serviço)..."
-    curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC="server --node-ip $K3S_MASTER_2_IP --tls-san $K3S_MASTER_1_IP --tls-san $K3S_MASTER_2_IP --datastore-endpoint=\"postgres://k3s:$K3S_DB_PASSWORD@$K3S_MASTER_1_IP:5432/k3s\" --token $K3S_TOKEN" sh -
-    check_command "Falha ao instalar K3s no Master 2."
-    success_message "Binários e serviço do K3s instalados no Master 2."
-fi
+    echo "Configurando kubectl..."
+    KUBECONFIG_FILE="/etc/rancher/k3s/k3s.yaml"
+    for i in {1..12}; do
+        if sudo [ -f "$KUBECONFIG_FILE" ]; then break; fi
+        echo "Aguardando arquivo kubeconfig... (tentativa $i/12)"
+        sleep 5
+    done
 
-# --- 3. Configuração do Firewall e Início do Serviço ---
-echo -e "\n\e[34m--- 3. Configuração do Firewall e Início do Serviço ---\e[0m"
+    if ! sudo [ -f "$KUBECONFIG_FILE" ]; then
+        error_exit "Arquivo kubeconfig não foi encontrado após aguardar. Verifique os logs do K3s."
+    fi
 
-echo "Configurando e ativando o firewall (UFW)..."
-sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
-sudo ufw allow 6443/tcp comment 'K3s API Server'
-sudo ufw allow 10250/tcp comment 'Kubelet'
-sudo ufw allow 8472/udp comment 'Flannel VXLAN'
-check_command "Falha ao adicionar regras essenciais do K3s ao firewall."
-
-if [ "$NODE_ROLE" == "MASTER_1" ]; then
-    echo "Adicionando regra de firewall para PostgreSQL no Master 1..."
-    sudo ufw allow from $K3S_MASTER_2_IP to any port 5432 proto tcp comment 'Acesso do Master 2 ao PostgreSQL'
-    check_command "Falha ao adicionar regra do PostgreSQL ao firewall."
-fi
-
-# Ativa o firewall de forma não interativa. A regra da porta 22 já foi adicionada.
-sudo ufw --force enable
-check_command "Falha ao ativar o UFW."
-
-success_message "Regras de firewall adicionadas e UFW ativado."
-warning_message "A conexão SSH foi mantida pela regra na porta 22/tcp."
-
-
-echo "Iniciando o serviço K3s..."
-sudo systemctl start k3s
-check_command "Falha ao iniciar o serviço K3s."
-sleep 15 # Aguarda um pouco para o serviço estabilizar
-
-# Verifica o status do serviço
-if sudo systemctl is-active --quiet k3s; then
-    success_message "Serviço K3s iniciado e ativo."
-else
-    error_exit "O serviço K3s falhou ao iniciar. Verifique os logs com 'sudo journalctl -u k3s'"
-fi
-
-
-# --- 4. Configuração do kubectl (apenas no Master 1) ---
-if [ "$NODE_ROLE" == "MASTER_1" ]; then
-    echo -e "\n\e[34m--- 4. Configuração do kubectl ---\e[0m"
-    echo "Aguardando o kubeconfig ficar disponível..."
-    sleep 20 # O k3s pode demorar um pouco para gerar o k3s.yaml
-    echo "Copiando kubeconfig para o diretório do usuário..."
     mkdir -p "$HOME/.kube"
-    sudo cp /etc/rancher/k3s/k3s.yaml "$HOME/.kube/config"
+    sudo cp "$KUBECONFIG_FILE" "$HOME/.kube/config"
     sudo chown "$(id -u):$(id -g)" "$HOME/.kube/config"
     chmod 600 "$HOME/.kube/config"
     sed -i "s/127.0.0.1/$K3S_MASTER_1_IP/" "$HOME/.kube/config"
     success_message "kubectl configurado para este nó."
     warning_message "Você pode copiar '$HOME/.kube/config' para sua máquina de administração."
-fi
 
+elif [ "$NODE_ROLE" == "MASTER_2" ]; then
+    # --- ETAPAS PARA O MASTER 2 ---
+    echo -e "\n\e[34m--- 2.1. Instalando K3s (Master 2) ---\e[0m"
+    echo "Instalando K3s como o segundo Master (sem iniciar o serviço)..."
+    curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC="server --node-ip $K3S_MASTER_2_IP --tls-san $K3S_MASTER_1_IP --tls-san $K3S_MASTER_2_IP --datastore-endpoint=\"postgres://k3s:$K3S_DB_PASSWORD@$K3S_MASTER_1_IP:5432/k3s\" --token $K3S_TOKEN" sh -
+    check_command "Falha ao instalar K3s no Master 2."
+    success_message "Binários e serviço do K3s instalados no Master 2."
+
+    echo -e "\n\e[34m--- 2.2. Configurando Firewall e Iniciando Serviço (Master 2) ---\e[0m"
+    echo "Configurando e ativando o firewall (UFW)..."
+    sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
+    sudo ufw allow 6443/tcp comment 'K3s API Server'
+    sudo ufw allow 10250/tcp comment 'Kubelet'
+    sudo ufw allow 8472/udp comment 'Flannel VXLAN'
+    check_command "Falha ao adicionar regras essenciais do K3s ao firewall."
+    
+    sudo ufw --force enable
+    check_command "Falha ao ativar o UFW."
+    success_message "Regras de firewall adicionadas e UFW ativado."
+
+    echo "Iniciando o serviço K3s..."
+    sudo systemctl start k3s
+    check_command "Falha ao iniciar o serviço K3s."
+    
+    echo "Aguardando o serviço K3s estabilizar..."
+    sleep 15
+
+    if sudo systemctl is-active --quiet k3s; then
+        success_message "Serviço K3s iniciado e ativo."
+    else
+        error_exit "O serviço K3s falhou ao iniciar. Verifique os logs com 'sudo journalctl -u k3s'"
+    fi
+fi
 
 echo -e "\n\e[32m--- Instalação do K3s Master concluída para $NODE_ROLE ---\e[0m"
