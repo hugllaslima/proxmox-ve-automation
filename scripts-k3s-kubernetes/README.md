@@ -148,6 +148,14 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     sudo ./configure_k3s_addons.sh
     ```
 
+## 🔒 Nota sobre Segurança e o `.gitignore`
+
+Você notará um arquivo `.gitignore` neste diretório. Sua finalidade é ser uma **medida de segurança preventiva para o seu ambiente de desenvolvimento local**.
+
+Durante testes, é possível que você execute os scripts na sua própria máquina, o que geraria o arquivo de configuração `k3s_cluster_vars.sh` com dados sensíveis. O `.gitignore` está configurado para **ignorar explicitamente** este tipo de arquivo gerado localmente, garantindo que você nunca o envie acidentalmente para o seu repositório público no GitHub.
+
+Ele garante que apenas os scripts principais do projeto sejam rastreados pelo Git, mantendo seus dados de configuração seguros.
+
 ## 🧹 Limpeza do Ambiente
 
 Para desmontar o ambiente, utilize os scripts `cleanup_*.sh`. É recomendado seguir a ordem inversa da instalação:
