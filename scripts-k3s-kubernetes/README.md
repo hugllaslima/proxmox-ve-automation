@@ -33,7 +33,7 @@ O cluster resultante é configurado com dois nós de controle (masters), dois n�
 
 ## 🏗️ Arquitetura de Referência Utilizada no Proxmox VE
 
-Este projeto foi desenvolvido e testado com a seguinte arquitetura de Máquinas Virtuais (VMs) no Proxmox VE. Os IPs e nomes são sugestões e podem ser adaptados nos scripts interativos.
+A arquitetura a seguir é a configuração de referência testada para este projeto. Os valores, como IPs, nomes e recursos de hardware (CPU, RAM e Volume), são sugestões flexíveis. Sinta-se à vontade para adaptá-los durante a execução dos scripts interativos, dimensionando os recursos de acordo com a carga de trabalho (workload) que seu cluster Kubernetes irá suportar.
 
 | VM | Nome | SO | IP/CIDR | CPU | RAM | Volume |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -41,7 +41,7 @@ Este projeto foi desenvolvido e testado com a seguinte arquitetura de Máquinas 
 | 2 | `k3s-master-2` | Ubuntu 24.04 LTS | `192.168.10.21/24` | 4c | 6GB | 40GB |
 | 3 | `k3s-worker-1` | Ubuntu 24.04 LTS | `192.168.10.22/24` | 4c | 6GB | 40GB |
 | 4 | `k3s-worker-2` | Ubuntu 24.04 LTS | `192.168.10.23/24` | 4c | 6GB | 40GB |
-| 5 | `k3s-storage-nfs` | Ubuntu 24.04 LTS | `192.168.10.24/24` | 4c | 4GB | 100GB |
+| 5 | `k3s-storage-nfs` | Ubuntu 24.04 LTS | `192.168.10.24/24` | 2c | 4GB | 100GB |
 | 6 | `k3s-management` | Ubuntu 24.04 LTS | `192.168.10.25/24` | 2c | 4GB | 30GB |
 
 ## ⚙️ Como o Ambiente Funciona?
