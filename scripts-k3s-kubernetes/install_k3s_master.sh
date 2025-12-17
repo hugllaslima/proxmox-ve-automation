@@ -209,30 +209,14 @@ EOF
 check_command "Falha ao configurar /etc/hosts."
 success_message "/etc/hosts configurado."
 
-echo "Configurando e ativando o firewall (UFW)..."
-sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
-sudo ufw allow 6443/tcp comment 'K3s API Server'
-sudo ufw allow 10250/tcp comment 'Kubelet'
-sudo ufw allow 8472/udp comment 'Flannel VXLAN'
-check_command "Falha ao adicionar regras essenciais do K3s ao firewall."
-
-if [ "$NODE_ROLE" == "MASTER_1" ]; then
-    echo "Adicionando regra de firewall para PostgreSQL no Master 1..."
-    sudo ufw allow from $K3S_MASTER_2_IP to any port 5432 proto tcp comment 'Acesso do Master 2 ao PostgreSQL'
-    check_command "Falha ao adicionar regra do PostgreSQL ao firewall."
-fi
-
-# Ativa o firewall de forma não interativa. A regra da porta 22 já foi adicionada.
-sudo ufw --force enable
-check_command "Falha ao ativar o UFW."
-
-success_message "Regras de firewall adicionadas e UFW ativado."
-warning_message "A conexão SSH foi mantida pela regra na porta 22/tcp."
-
-
 # --- 2. Instalação do K3s (Lógica Principal) ---
 
 echo -e "\n\e[34m--- 2. Instalação do K3s ---\e[0m"
+
+# Desativa o firewall temporariamente para evitar conflitos durante a instalação
+echo "Desativando temporariamente o firewall (UFW) antes da instalação do K3s..."
+sudo ufw disable
+success_message "UFW desativado temporariamente."
 
 if [ "$NODE_ROLE" == "MASTER_1" ]; then
     # --- Instalação do Master 1 ---
@@ -301,5 +285,28 @@ if [ "$NODE_ROLE" == "MASTER_1" ]; then
     success_message "kubectl configurado para este nó."
     warning_message "Você pode copiar '$HOME/.kube/config' para sua máquina de administração."
 fi
+
+# --- 4. Configuração Final do Firewall ---
+echo -e "\n\e[34m--- 4. Configuração Final do Firewall ---\e[0m"
+echo "Configurando e reativando o firewall (UFW)..."
+sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
+sudo ufw allow 6443/tcp comment 'K3s API Server'
+sudo ufw allow 10250/tcp comment 'Kubelet'
+sudo ufw allow 8472/udp comment 'Flannel VXLAN'
+check_command "Falha ao adicionar regras essenciais do K3s ao firewall."
+
+if [ "$NODE_ROLE" == "MASTER_1" ]; then
+    echo "Adicionando regra de firewall para PostgreSQL no Master 1..."
+    sudo ufw allow from $K3S_MASTER_2_IP to any port 5432 proto tcp comment 'Acesso do Master 2 ao PostgreSQL'
+    check_command "Falha ao adicionar regra do PostgreSQL ao firewall."
+fi
+
+# Ativa o firewall de forma não interativa. A regra da porta 22 já foi adicionada.
+sudo ufw --force enable
+check_command "Falha ao ativar o UFW."
+
+success_message "Regras de firewall adicionadas e UFW reativado."
+warning_message "A conexão SSH foi mantida pela regra na porta 22/tcp."
+
 
 echo -e "\n\e[32m--- Instalação do K3s Master concluída para $NODE_ROLE ---\e[0m"
