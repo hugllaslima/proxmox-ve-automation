@@ -144,7 +144,9 @@ print_info "--- 4. Limpando Configurações de Usuário ---"
 
 echo ""
 print_info "--- 5. Firewall (UFW) ---"
-print_warning "O script de instalação desabilitou o UFW. Se necessário, reabilite-o manualmente com 'sudo ufw enable'."
+print_warning "Este script de limpeza NÃO remove as regras de firewall (UFW) adicionadas durante a instalação."
+print_warning "Se desejar reverter o firewall para o padrão, use o comando 'sudo ufw reset'."
+
 
 echo ""
 echo "--------------------------------------------------------------------"
