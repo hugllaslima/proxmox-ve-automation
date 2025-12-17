@@ -98,38 +98,52 @@ A localização dos logs depende do que você está tentando depurar:
 - **`cleanup_k3s_worker.sh`**: Desinstala o agente K3s e limpa as configurações de um nó de trabalho.
 - **`cleanup_k3s_addons.sh`**: Remove todos os addons (NFS Provisioner, MetalLB, Nginx) e a configuração local do `kubectl`.
 
-## 🚀 Ordem de Execução Sugerida
+## 🚀 Ordem de Execução Sugerida (Novo Fluxo Automatizado)
 
-Para implantar o cluster do zero, siga a ordem abaixo. Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts.
+Com a refatoração dos scripts, o processo de implantação se tornou mais inteligente e seguro. O script `install_k3s_master.sh` agora detecta automaticamente o seu papel (primeiro ou segundo master), eliminando a necessidade de intervenção manual para gerenciar tokens.
 
-1.  **VM de Armazenamento (`k8s-storage-nfs`)**
-    - Execute o script para configurar o servidor NFS.
+Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts antes de começar.
+
+1.  **VM de Armazenamento (`k3s-storage-nfs`)**
+    - Execute o script para configurar o servidor NFS. Este passo continua o mesmo.
     ```bash
     sudo ./install_nfs_server.sh
     ```
 
-2.  **Primeiro Master (`k8s-master-1`)**
-    - Execute o script de instalação do master. Ele irá instalar o PostgreSQL e gerar um token.
+2.  **Primeiro Master (`k3s-master-1`)**
+    - Execute o script de instalação do master.
     ```bash
     sudo ./install_k3s_master.sh
     ```
-    - **Guarde o token** exibido no final da execução.
+    - Como o script não encontrará um arquivo de configuração, ele fará uma série de perguntas para coletar os dados do cluster.
+    - Ao final, ele gerará o arquivo `k3s_cluster_vars.sh` com todas as informações e instalará o K3s. O token do cluster será **salvo automaticamente** neste arquivo.
 
-3.  **Segundo Master (`k8s-master-2`)**
-    - Execute o mesmo script, mas forneça o token gerado no passo anterior quando solicitado.
+3.  **Transferência do Arquivo de Configuração**
+    - Antes de configurar o segundo master, copie o arquivo de configuração gerado no `master-1` para o `master-2`.
+    - Use o `scp` a partir do `master-1` (ou qualquer outra ferramenta de transferência de arquivos):
+    ```bash
+    # Substitua <user> e o caminho para os scripts no master-2
+    scp /path/to/your/scripts/k3s_cluster_vars.sh <user>@192.168.10.21:/path/to/your/scripts/
+    ```
+    - **Importante**: O arquivo `k3s_cluster_vars.sh` deve estar no mesmo diretório que o `install_k3s_master.sh` no segundo master.
+
+4.  **Segundo Master (`k3s-master-2`)**
+    - Execute o **mesmo script** de instalação.
     ```bash
     sudo ./install_k3s_master.sh
     ```
+    - O script detectará o arquivo `k3s_cluster_vars.sh`, carregará todas as variáveis (incluindo o token) e configurará o segundo master em modo de alta disponibilidade (HA) **sem fazer nenhuma pergunta**.
 
-4.  **Nós Workers (`k8s-worker-1`, `k8s-worker-2`)**
-    - Em cada nó de trabalho, execute o script de instalação do worker, fornecendo o IP do master e o token.
+5.  **Nós Workers (`k3s-worker-1`, `k3s-worker-2`)**
+    - Em cada nó de trabalho, execute o script de instalação do worker.
     ```bash
     sudo ./install_k3s_worker.sh
     ```
+    - O script solicitará o IP de um dos masters e o token do cluster. Você pode encontrar o token dentro do arquivo `k3s_cluster_vars.sh` no `master-1` ou `master-2`.
 
-5.  **Máquina de Gerenciamento (`k3s-management`)**
+6.  **Máquina de Gerenciamento (`k3s-management`)**
     - Após o cluster estar no ar, execute o script de configuração dos addons para instalar `kubectl`, `helm` e os componentes essenciais.
-    - **Recomendação**: Voê pode utilizar seu PC/Desktop, mas para maior segurança e isolamento, é preferível utilizar uma VM dedicada (`k3s-management`) para a gerência do cluster, em vez de executar os comandos a partir da sua máquina local.
+    - **Recomendação**: Para maior segurança e isolamento, é preferível utilizar uma VM dedicada (`k3s-management`) para a gerência do cluster.
     ```bash
     sudo ./configure_k3s_addons.sh
     ```

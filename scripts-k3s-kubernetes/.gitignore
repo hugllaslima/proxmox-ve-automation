@@ -1,0 +1,15 @@
+# Arquivos de configuração gerados localmente
+*.sh
+!install_k3s_master.sh
+!install_k3s_worker.sh
+!cleanup_k3s_master.sh
+!cleanup_k3s_worker.sh
+!configure_k3s_addons.sh
+!cleanup_k3s_addons.sh
+
+# Arquivos de log
+*.log
+
+# Arquivos temporários
+*.tmp
+*.bak
