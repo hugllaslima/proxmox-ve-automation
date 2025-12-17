@@ -1,12 +1,12 @@
 # ☸️ Automação de Cluster K3s para Proxmox VE
 
-Este diretório contém uma suíte de scripts `bash` para automatizar a implantação e configuração de um cluster Kubernetes leve e de alta disponibilidade usando K3s. O ambiente foi projetado para ser eficiente e rodar em uma infraestrutura modesta, como a fornecida pelo Proxmox VE. 
+Este diretório contém uma suíte de scripts `bash` para automatizar a implantação e configuração de um cluster Kubernetes leve e de alta disponibilidade usando K3s. A escolha da versão do **k3s Kubernetes** foi pensada para ser eficiente e rodar em uma infraestrutura modesta, ou seja, com poucos recursos e/ou limitada. Foi desenvolvido para ser executado em um ambiente virtualizado, chamado Proxmox VE.
 
 ## 🤔 Por que K3s? Uma Análise Comparativa
 
 A escolha pelo **K3s** para este projeto foi estratégica, visando um equilíbrio ideal entre robustez, simplicidade e eficiência de recursos, especialmente em um ambiente virtualizado como o Proxmox VE.
 
-O K3s é uma distribuição Kubernetes **leve e certificada pela CNCF**, desenvolvida pela Rancher. Ele é projetado para cenários com recursos limitados (como Edge, IoT e desenvolvimento) por ser empacotado em um **único binário com menos de 100MB**. Essa abordagem simplifica drasticamente a instalação e o gerenciamento, mantendo total compatibilidade com as APIs do Kubernetes.
+O K3s é uma distribuição Kubernetes leve e certificada pela **CNCF (Cloud Native Computing Foundation)**, desenvolvida pela Rancher. Ele é projetado para cenários com recursos limitados (como Edge, IoT e desenvolvimento) por ser empacotado em um **único binário com menos de 100MB**. Essa abordagem simplifica drasticamente a instalação e o gerenciamento, mantendo total compatibilidade com as APIs do Kubernetes.
 
 ### K3s vs. K8s (Vanilla): Principais Diferenças
 
