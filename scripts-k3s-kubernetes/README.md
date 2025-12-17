@@ -64,9 +64,23 @@ Esta seção detalha o papel de cada componente e como eles interagem para forma
 
 ### Onde Encontrar os Logs?
 
-- **Logs do K3s (Masters e Workers)**: A forma mais moderna e recomendada é via `journalctl -u k3s`. Os arquivos de log também podem ser encontrados em `/var/log/`.
-- **Logs das Aplicações (Pods)**: Use o comando `kubectl logs <nome-do-pod>`.
-- **Logs do Servidor NFS**: No diretório `/var/log/` da VM `k3s-storage-nfs`.
+A localização dos logs depende do que você está tentando depurar:
+
+- **Logs das Aplicações (Pods)**
+  - **Método Principal**: Use o comando `kubectl` a partir da VM de gerenciamento. Este é o método padrão para ver a saída das suas aplicações.
+    ```bash
+    kubectl logs <nome-do-pod>
+    ```
+
+- **Logs da Infraestrutura (Serviços K3s, NFS, etc.)**
+  - **Método Recomendado (`journalctl`)**: Para inspecionar os logs dos serviços K3s nos nós master e worker, o `journalctl` é a ferramenta ideal, pois o K3s roda como um serviço `systemd`.
+    ```bash
+    # Nos masters ou workers
+    journalctl -u k3s
+    ```
+  - **Arquivos de Log Diretos**: Para inspeção manual ou uso de ferramentas como `grep`, os arquivos de log brutos podem ser encontrados nos seguintes locais:
+    - **Nós Master e Worker**: `/var/log/k3s/` (logs específicos do K3s) e `/var/log/` (logs gerais do sistema).
+    - **Servidor NFS**: `/var/log/` (para logs do serviço NFS e outros logs do sistema).
 
 ## 📜 Scripts Disponíveis
 
