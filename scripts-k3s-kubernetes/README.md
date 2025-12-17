@@ -1,6 +1,6 @@
 # ☸️ Automação de Cluster K3s para Proxmox VE
 
-Este diretório contém uma suíte de scripts `bash` para automatizar a implantação e configuração de um cluster Kubernetes leve e de alta disponibilidade usando K3s. A escolha da versão do **k3s Kubernetes** foi pensada para ser eficiente e rodar em uma infraestrutura modesta, ou seja, com poucos recursos e/ou limitada. Foi desenvolvido para ser executado em um ambiente virtualizado, chamado Proxmox VE.
+Este projeto oferece uma solução de automação completa para implantar um cluster K3s de alta disponibilidade, otimizado especificamente para ambientes Proxmox VE com recursos computacionais limitados. A suíte de scripts `bash` foi desenvolvida para ser leve e eficiente, permitindo que você crie e gerencie um ambiente Kubernetes robusto, aproveitando a flexibilidade da virtualização sem a necessidade de hardware de ponta.
 
 ## 🤔 Por que K3s? Uma Análise Comparativa
 
