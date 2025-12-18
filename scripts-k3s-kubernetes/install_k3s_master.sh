@@ -337,7 +337,29 @@ if [ "$NODE_ROLE" == "MASTER_1" ]; then
     check_command "Falha ao reativar o UFW."
     success_message "Regras de firewall adicionadas e UFW reativado."
 
-    echo -e "\n\e[34m--- 2.4. Obtendo Token e Configurando kubectl (Master 1) ---\e[0m"
+    echo -e "\n\e[34m--- 2.4. Configurando Rotas Estáticas para Redes de Administração ---\e[0m"
+    if [ -n "$ADMIN_NETWORK_CIDRS" ]; then
+        GATEWAY=$(ip route | grep default | awk '{print $3}')
+        if [ -z "$GATEWAY" ]; then
+            warning_message "Não foi possível detectar o gateway padrão. Pulando a adição de rotas estáticas."
+        else
+            echo "Configurando rotas estáticas para o gateway $GATEWAY..."
+            for cidr in $ADMIN_NETWORK_CIDRS; do
+                # Verifica se a rota já não existe para evitar erros
+                if ! ip route | grep -q "$cidr"; then
+                    echo "  -> Adicionando rota para $cidr via $GATEWAY"
+                    sudo ip route add $cidr via $GATEWAY
+                    check_command "Falha ao adicionar rota estática para $cidr."
+                else
+                    echo "  -> Rota para $cidr já existe."
+                fi
+            done
+            success_message "Rotas estáticas configuradas."
+            warning_message "Atenção: Estas rotas podem não ser persistentes e podem ser perdidas na reinicialização. Se o problema retornar após reiniciar, precisaremos torná-las permanentes."
+        fi
+    fi
+
+    echo -e "\n\e[34m--- 2.5. Obtendo Token e Configurando kubectl (Master 1) ---\e[0m"
     echo "Obtendo K3s token e salvando no arquivo de configuração..."
     TOKEN_FILE="/var/lib/rancher/k3s/server/node-token"
     for i in {1..12}; do
