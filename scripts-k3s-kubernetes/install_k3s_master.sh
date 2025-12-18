@@ -386,12 +386,9 @@ elif [ "$NODE_ROLE" == "MASTER_2" ]; then
     sudo ufw allow from $K3S_MASTER_1_IP to any port 6443 proto tcp comment 'Acesso a API K3s do Master 1'
 
     sudo ufw --force enable
-    check_command "Falha ao reativar o UFW."
+     check_command "Falha ao reativar o UFW."
 
-    sudo ufw reload
-    check_command "Falha ao recarregar as regras do UFW."
-
-    success_message "Regras de firewall adicionadas e UFW reativado."
+     success_message "Regras de firewall adicionadas e UFW reativado."
 fi
 
 echo -e "\n\e[34m--- 3.5. Verificação Final ---\e[0m"
