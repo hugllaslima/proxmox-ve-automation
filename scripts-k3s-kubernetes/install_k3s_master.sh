@@ -68,30 +68,26 @@ function gather_initial_info() {
     # Coleta de Redes de Administração
     ADMIN_NETWORK_CIDRS=""
     echo
-    while true; do
-        read -p "Deseja adicionar uma rede de administração (VPN, etc.) para acesso SSH? (s/n): " add_admin_net
-        case $add_admin_net in
-            [Ss]*)
-                read -p "  -> Digite o CIDR da rede (ex: 192.168.1.0/24 ou 192.168.1.10/32): " new_cidr
-                if [ -n "$new_cidr" ]; then
-                    # Adiciona o novo CIDR à lista, separado por espaços
-                    ADMIN_NETWORK_CIDRS="$ADMIN_NETWORK_CIDRS $new_cidr"
-                    echo "     Rede '$new_cidr' adicionada."
-                else
-                    echo "     Entrada vazia, ignorando."
-                fi
-                ;;
-            [Nn]*)
-                # Remove o espaço inicial, se houver
-                ADMIN_NETWORK_CIDRS=$(echo "$ADMIN_NETWORK_CIDRS" | sed 's/^ *//g')
-                echo "Coleta de redes de administração concluída."
+    read -p "Deseja adicionar uma rede de administração (VPN, etc.) para acesso SSH? (s/n): " add_first_admin_net
+    if [[ "$add_first_admin_net" =~ ^[Ss]$ ]]; then
+        while true; do
+            read -p "  -> Digite o CIDR da rede (ex: 192.168.1.0/24 ou 192.168.1.10/32): " new_cidr
+            if [ -n "$new_cidr" ]; then
+                ADMIN_NETWORK_CIDRS="$ADMIN_NETWORK_CIDRS $new_cidr"
+                echo "     Rede '$new_cidr' adicionada."
+            else
+                echo "     Entrada vazia, ignorando."
+            fi
+
+            read -p "Deseja adicionar OUTRA rede de administração? (s/n): " add_another_net
+            if [[ ! "$add_another_net" =~ ^[Ss]$ ]]; then
                 break
-                ;;
-            *)
-                echo "Por favor, responda 's' ou 'n'."
-                ;;
-        esac
-    done
+            fi
+        done
+    fi
+    # Remove o espaço inicial, se houver
+    ADMIN_NETWORK_CIDRS=$(echo "$ADMIN_NETWORK_CIDRS" | sed 's/^ *//g')
+    echo "Coleta de redes de administração concluída."
 
     confirm_info
     generate_config_file
