@@ -348,4 +348,6 @@ elif [ "$NODE_ROLE" == "MASTER_2" ]; then
     success_message "Regras de firewall adicionadas e UFW reativado."
 fi
 
+echo -e "\n\e[34m--- 3. Verificação Final ---\e[0m"
+
 echo -e "\n\e[32m--- Instalação do K3s Master concluída para $NODE_ROLE ---\e[0m"
