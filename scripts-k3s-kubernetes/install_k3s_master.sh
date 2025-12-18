@@ -375,13 +375,9 @@ elif [ "$NODE_ROLE" == "MASTER_2" ]; then
     echo -e "\n\e[34m--- 3.3. Reconfigurando Firewall (Pós-Instalação) ---\e[0m"
     echo "Configurando e reativando o firewall (UFW)..."
 
-    echo "Alterando a política de encaminhamento padrão do UFW para ACCEPT (persistente)..."
+    echo "Alterando a política de encaminhamento padrão do UFW para ACCEPT (para futuras reinicializações)..."
     sudo sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/g' /etc/default/ufw
     check_command "Falha ao configurar a política de encaminhamento do UFW."
-
-    echo "Aplicando a política de encaminhamento ACCEPT na configuração ativa do firewall..."
-    sudo iptables -P FORWARD ACCEPT
-    check_command "Falha ao aplicar a política de FORWARD ACCEPT no iptables."
 
     sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
     sudo ufw allow 6443/tcp comment 'K3s API Server'
@@ -391,10 +387,11 @@ elif [ "$NODE_ROLE" == "MASTER_2" ]; then
     sudo ufw allow from $K3S_MASTER_1_IP to any port 5432 proto tcp comment 'Acesso ao PostgreSQL do Master 1'
     sudo ufw allow from $K3S_MASTER_1_IP to any port 6443 proto tcp comment 'Acesso a API K3s do Master 1'
 
-    sudo ufw --force enable
-     check_command "Falha ao reativar o UFW."
+    echo "Reativando o UFW..."
+sudo ufw --force enable
+check_command "Falha ao reativar o UFW."
 
-     success_message "Regras de firewall adicionadas e UFW reativado."
+success_message "Regras de firewall adicionadas e UFW reativado."
 fi
 
 echo -e "\n\e[34m--- 3.5. Verificação Final ---\e[0m"
