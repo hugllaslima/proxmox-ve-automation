@@ -55,6 +55,24 @@ Esta seção detalha o papel de cada componente e como eles interagem para forma
 - **`k3s-storage-nfs` (Armazenamento Persistente)**: Atua como um servidor NFS centralizado. Quando uma aplicação precisa de dados persistentes (através de um `PersistentVolumeClaim`), o K3s provisiona um diretório neste servidor. Isso garante que os dados sobrevivam a reinicializações de Pods e possam ser compartilhados entre eles.
 - **`k3s-management` (Gerenciamento Centralizado)**: É a VM de onde todos os comandos de gerenciamento (`kubectl`, `helm`) são executados. Centralizar o gerenciamento em um nó dedicado é uma **boa prática de segurança**, pois isola as credenciais de acesso ao cluster.
 
+### 🔒 Lidando com Redes Complexas (VPNs e Acesso Remoto)
+
+Um dos desafios mais comuns ao configurar um cluster em um ambiente de datacenter é a perda de acesso SSH, especialmente quando o administrador está se conectando a partir de uma rede diferente da rede dos servidores (por exemplo, através de uma **VPN** ou de uma rede de gerenciamento separada).
+
+**Por que isso acontece?**
+Quando o K3s é iniciado, ele modifica as regras de firewall e as tabelas de roteamento do sistema operacional para gerenciar a rede interna do cluster. Frequentemente, o servidor "esquece" o caminho de volta para a rede de origem do administrador, fazendo com que a conexão SSH caia e não retorne.
+
+**Como este projeto resolve o problema?**
+Para garantir um acesso robusto e ininterrupto, o script de instalação (`install_k3s_master.sh`) implementa uma solução inteligente e automatizada:
+
+1.  **Coleta Interativa**: Durante a primeira execução, o script irá perguntar se você deseja adicionar uma **"rede de administração"**.
+2.  **O que informar?**: Neste ponto, você deve fornecer o **endereço de rede (CIDR) de onde sua conexão se origina**. Se você está usando uma VPN, deve informar o CIDR da rede da VPN (ex: `172.16.1.0/26`), e não o da sua rede local (ex: `192.168.1.0/24`). Você pode adicionar múltiplas redes se necessário.
+3.  **Ação Automática**: Com base nas redes que você fornecer, o script irá configurar automaticamente:
+    *   **Regras de Firewall (UFW)**: Para permitir explicitamente o tráfego SSH vindo da sua rede de administração.
+    *   **Rotas Estáticas (ip route)**: Para garantir que o servidor sempre saiba o "caminho de volta" para a sua máquina, resolvendo a causa raiz da perda de conexão.
+
+Essa automação torna o projeto adaptável a topologias de rede do mundo real, garantindo uma experiência de instalação suave e confiável, independentemente de onde você esteja gerenciando o cluster.
+
 ### O que é Armazenado em Cada Nó?
 
 - **Nós Master**: A configuração e o estado do cluster (objetos Kubernetes como `Deployments`, `Services`, etc.), que são mantidos no banco de dados PostgreSQL.
