@@ -338,8 +338,10 @@ if [ "$NODE_ROLE" == "MASTER_1" ]; then
 
 
 elif [ "$NODE_ROLE" == "MASTER_2" ]; then
-    # --- ETAPAS PARA O MASTER 2 ---
-    echo -e "\n\e[34m--- 2.1. Desativando Firewall e Instalando K3s (Master 2) ---\e[0m"
+    # --- 3. Instalação do K3s no Segundo Master (Master 2) ---
+    echo -e "\n\e[1;35m### Iniciando Instalação do K3s no Segundo Master (Master 2) ###\e[0m"
+
+    # --- 3.1. Desativando Firewall e Instalando K3s (Master 2) ------\e[0m"
     echo "Desativando temporariamente o firewall (UFW) para a instalação do K3s..."
     sudo ufw disable
     check_command "Falha ao desativar o UFW."
