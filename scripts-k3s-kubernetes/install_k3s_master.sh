@@ -372,12 +372,16 @@ elif [ "$NODE_ROLE" == "MASTER_2" ]; then
     fi
     success_message "K3s iniciado com sucesso."
 
-    echo -e "\n\e[34m--- 2.3. Reconfigurando Firewall (Pós-Instalação) ---\e[0m"
+    echo -e "\n\e[34m--- 3.3. Reconfigurando Firewall (Pós-Instalação) ---\e[0m"
     echo "Configurando e reativando o firewall (UFW)..."
 
-    echo "Permitindo encaminhamento de pacotes no UFW..."
+    echo "Alterando a política de encaminhamento padrão do UFW para ACCEPT (persistente)..."
     sudo sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/g' /etc/default/ufw
     check_command "Falha ao configurar a política de encaminhamento do UFW."
+
+    echo "Aplicando a política de encaminhamento ACCEPT na configuração ativa do firewall..."
+    sudo iptables -P FORWARD ACCEPT
+    check_command "Falha ao aplicar a política de FORWARD ACCEPT no iptables."
 
     sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
     sudo ufw allow 6443/tcp comment 'K3s API Server'
