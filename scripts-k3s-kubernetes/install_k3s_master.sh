@@ -34,6 +34,9 @@ export NFS_SHARE_PATH="$NFS_SHARE_PATH"
 # --- Segredos (NÃO FAÇA COMMIT DESTE ARQUIVO) ---
 export K3S_DB_PASSWORD='$K3S_DB_PASSWORD'
 export K3S_TOKEN="" # Será preenchido após a instalação do primeiro master
+
+# --- Redes de Acesso Permitidas ---
+export ADMIN_NETWORK_CIDRS="$ADMIN_NETWORK_CIDRS"
 EOF
     chmod 600 "$CONFIG_FILE_PATH"
     success_message "Arquivo de configuração '$CONFIG_FILE' gerado com sucesso."
@@ -61,6 +64,35 @@ function gather_initial_info() {
     get_user_input "Digite o CIDR da rede do cluster K3s" "10.10.0.0/22" "K3S_CLUSTER_CIDR"
     # Garante que o CIDR não termine com um ponto, corrigindo entradas acidentais.
     K3S_CLUSTER_CIDR=${K3S_CLUSTER_CIDR%%.}
+
+    # Coleta de Redes de Administração
+    ADMIN_NETWORK_CIDRS=""
+    echo
+    while true; do
+        read -p "Deseja adicionar uma rede de administração (VPN, etc.) para acesso SSH? (s/n): " add_admin_net
+        case $add_admin_net in
+            [Ss]*)
+                read -p "  -> Digite o CIDR da rede (ex: 192.168.1.0/24 ou 192.168.1.10/32): " new_cidr
+                if [ -n "$new_cidr" ]; then
+                    # Adiciona o novo CIDR à lista, separado por espaços
+                    ADMIN_NETWORK_CIDRS="$ADMIN_NETWORK_CIDRS $new_cidr"
+                    echo "     Rede '$new_cidr' adicionada."
+                else
+                    echo "     Entrada vazia, ignorando."
+                fi
+                ;;
+            [Nn]*)
+                # Remove o espaço inicial, se houver
+                ADMIN_NETWORK_CIDRS=$(echo "$ADMIN_NETWORK_CIDRS" | sed 's/^ *//g')
+                echo "Coleta de redes de administração concluída."
+                break
+                ;;
+            *)
+                echo "Por favor, responda 's' ou 'n'."
+                ;;
+        esac
+    done
+
     confirm_info
     generate_config_file
 }
@@ -107,6 +139,9 @@ function confirm_info {
     echo "IP do servidor NFS: $NFS_SERVER_IP"
     echo "Caminho do compartilhamento NFS: $NFS_SHARE_PATH"
     echo "CIDR da rede do cluster: $K3S_CLUSTER_CIDR"
+    if [ -n "$ADMIN_NETWORK_CIDRS" ]; then
+        echo "Redes de Administração (VPN): $ADMIN_NETWORK_CIDRS"
+    fi
     echo -e "\e[34m---------------------------------------------------\e[0m"
 
     while true; do
@@ -283,7 +318,19 @@ if [ "$NODE_ROLE" == "MASTER_1" ]; then
 
     echo -e "\n\e[34m--- 2.3. Reconfigurando Firewall (Pós-Instalação) ---\e[0m"
     echo "Configurando e reativando o firewall (UFW)..."
-    sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
+    # Libera o acesso SSH a partir das redes de administração especificadas
+    if [ -n "$ADMIN_NETWORK_CIDRS" ]; then
+        echo "Permitindo acesso SSH das redes de administração..."
+        for cidr in $ADMIN_NETWORK_CIDRS; do
+            echo "  -> Permitindo de $cidr"
+            sudo ufw allow from $cidr to any port 22 comment 'Acesso SSH da rede de admin'
+            check_command "Falha ao adicionar regra de firewall para $cidr."
+        done
+    else
+        # Fallback para uma regra genérica se nenhuma rede de admin for fornecida
+        warning_message "Nenhuma rede de administração foi especificada. Adicionando regra SSH genérica."
+        sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
+    fi
     sudo ufw allow 6443/tcp comment 'K3s API Server'
     sudo ufw allow 10250/tcp comment 'Kubelet'
     sudo ufw allow 8472/udp comment 'Flannel VXLAN'
