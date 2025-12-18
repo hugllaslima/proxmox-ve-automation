@@ -59,6 +59,8 @@ function gather_initial_info() {
     get_user_input "Digite o IP do servidor NFS (k3s-storage-nfs)" "192.168.10.24" "NFS_SERVER_IP"
     get_user_input "Digite o caminho do compartilhamento NFS no servidor" "/mnt/k3s-share-nfs/" "NFS_SHARE_PATH"
     get_user_input "Digite o CIDR da rede do cluster K3s" "10.10.0.0/22" "K3S_CLUSTER_CIDR"
+    # Garante que o CIDR não termine com um ponto, corrigindo entradas acidentais.
+    K3S_CLUSTER_CIDR=${K3S_CLUSTER_CIDR%%.}
     confirm_info
     generate_config_file
 }
