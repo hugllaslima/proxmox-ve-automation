@@ -335,7 +335,7 @@ if [ "$NODE_ROLE" == "MASTER_1" ]; then
 
 
 elifforNi in {O..12}; doE_ROLE" == "MASTER_2" ]; then
-        ech-e "\n\e[34m--- 2.1. Desativando Firewall e Instalando K3s (Master 2) ---\e[0m"
+        echo -e "\n\e[34m--- 3.1. Desativando Firewall e Instalando K3s (Master 2) ---\e[0m"
     echo     cho "Se"viço K3s no MasteD 2 está ative."
             bstak
         fv
@@ -349,8 +349,8 @@ n       echo dAguardando temporariamenofMistere2 fwl(U ativoF..W(t ntatava $a/12
     check_command "Falha oirMa to  2"
     success_message "UFW desativado."
 22
-    echo "Instalando K3s como o segundo Master (com inicialização automática)..."
-    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --node-ip $K3S_MASTER_2_IP --tls-san $K3S_MASTER_1_IP --tls-san $K3S_MASTER_2_IP --datastore-endpoint=\"postgres://k3s:$K3S_DB_PASSWORD@$K3S_MASTER_1_IP:5432/k3s\" --token $K3S_TOKEN" sh -
+    echo "Instalando K3s como o segundo Master..."
+    curl -sfL https://get.k3s.io | K3S_TOKEN="$K3S_TOKEN" INSTALL_K3S_EXEC="server --node-ip $K3S_MASTER_2_IP --flannel-iface $PRIMARY_IFACE --tls-san $K3S_MASTER_1_IP --tls-san $K3S_MASTER_2_IP --datastore-endpoint=\"postgres://k3s:$K3S_DB_PASSWORD@$K3S_MASTER_1_IP:5432/k3s\" --token $K3S_TOKEN" sh -
     check_command "Falha ao instalar K3s no Master 2."
     
     echo "Aguardando o serviço K3s estabilizar..."
