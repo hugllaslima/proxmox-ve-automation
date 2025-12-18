@@ -248,8 +248,16 @@ if [ "$NODE_ROLE" == "MASTER_1" ]; then
     check_command "Falha ao desativar o UFW."
     success_message "UFW desativado."
 
-    echo "Instalando K3s como o primeiro Master (sem iniciar o serviço)..."
-    curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC="--node-ip $K3S_MASTER_1_IP --tls-san $K3S_MASTER_1_IP --tls-san $K3S_MASTER_2_IP --cluster-cidr $K3S_CLUSTER_CIDR --datastore-endpoint=\\"postgres://k3s:$K3S_DB_PASSWORD@$K3S_MASTER_1_IP:5432/k3s\\"" sh -
+        echo "Instalando K3s como o primeiro Master (sem iniciar o serviço)..."
+    # Usar uma variável para os argumentos melhora a legibilidade e o manuseio de aspas para o systemd.
+    K3S_EXEC_ARGS="server \
+        --node-ip $K3S_MASTER_1_IP \
+        --tls-san $K3S_MASTER_1_IP \
+        --tls-san $K3S_MASTER_2_IP \
+        --cluster-cidr $K3S_CLUSTER_CIDR \
+        --datastore-endpoint='postgres://k3s:$K3S_DB_PASSWORD@$K3S_MASTER_1_IP:5432/k3s'"
+
+    curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC="$K3S_EXEC_ARGS" sh -
     check_command "Falha ao instalar os binários do K3s no Master 1."
     success_message "Binários e serviço do K3s instalados no Master 1."
 
@@ -364,13 +372,25 @@ elif [ "$NODE_ROLE" == "MASTER_2" ]; then
 
     echo -e "\n\e[34m--- 2.3. Reconfigurando Firewall (Pós-Instalação) ---\e[0m"
     echo "Configurando e reativando o firewall (UFW)..."
+
+    echo "Permitindo encaminhamento de pacotes no UFW..."
+    sudo sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/g' /etc/default/ufw
+    check_command "Falha ao configurar a política de encaminhamento do UFW."
+
     sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
     sudo ufw allow 6443/tcp comment 'K3s API Server'
     sudo ufw allow 10250/tcp comment 'Kubelet'
     sudo ufw allow 8472/udp comment 'Flannel VXLAN'
-    check_command "Falha ao adicionar regras do firewall."
+    # Regra específica para o outro master poder acessar o PostgreSQL e a API
+    sudo ufw allow from $K3S_MASTER_1_IP to any port 5432 proto tcp comment 'Acesso ao PostgreSQL do Master 1'
+    sudo ufw allow from $K3S_MASTER_1_IP to any port 6443 proto tcp comment 'Acesso a API K3s do Master 1'
+
     sudo ufw --force enable
     check_command "Falha ao reativar o UFW."
+
+    sudo ufw reload
+    check_command "Falha ao recarregar as regras do UFW."
+
     success_message "Regras de firewall adicionadas e UFW reativado."
 fi
 
