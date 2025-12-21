@@ -28,7 +28,8 @@ export K3S_WORKER_2_IP="$K3S_WORKER_2_IP"
 export NFS_SERVER_IP="$NFS_SERVER_IP"
 
 # --- Configurações do Cluster ---
-export K3S_CLUSTER_CIDR="$K3S_CLUSTER_CIDR"
+export K3S_POD_CIDR="$K3S_POD_CIDR"
+export K3S_LAN_CIDR="$K3S_LAN_CIDR"
 export NFS_SHARE_PATH="$NFS_SHARE_PATH"
 
 # --- Segredos (NÃO FAÇA COMMIT DESTE ARQUIVO) ---
@@ -61,9 +62,14 @@ function gather_initial_info() {
     get_user_input "Digite a senha para o banco de dados PostgreSQL do K3s" "" "K3S_DB_PASSWORD" "true"
     get_user_input "Digite o IP do servidor NFS (k3s-storage-nfs)" "192.168.10.24" "NFS_SERVER_IP"
     get_user_input "Digite o caminho do compartilhamento NFS no servidor" "/mnt/k3s-share-nfs/" "NFS_SHARE_PATH"
-    get_user_input "Digite o CIDR da rede do cluster K3s" "10.10.0.0/22" "K3S_CLUSTER_CIDR"
-    # Garante que o CIDR não termine com um ponto, corrigindo entradas acidentais.
-    K3S_CLUSTER_CIDR=${K3S_CLUSTER_CIDR%%.}
+    
+    # Separação de redes para evitar conflitos de CNI
+    get_user_input "Digite o CIDR da rede de PODS do K3s (NÃO use a rede local)" "10.42.0.0/16" "K3S_POD_CIDR"
+    get_user_input "Digite o CIDR da rede LOCAL (LAN do Datacenter) para acesso ao DB" "10.10.0.0/22" "K3S_LAN_CIDR"
+
+    # Garante que os CIDRs não terminem com um ponto
+    K3S_POD_CIDR=${K3S_POD_CIDR%%.}
+    K3S_LAN_CIDR=${K3S_LAN_CIDR%%.}
 
     # Coleta de Redes de Administração
     ADMIN_NETWORK_CIDRS=""
@@ -134,7 +140,8 @@ function confirm_info {
     echo "Senha do PostgreSQL: (oculta)"
     echo "IP do servidor NFS: $NFS_SERVER_IP"
     echo "Caminho do compartilhamento NFS: $NFS_SHARE_PATH"
-    echo "CIDR da rede do cluster: $K3S_CLUSTER_CIDR"
+    echo "CIDR da rede de PODS: $K3S_POD_CIDR"
+    echo "CIDR da rede LOCAL (LAN): $K3S_LAN_CIDR"
     if [ -n "$ADMIN_NETWORK_CIDRS" ]; then
         echo "Redes de Administração (VPN): $ADMIN_NETWORK_CIDRS"
     fi
@@ -263,8 +270,8 @@ if [ "$NODE_ROLE" == "MASTER_1" ]; then
     fi
 
     sudo sed -i "s/^#listen_addresses = 'localhost'/listen_addresses = '*'/" "$PG_CONF_PATH"
-    if ! sudo grep -q "host    k3s             k3s             $K3S_CLUSTER_CIDR            md5" "$PG_HBA_CONF_PATH"; then
-        sudo sed -i "/^# IPv4 local connections:/a host    k3s             k3s             $K3S_CLUSTER_CIDR            md5" "$PG_HBA_CONF_PATH"
+    if ! sudo grep -q "host    k3s             k3s             $K3S_LAN_CIDR            md5" "$PG_HBA_CONF_PATH"; then
+        sudo sed -i "/^# IPv4 local connections:/a host    k3s             k3s             $K3S_LAN_CIDR            md5" "$PG_HBA_CONF_PATH"
     fi
     check_command "Falha ao configurar PostgreSQL para conexões externas."
 
@@ -285,7 +292,7 @@ if [ "$NODE_ROLE" == "MASTER_1" ]; then
         --node-ip $K3S_MASTER_1_IP \
         --tls-san $K3S_MASTER_1_IP \
         --tls-san $K3S_MASTER_2_IP \
-        --cluster-cidr $K3S_CLUSTER_CIDR \
+        --cluster-cidr $K3S_POD_CIDR \
         --datastore-endpoint='postgres://k3s:$K3S_DB_PASSWORD@$K3S_MASTER_1_IP:5432/k3s'"
 
     curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC="$K3S_EXEC_ARGS" sh -
@@ -337,27 +344,30 @@ if [ "$NODE_ROLE" == "MASTER_1" ]; then
     check_command "Falha ao reativar o UFW."
     success_message "Regras de firewall adicionadas e UFW reativado."
 
-    echo -e "\n\e[34m--- 2.4. Configurando Rotas Estáticas para Redes de Administração ---\e[0m"
-    if [ -n "$ADMIN_NETWORK_CIDRS" ]; then
-        GATEWAY=$(ip route | grep default | awk '{print $3}')
-        if [ -z "$GATEWAY" ]; then
-            warning_message "Não foi possível detectar o gateway padrão. Pulando a adição de rotas estáticas."
-        else
-            echo "Configurando rotas estáticas para o gateway $GATEWAY..."
-            for cidr in $ADMIN_NETWORK_CIDRS; do
-                # Verifica se a rota já não existe para evitar erros
-                if ! ip route | grep -q "$cidr"; then
-                    echo "  -> Adicionando rota para $cidr via $GATEWAY"
-                    sudo ip route add $cidr via $GATEWAY
-                    check_command "Falha ao adicionar rota estática para $cidr."
-                else
-                    echo "  -> Rota para $cidr já existe."
-                fi
-            done
-            success_message "Rotas estáticas configuradas."
-            warning_message "Atenção: Estas rotas podem não ser persistentes e podem ser perdidas na reinicialização. Se o problema retornar após reiniciar, precisaremos torná-las permanentes."
-        fi
-    fi
+    # echo -e "\n\e[34m--- 2.4. Configurando Rotas Estáticas para Redes de Administração ---\e[0m"
+    # echo "Desativado: A configuração automática de rotas estáticas via gateway padrão pode quebrar conexões VPN."
+    # if [ -n "$ADMIN_NETWORK_CIDRS" ]; then
+    #     GATEWAY=$(ip route | grep default | awk '{print $3}')
+    #     if [ -z "$GATEWAY" ]; then
+    #         warning_message "Não foi possível detectar o gateway padrão. Pulando a adição de rotas estáticas."
+    #     else
+    #         echo "Configurando rotas estáticas para o gateway $GATEWAY..."
+    #         for cidr in $ADMIN_NETWORK_CIDRS; do
+    #             # Verifica se a rota já não existe para evitar erros
+    #             if ! ip route | grep -q "$cidr"; then
+    #                 echo "  -> Adicionando rota para $cidr via $GATEWAY"
+    #                 # Risco: Forçar a rota via gateway padrão pode quebrar o retorno se a VPN usar outro roteador.
+    #                 # sudo ip route add $cidr via $GATEWAY
+    #                 echo "     [AÇÃO IGNORADA] Adição de rota estática desativada por segurança."
+    #                 # check_command "Falha ao adicionar rota estática para $cidr."
+    #             else
+    #                 echo "  -> Rota para $cidr já existe."
+    #             fi
+    #         done
+    #         # success_message "Rotas estáticas configuradas."
+    #         # warning_message "Atenção: Estas rotas podem não ser persistentes e podem ser perdidas na reinicialização. Se o problema retornar após reiniciar, precisaremos torná-las permanentes."
+    #     fi
+    # fi
 
     echo -e "\n\e[34m--- 2.5. Obtendo Token e Configurando kubectl (Master 1) ---\e[0m"
     echo "Obtendo K3s token e salvando no arquivo de configuração..."
