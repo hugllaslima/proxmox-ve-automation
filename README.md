@@ -54,7 +54,7 @@ Os scripts são organizados em diretórios modulares, cada um com seu próprio `
 | **Integração Proxmox** | [`scripts-qemu-agent/`](./scripts-qemu-agent) | Instalação do QEMU Guest Agent para comunicação com o host. |
 | **Utilitários Git** | [`scripts-git/`](./scripts-git) | Ferramentas para gerenciamento de contas Github/GitLab e sincronização de branches. |
 | **Utilitários de SO** | [`scripts-zorin-os/`](./scripts-zorin-os) | Scripts específicos para Zorin OS e derivados. |
-| **Antigravity (Vibe Coding)** | [`scripts-antigravity/`](./scripts-antigravity) | Instalação e configuração da plataforma de desenvolvimento de IA "agent-first", um ambiente de desenvolvimento integrado (IDE) baseado no VS Code que usa múltiplos agentes de IA (como Gemini 3) para planejar, escrever, testar e depurar código de forma autônoma |
+| **Antigravity (Vibe Coding)** | [`scripts-antigravity/`](./scripts-antigravity) | Instalação e configuração da plataforma de desenvolvimento integrado (IDE) baseado no VS Code que usa múltiplos agentes de IA (como Gemini 3) para planejar, escrever, testar e depurar código de forma autônoma |
 
 ---
 
