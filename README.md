@@ -6,7 +6,7 @@
   <img src="https://img.shields.io/github/forks/hugllaslima/proxmox-ve-automation?style=for-the-badge" alt="Forks">
 </p>
 
-Bem-vindo à **Proxmox VE Automation Suite**, uma coleção completa de scripts de automação projetados para simplificar o gerenciamento, a configuração e a manutenção de infraestruturas de virtualização baseadas em Proxmox VE.
+Bem-vindo à **Proxmox VE Automation Suite**, uma coleção completa de scripts de automação projetados para simplificar o gerenciamento, a configuração e a manutenção de infraestruturas de virtualização baseadas em Proxmox VE ou outro virtualizador bare-metal.
 
 ---
 
