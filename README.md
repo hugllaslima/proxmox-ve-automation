@@ -54,6 +54,7 @@ Os scripts são organizados em diretórios modulares, cada um com seu próprio `
 | **Integração Proxmox** | [`scripts-qemu-agent/`](./scripts-qemu-agent) | Instalação do QEMU Guest Agent para comunicação com o host. |
 | **Utilitários Git** | [`scripts-git/`](./scripts-git) | Ferramentas para gerenciamento de contas Github/GitLab e sincronização de branches. |
 | **Utilitários de SO** | [`scripts-zorin-os/`](./scripts-zorin-os) | Scripts específicos para Zorin OS e derivados. |
+| **Antigravity (Vibe Coding)** | [`scripts-antigravity/`](./scripts-antigravity) | Instalação e configuração do agente Antigravity. |
 
 ---
 
