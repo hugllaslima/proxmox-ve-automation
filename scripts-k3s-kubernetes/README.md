@@ -39,8 +39,8 @@ A arquitetura a seguir é a configuração de referência testada para este proj
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | `k3s-control-plane-1` | Ubuntu 24.04 LTS | `192.168.10.20/24` | 2c | 4GB | 40GB |
 | 2 | `k3s-control-plane-2` | Ubuntu 24.04 LTS | `192.168.10.21/24` | 2c | 4GB | 40GB |
-| 3 | `k3s-worker-1` | Ubuntu 24.04 LTS | `192.168.10.22/24` | 2c | 4GB | 40GB |
-| 4 | `k3s-worker-2` | Ubuntu 24.04 LTS | `192.168.10.23/24` | 2c | 4GB | 40GB |
+| 3 | `k3s-worker-1` | Ubuntu 24.04 LTS | `192.168.10.22/24` | 4c | 6GB | 40GB |
+| 4 | `k3s-worker-2` | Ubuntu 24.04 LTS | `192.168.10.23/24` | 4c | 6GB | 40GB |
 | 5 | `k3s-storage-nfs` | Ubuntu 24.04 LTS | `192.168.10.24/24` | 2c | 4GB | 80GB |
 | 6 | `k3s-management` | Ubuntu 24.04 LTS | `192.168.10.25/24` | 2c | 4GB | 30GB |
 
