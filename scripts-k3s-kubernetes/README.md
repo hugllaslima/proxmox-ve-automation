@@ -50,17 +50,17 @@ Esta seção detalha o papel de cada componente e como eles interagem para forma
 
 ### Papel de Cada VM
 
-- **`k3s-master-1` e `k3s-master-2` (Nós de Controle)**: Gerenciam o estado do cluster, distribui as cargas de trabalho entre os nós de trabalho, agendam aplicações e expõem a API do Kubernetes. A configuração com dois masters e um banco de dados externo (PostgreSQL) garante a **alta disponibilidade (HA)** do *control plane*.
+- **`k3s-master-1` e `k3s-master-2` (Nós de Controle)**: Gerenciam o estado do cluster, distribui as cargas de trabalho entre os nós de trabalho, agendam aplicações e expõem a API do Kubernetes. A configuração com dois masters e um banco de dados externo (PostgreSQL) garante a alta disponibilidade (HA) do *control plane*.
 - **`k3s-worker-1` e `k3s-worker-2` (Nós de Trabalho)**: Executam as aplicações e serviços (em Pods) conforme orquestrado pelos nós de controle.
 - **`k3s-storage-nfs` (Armazenamento Persistente)**: Atua como um servidor NFS centralizado. Quando uma aplicação precisa de dados persistentes (através de um `PersistentVolumeClaim`), o K3s provisiona um diretório neste servidor. Isso garante que os dados sobrevivam a reinicializações de Pods e possam ser compartilhados entre eles.
-- **`k3s-management` (Gerenciamento Centralizado)**: É a VM de onde todos os comandos de gerenciamento (`kubectl`, `helm`) são executados. Centralizar o gerenciamento em um nó dedicado é uma **boa prática de segurança**, pois isola as credenciais de acesso ao cluster.
+- **`k3s-management` (Gerenciamento Centralizado)**: É a VM de onde todos os comandos de gerenciamento (`kubectl`, `helm`) são executados. Centralizar o gerenciamento em um nó dedicado é uma boa prática de segurança, pois isola as credenciais de acesso ao cluster.
 
 ### 🔒 Lidando com Redes Complexas e Conflitos de IP
 
 Um desafio comum em ambientes de Datacenter/VPN é o conflito entre a rede interna do Kubernetes e a rede física.
 
 **O Problema (Hijacking de Rede):**
-Se você configurar a **Rede de Pods** do K3s (`--cluster-cidr`) com o mesmo intervalo da sua **Rede Física/LAN**, o Kubernetes irá "sequestrar" o tráfego da sua placa de rede, derrubando sua conexão SSH e tornando o servidor inacessível.
+Se você configurar a Rede de Pod do K3s (`--cluster-cidr`) com o mesmo intervalo da sua Rede Física/LAN, o Kubernetes irá "sequestrar" o tráfego da sua placa de rede, derrubando sua conexão SSH e tornando o servidor inacessível.
 
 **A Solução deste Projeto:**
 O script `install_k3s_master.sh` agora distingue explicitamente estas duas redes:
@@ -72,7 +72,7 @@ O script `install_k3s_master.sh` agora distingue explicitamente estas duas redes
     -   Usada apenas para liberar o acesso ao Banco de Dados (PostgreSQL) no firewall.
 
 **Acesso Remoto via VPN:**
-O script também perguntará se você deseja adicionar **Redes de Administração**. Se você acessa via VPN (ex: `172.16.2.0/26`), adicione esse CIDR quando solicitado. O script configurará o Firewall (UFW) para permitir sua conexão sem alterar perigosamente as rotas do sistema.
+O script também perguntará se você deseja adicionar Redes de Administração. Se você acessa via VPN (ex: `172.16.2.0/26`), adicione esse CIDR quando solicitado. O script configurará o Firewall (UFW) para permitir sua conexão sem alterar perigosamente as rotas do sistema.
 
 ### O que é Armazenado em Cada Nó?
 
