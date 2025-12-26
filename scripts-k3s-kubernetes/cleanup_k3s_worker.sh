@@ -93,9 +93,9 @@ print_info "--- 2. Revertendo Configurações do Sistema ---"
 
 print_info "Limpando /etc/hosts..."
 # Remove as entradas específicas do cluster, mas pode deixar a do próprio host
-sed -i '/k8s-master-1/d' /etc/hosts
-sed -i '/k8s-master-2/d' /etc/hosts
-sed -i '/k8s-storage-nfs/d' /etc/hosts
+sed -i '/k3s-control-plane-1/d' /etc/hosts
+sed -i '/k3s-control-plane-2/d' /etc/hosts
+sed -i '/k3s-storage-nfs/d' /etc/hosts
 # Remove a entrada do próprio hostname, se existir
 sed -i "/$(hostname)/d" /etc/hosts
 print_info "Entradas do Kubernetes removidas do /etc/hosts."

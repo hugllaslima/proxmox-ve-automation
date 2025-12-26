@@ -46,7 +46,7 @@
 # -----------------------------------------------------------------------------
 
 # --- Variáveis de Configuração (Serão preenchidas pelo usuário) ---
-K3S_MASTER_1_IP=""
+K3S_CONTROL_PLANE_1_IP=""
 K3S_TOKEN=""
 NFS_SERVER_IP=""
 NFS_SHARE_PATH=""
@@ -104,10 +104,10 @@ echo "Este script irá configurar um nó K3s Worker."
 echo "Por favor, forneça as informações solicitadas."
 
 # Coletar informações do usuário
-get_user_input "Digite o IP do k8s-master-1 (endpoint do cluster)" "10.10.1.208" "K3S_MASTER_1_IP"
-get_user_input "Digite o token do K3s obtido do k8s-master-1" "" "K3S_TOKEN"
-get_user_input "Digite o IP do servidor NFS (k8s-storage-nfs)" "10.10.1.212" "NFS_SERVER_IP"
-get_user_input "Digite o caminho do compartilhamento NFS no servidor" "/mnt/nfs_share" "NFS_SHARE_PATH"
+get_user_input "Digite o IP do k3s-control-plane-1 (endpoint do cluster)" "192.168.10.20" "K3S_CONTROL_PLANE_1_IP"
+get_user_input "Digite o token do K3s obtido do k3s-control-plane-1" "" "K3S_TOKEN"
+get_user_input "Digite o IP do servidor NFS (k3s-storage-nfs)" "192.168.10.24" "NFS_SERVER_IP"
+get_user_input "Digite o caminho do compartilhamento NFS no servidor" "/mnt/k3s-share-nfs/" "NFS_SHARE_PATH"
 
 CURRENT_NODE_IP=$(hostname -I | awk '{print $1}')
 echo "IP detectado para este nó: $CURRENT_NODE_IP"
@@ -136,18 +136,18 @@ check_command "Falha ao configurar módulos do kernel/sysctl."
 
 echo "Configurando /etc/hosts..."
 # Remover entradas antigas para evitar duplicatas
-sudo sed -i '/k8s-master-1/d' /etc/hosts
-sudo sed -i '/k8s-master-2/d' /etc/hosts
-sudo sed -i '/k8s-worker-1/d' /etc/hosts
-sudo sed -i '/k8s-worker-2/d' /etc/hosts
-sudo sed -i '/k8s-storage-nfs/d' /etc/hosts
+sudo sed -i '/k3s-control-plane-1/d' /etc/hosts
+sudo sed -i '/k3s-control-plane-2/d' /etc/hosts
+sudo sed -i '/k3s-worker-1/d' /etc/hosts
+sudo sed -i '/k3s-worker-2/d' /etc/hosts
+sudo sed -i '/k3s-storage-nfs/d' /etc/hosts
 
 sudo tee -a /etc/hosts <<EOF > /dev/null
-$K3S_MASTER_1_IP k8s-master-1
-# Adicione o master-2 se precisar de resolução de nome nos workers
-# 10.10.1.209 k8s-master-2
+$K3S_CONTROL_PLANE_1_IP k3s-control-plane-1
+# Adicione o control-plane-2 se precisar de resolução de nome nos workers
+# 192.168.10.21 k3s-control-plane-2
 $CURRENT_NODE_IP $(hostname)
-$NFS_SERVER_IP k8s-storage-nfs
+$NFS_SERVER_IP k3s-storage-nfs
 EOF
 check_command "Falha ao configurar /etc/hosts."
 
@@ -159,11 +159,11 @@ echo "UFW desabilitado (se estava ativo)."
 
 echo "--- 2. Instalação do K3s Worker ---"
 if [ -z "$K3S_TOKEN" ]; then
-    error_exit "O token do K3s não foi fornecido. Por favor, obtenha o token do k8s-master-1."
+    error_exit "O token do K3s não foi fornecido. Por favor, obtenha o token do k3s-control-plane-1."
 fi
 
 echo "Instalando K3s como Worker..."
-curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent --server https://$K3S_MASTER_1_IP:6443 --token $K3S_TOKEN --node-ip $CURRENT_NODE_IP" sh -
+curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent --server https://$K3S_CONTROL_PLANE_1_IP:6443 --token $K3S_TOKEN --node-ip $CURRENT_NODE_IP" sh -
 check_command "Falha ao instalar K3s Worker."
 
 echo "--- Instalação do K3s Worker concluída ---"

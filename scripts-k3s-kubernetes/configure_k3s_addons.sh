@@ -23,7 +23,7 @@
 #
 # Pré-requisitos:
 #   - Um cluster K3s já deve estar instalado e em execução.
-#   - O nó master do K3s deve estar acessível via SSH a partir da máquina
+#   - O nó control-plane do K3s deve estar acessível via SSH a partir da máquina
 #     onde este script será executado.
 #   - Um servidor NFS deve estar configurado e acessível na rede.
 #   - Acesso à internet para baixar as ferramentas (kubectl, Helm) e as
@@ -49,7 +49,7 @@
 # -----------------------------------------------------------------------------
 
 # --- Variáveis de Configuração (Serão preenchidas pelo usuário) ---
-K3S_MASTER_1_IP=""
+K3S_CONTROL_PLANE_1_IP=""
 NFS_SERVER_IP=""
 NFS_SHARE_PATH=""
 METALLB_IP_RANGE=""
@@ -100,8 +100,8 @@ echo "Este script irá configurar o kubectl e instalar o NFS Provisioner, MetalL
 echo "Por favor, forneça as informações solicitadas."
 
 # Coletar informações do usuário
-get_user_input "Digite o IP do k8s-master-1 (para configurar o kubectl)" "10.10.1.208" "K3S_MASTER_1_IP"
-get_user_input "Digite o IP do servidor NFS (k8s-storage-nfs)" "10.10.1.212" "NFS_SERVER_IP"
+get_user_input "Digite o IP do k3s-control-plane-1 (para configurar o kubectl)" "192.168.10.20" "K3S_CONTROL_PLANE_1_IP"
+get_user_input "Digite o IP do servidor NFS (k3s-storage-nfs)" "192.168.10.24" "NFS_SERVER_IP"
 get_user_input "Digite o caminho do compartilhamento NFS no servidor" "/mnt/nfs_share" "NFS_SHARE_PATH"
 get_user_input "Digite a faixa de IPs para o MetalLB (ex: 10.10.3.200-10.10.3.250)" "10.10.3.200-10.10.3.250" "METALLB_IP_RANGE"
 
@@ -115,18 +115,18 @@ else
     echo "kubectl já está instalado."
 fi
 
-echo "Copiando kubeconfig do k8s-master-1..."
+echo "Copiando kubeconfig do k3s-control-plane-1..."
 # Assume que você tem acesso SSH sem senha ou que irá digitar a senha
 # Alternativamente, você pode copiar o arquivo manualmente
-ssh root@$K3S_MASTER_1_IP "sudo cat /etc/rancher/k3s/k3s.yaml" > "$HOME/.kube/config"
-check_command "Falha ao copiar kubeconfig do k8s-master-1. Verifique o acesso SSH."
+ssh root@$K3S_CONTROL_PLANE_1_IP "sudo cat /etc/rancher/k3s/k3s.yaml" > "$HOME/.kube/config"
+check_command "Falha ao copiar kubeconfig do k3s-control-plane-1. Verifique o acesso SSH."
 
 mkdir -p "$HOME/.kube"
 chmod 600 "$HOME/.kube/config"
-sed -i "s/127.0.0.1/$K3S_MASTER_1_IP/" "$HOME/.kube/config"
+sed -i "s/127.0.0.1/$K3S_CONTROL_PLANE_1_IP/" "$HOME/.kube/config"
 echo "kubectl configurado. Verificando conexão com o cluster..."
 kubectl get nodes
-check_command "Falha ao conectar ao cluster Kubernetes. Verifique o IP do master e o kubeconfig."
+check_command "Falha ao conectar ao cluster Kubernetes. Verifique o IP do control-plane e o kubeconfig."
 
 echo "--- 2. Instalando Helm ---"
 if ! command -v helm &> /dev/null; then

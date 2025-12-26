@@ -108,8 +108,8 @@ echo ""
 print_info "--- 3. Revertendo Configurações do Sistema ---"
 
 print_info "Limpando /etc/hosts..."
-sed -i '/k3s-master-1/d' /etc/hosts
-sed -i '/k3s-master-2/d' /etc/hosts
+sed -i '/k3s-control-plane-1/d' /etc/hosts
+sed -i '/k3s-control-plane-2/d' /etc/hosts
 sed -i '/k3s-worker-1/d' /etc/hosts
 sed -i '/k3s-worker-2/d' /etc/hosts
 sed -i '/k3s-storage-nfs/d' /etc/hosts

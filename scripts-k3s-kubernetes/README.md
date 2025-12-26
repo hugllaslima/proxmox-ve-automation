@@ -37,8 +37,8 @@ A arquitetura a seguir é a configuração de referência testada para este proj
 
 | VM | Nome | SO | IP/CIDR | CPU | RAM | Volume |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `k3s-master-1` | Ubuntu 24.04 LTS | `192.168.10.20/24` | 2c | 4GB | 40GB |
-| 2 | `k3s-master-2` | Ubuntu 24.04 LTS | `192.168.10.21/24` | 2c | 4GB | 40GB |
+| 1 | `k3s-control-plane-1` | Ubuntu 24.04 LTS | `192.168.10.20/24` | 2c | 4GB | 40GB |
+| 2 | `k3s-control-plane-2` | Ubuntu 24.04 LTS | `192.168.10.21/24` | 2c | 4GB | 40GB |
 | 3 | `k3s-worker-1` | Ubuntu 24.04 LTS | `192.168.10.22/24` | 2c | 4GB | 40GB |
 | 4 | `k3s-worker-2` | Ubuntu 24.04 LTS | `192.168.10.23/24` | 2c | 4GB | 40GB |
 | 5 | `k3s-storage-nfs` | Ubuntu 24.04 LTS | `192.168.10.24/24` | 2c | 4GB | 80GB |
@@ -50,7 +50,7 @@ Esta seção detalha o papel de cada componente e como eles interagem para forma
 
 ### Papel de Cada VM
 
-- **`k3s-master-1` e `k3s-master-2` (Nós de Controle)**: Gerenciam o estado do cluster, distribui as cargas de trabalho entre os nós de trabalho, agendam aplicações e expõem a API do Kubernetes. A configuração com dois masters e um banco de dados externo (PostgreSQL) garante a alta disponibilidade (HA) do *control plane*.
+- **`k3s-control-plane-1` e `k3s-control-plane-2` (Nós de Controle)**: Gerenciam o estado do cluster, distribui as cargas de trabalho entre os nós de trabalho, agendam aplicações e expõem a API do Kubernetes. A configuração com dois nós de controle e um banco de dados externo (PostgreSQL) garante a **alta disponibilidade (HA)** do *control plane*.
 - **`k3s-worker-1` e `k3s-worker-2` (Nós de Trabalho)**: Executam as aplicações e serviços (em Pods) conforme orquestrado pelos nós de controle.
 - **`k3s-storage-nfs` (Armazenamento Persistente)**: Atua como um servidor NFS centralizado. Quando uma aplicação precisa de dados persistentes (através de um `PersistentVolumeClaim`), o K3s provisiona um diretório neste servidor. Isso garante que os dados sobrevivam a reinicializações de Pods e possam ser compartilhados entre eles.
 - **`k3s-management` (Gerenciamento Centralizado)**: É a VM de onde todos os comandos de gerenciamento (`kubectl`, `helm`) são executados. Centralizar o gerenciamento em um nó dedicado é uma boa prática de segurança, pois isola as credenciais de acesso ao cluster.
@@ -76,7 +76,7 @@ O script também perguntará se você deseja adicionar "Redes de Administração
 
 ### O que é Armazenado em Cada Nó?
 
-- **Nós Master**: A configuração e o estado do cluster (objetos Kubernetes como `Deployments`, `Services`, etc.), que são mantidos no banco de dados PostgreSQL.
+- **Nós Control Plane**: A configuração e o estado do cluster (objetos Kubernetes como `Deployments`, `Services`, etc.), que são mantidos no banco de dados PostgreSQL.
 - **Nós Worker**: As imagens de contêiner das aplicações em execução e dados temporários.
 - **Nó de Armazenamento (NFS)**: Todos os dados persistentes das aplicações. É o "disco rígido" do cluster.
 - **Nó de Gerenciamento**: Os arquivos de configuração do `kubectl`, charts do Helm e manifestos YAML usados para gerenciar o cluster.
@@ -142,7 +142,7 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     sudo ./install_nfs_server.sh
     ```
 
-2.  **Primeiro Master (`k3s-master-1`)**
+2.  **Primeiro Control Plane (`k3s-control-plane-1`)**
     - Execute o script de instalação do master.
     ```bash
     sudo ./install_k3s_master.sh
@@ -150,16 +150,16 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     - Como o script não encontrará um arquivo de configuração, ele fará uma série de perguntas para coletar os dados do cluster.
     - Ao final, ele gerará o arquivo `k3s_cluster_vars.sh` no diretório atual com todas as informações e instalará o K3s. O token do cluster será **salvo automaticamente** neste arquivo.
 
-3.  **Transferência dos Scripts para o Segundo Master**
-    - Antes de configurar o segundo master, copie todo o diretório de scripts (que agora contém o `k3s_cluster_vars.sh` com o token) para o `master-2`.
-    - Use o `scp` a partir do `master-1`:
+3.  **Transferência dos Scripts para o Segundo Control Plane**
+    - Antes de configurar o segundo control plane, copie todo o diretório de scripts (que agora contém o `k3s_cluster_vars.sh` com o token) para o `k3s-control-plane-2`.
+    - Use o `scp` a partir do `k3s-control-plane-1`:
     ```bash
-    # Exemplo: Copiando para a home do usuário 'ubuntu' no master-2
+    # Exemplo: Copiando para a home do usuário 'ubuntu' no control-plane-2
     scp -r ~/scripts-k3s-kubernetes ubuntu@192.168.10.21:~/
     ```
     - **Importante**: O script precisa do arquivo de configuração gerado na etapa anterior para ingressar no cluster automaticamente.
 
-4.  **Segundo Master (`k3s-master-2`)**
+4.  **Segundo Control Plane (`k3s-control-plane-2`)**
     - Execute o **mesmo script** de instalação.
     ```bash
     sudo ./install_k3s_master.sh
@@ -171,7 +171,7 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     ```bash
     sudo ./install_k3s_worker.sh
     ```
-    - O script solicitará o IP de um dos masters e o token do cluster. Você pode encontrar o token dentro do arquivo `k3s_cluster_vars.sh` no `master-1` ou `master-2`.
+    - O script solicitará o IP de um dos control planes e o token do cluster. Você pode encontrar o token dentro do arquivo `k3s_cluster_vars.sh` no `control-plane-1` ou `control-plane-2`.
 
 6.  **Máquina de Gerenciamento (`k3s-management`)**
     - Após o cluster estar no ar, execute o script de configuração dos addons para instalar `kubectl`, `helm` e os componentes essenciais.
