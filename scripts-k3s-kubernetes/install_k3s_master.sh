@@ -1,4 +1,44 @@
 #!/bin/bash
+# -----------------------------------------------------------------------------
+#
+# Script: install_k3s_master.sh
+#
+# Descrição:
+#  Este script automatiza a instalação e configuração de um nó Control Plane (Master)
+#  do K3s. Ele suporta a configuração do primeiro nó (inicialização do cluster e DB)
+#  e de nós subsequentes para Alta Disponibilidade (HA).
+#
+# Funcionalidades:
+#  - Prepara o sistema operacional (Update, Swap, Sysctl).
+#  - Configura /etc/hosts e resolução de nomes.
+#  - Instala e configura PostgreSQL (apenas no primeiro nó).
+#  - Instala o K3s server com suporte a HA e banco de dados externo.
+#  - Gerencia automaticamente firewall (UFW) e tokens de acesso.
+#
+# Autor:
+#  Hugllas R. S. Lima
+#
+# Contato:
+#  - GitHub: https://github.com/hugllaslima
+#  - LinkedIn: https://www.linkedin.com/in/hugllas-lima/
+#
+# Versão:
+#  1.1
+#
+# Data:
+#  26/12/2025
+#
+# Pré-requisitos:
+#  - Ubuntu 22.04/24.04 LTS.
+#  - Acesso root/sudo.
+#  - IPs estáticos definidos para todos os nós.
+#
+# Como usar:
+#  1. chmod +x install_k3s_master.sh
+#  2. sudo ./install_k3s_master.sh
+#  3. Siga as instruções interativas.
+#
+# -----------------------------------------------------------------------------
 
 # --- Constantes ---
 CONFIG_FILE="k3s_cluster_vars.sh"
