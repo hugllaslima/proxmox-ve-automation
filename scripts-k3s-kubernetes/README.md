@@ -46,7 +46,7 @@ A arquitetura a seguir é a configuração de referência testada para este proj
 
 ## ⚙️ Como o Ambiente Funciona?
 
-Esta seção detalha o papel de cada componente e como eles interagem para formar um cluster funcional e resiliente.
+Esta seção detalha o papel de cada componente e como eles interagem para formar um cluster funcional e resiliente. ao seu ambiente.
 
 ### Papel de Cada VM
 
