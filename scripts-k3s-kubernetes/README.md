@@ -117,7 +117,20 @@ A localização dos logs depende do que você está tentando depurar:
 - **`cleanup_k3s_worker.sh`**: Desinstala o agente K3s e limpa as configurações de um nó de trabalho.
 - **`cleanup_k3s_addons.sh`**: Remove todos os addons (NFS Provisioner, MetalLB, Nginx) e a configuração local do `kubectl`.
 
-## 🚀 Ordem de Execução (Novo Fluxo Automatizado)
+## � Organização de Diretórios (Recomendação)
+
+Para facilitar a organização e a gestão futura do seu cluster, recomendamos criar um diretório padrão `/opt/k3s` em todos os servidores. Centralizar os scripts e arquivos de configuração neste local ajuda a manter o ambiente limpo e padronizado.
+
+```bash
+# Exemplo de criação e organização
+sudo mkdir -p /opt/k3s
+sudo chown $USER:$USER /opt/k3s
+# Copie os scripts para este diretório
+cp -r scripts-k3s-kubernetes/* /opt/k3s/
+cd /opt/k3s
+```
+
+## �🚀 Ordem de Execução (Novo Fluxo Automatizado)
 
 Com a refatoração dos scripts, o processo de implantação se tornou mais inteligente e seguro. O script `install_k3s_master.sh` agora detecta automaticamente o seu papel (primeiro, segundo ou terceiro master), eliminando a necessidade de intervenção manual para gerenciar tokens.
 
