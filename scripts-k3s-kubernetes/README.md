@@ -72,7 +72,7 @@ O script `install_k3s_master.sh` agora distingue explicitamente estas duas redes
     -   Usada apenas para liberar o acesso ao Banco de Dados (PostgreSQL) no firewall.
 
 **Acesso Remoto via VPN:**
-O script também perguntará se você deseja adicionar Redes de Administração. Se você acessa via VPN (ex: `172.16.2.0/26`), adicione esse CIDR quando solicitado. O script configurará o Firewall (UFW) para permitir sua conexão sem alterar perigosamente as rotas do sistema.
+O script também perguntará se você deseja adicionar "Redes de Administração". Se você acessa via VPN ou algum jump server (ex: `172.20.1.0/16`, `53.136.46.128/32`), adicione esse CIDR quando solicitado. O script configurará o Firewall (UFW) para permitir sua conexão sem alterar perigosamente as rotas do sistema.
 
 ### O que é Armazenado em Cada Nó?
 
