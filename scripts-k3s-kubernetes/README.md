@@ -130,7 +130,7 @@ cp -r scripts-k3s-kubernetes/* /opt/k3s/
 cd /opt/k3s
 ```
 
-## 🚀 Ordem de Execução (Novo Fluxo Automatizado)
+## 🚀 Ordem de Execução (Fluxo Automatizado)
 
 Com a refatoração dos scripts, o processo de implantação se tornou mais inteligente e seguro. O script `install_k3s_master.sh` agora detecta automaticamente o seu papel (primeiro, segundo ou terceiro master), eliminando a necessidade de intervenção manual para gerenciar tokens.
 
