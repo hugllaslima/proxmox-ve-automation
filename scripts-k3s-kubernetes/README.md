@@ -37,10 +37,10 @@ A arquitetura a seguir é a configuração de referência testada para este proj
 
 | VM | Nome | SO | IP/CIDR | CPU | RAM | Volume |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
-| 1 | `k3s-master-1` | Ubuntu 24.04 LTS | `192.168.10.20/24` | 4c | 6GB | 40GB |
-| 2 | `k3s-master-2` | Ubuntu 24.04 LTS | `192.168.10.21/24` | 4c | 6GB | 40GB |
-| 3 | `k3s-worker-1` | Ubuntu 24.04 LTS | `192.168.10.22/24` | 4c | 6GB | 40GB |
-| 4 | `k3s-worker-2` | Ubuntu 24.04 LTS | `192.168.10.23/24` | 4c | 6GB | 40GB |
+| 1 | `k3s-master-1` | Ubuntu 24.04 LTS | `192.168.10.20/24` | 2c | 4GB | 40GB |
+| 2 | `k3s-master-2` | Ubuntu 24.04 LTS | `192.168.10.21/24` | 2c | 4GB | 40GB |
+| 3 | `k3s-worker-1` | Ubuntu 24.04 LTS | `192.168.10.22/24` | 2c | 4GB | 40GB |
+| 4 | `k3s-worker-2` | Ubuntu 24.04 LTS | `192.168.10.23/24` | 2c | 4GB | 40GB |
 | 5 | `k3s-storage-nfs` | Ubuntu 24.04 LTS | `192.168.10.24/24` | 2c | 4GB | 100GB |
 | 6 | `k3s-management` | Ubuntu 24.04 LTS | `192.168.10.25/24` | 2c | 4GB | 30GB |
 
@@ -55,23 +55,24 @@ Esta seção detalha o papel de cada componente e como eles interagem para forma
 - **`k3s-storage-nfs` (Armazenamento Persistente)**: Atua como um servidor NFS centralizado. Quando uma aplicação precisa de dados persistentes (através de um `PersistentVolumeClaim`), o K3s provisiona um diretório neste servidor. Isso garante que os dados sobrevivam a reinicializações de Pods e possam ser compartilhados entre eles.
 - **`k3s-management` (Gerenciamento Centralizado)**: É a VM de onde todos os comandos de gerenciamento (`kubectl`, `helm`) são executados. Centralizar o gerenciamento em um nó dedicado é uma **boa prática de segurança**, pois isola as credenciais de acesso ao cluster.
 
-### 🔒 Lidando com Redes Complexas (VPNs e Acesso Remoto)
+### 🔒 Lidando com Redes Complexas e Conflitos de IP
 
-Um dos desafios mais comuns ao configurar um cluster em um ambiente de datacenter é a perda de acesso SSH, especialmente quando o administrador está se conectando a partir de uma rede diferente da rede dos servidores (por exemplo, através de uma **VPN** ou de uma rede de gerenciamento separada).
+Um desafio comum em ambientes de Datacenter/VPN é o conflito entre a rede interna do Kubernetes e a rede física.
 
-**Por que isso acontece?**
-Quando o K3s é iniciado, ele modifica as regras de firewall e as tabelas de roteamento do sistema operacional para gerenciar a rede interna do cluster. Frequentemente, o servidor "esquece" o caminho de volta para a rede de origem do administrador, fazendo com que a conexão SSH caia e não retorne.
+**O Problema (Hijacking de Rede):**
+Se você configurar a **Rede de Pods** do K3s (`--cluster-cidr`) com o mesmo intervalo da sua **Rede Física/LAN**, o Kubernetes irá "sequestrar" o tráfego da sua placa de rede, derrubando sua conexão SSH e tornando o servidor inacessível.
 
-**Como este projeto resolve o problema?**
-Para garantir um acesso robusto e ininterrupto, o script de instalação (`install_k3s_master.sh`) implementa uma solução inteligente e automatizada:
+**A Solução deste Projeto:**
+O script `install_k3s_master.sh` agora distingue explicitamente estas duas redes:
 
-1.  **Coleta Interativa**: Durante a primeira execução, o script irá perguntar se você deseja adicionar uma **"rede de administração"**.
-2.  **O que informar?**: Neste ponto, você deve fornecer o **endereço de rede (CIDR) de onde sua conexão se origina**. Se você está usando uma VPN, deve informar o CIDR da rede da VPN (ex: `172.16.1.0/26`), e não o da sua rede local (ex: `192.168.1.0/24`). Você pode adicionar múltiplas redes se necessário.
-3.  **Ação Automática**: Com base nas redes que você fornecer, o script irá configurar automaticamente:
-    *   **Regras de Firewall (UFW)**: Para permitir explicitamente o tráfego SSH vindo da sua rede de administração.
-    *   **Rotas Estáticas (ip route)**: Para garantir que o servidor sempre saiba o "caminho de volta" para a sua máquina, resolvendo a causa raiz da perda de conexão.
+1.  **Rede de PODS (`K3S_POD_CIDR`)**: O intervalo de IPs virtual para os contêineres.
+    -   *Padrão:* `10.42.0.0/16`
+    -   **NUNCA** coloque o IP da sua rede física aqui.
+2.  **Rede LOCAL/LAN (`K3S_LAN_CIDR`)**: A sua rede física real (ex: `192.168.10.0/24`).
+    -   Usada apenas para liberar o acesso ao Banco de Dados (PostgreSQL) no firewall.
 
-Essa automação torna o projeto adaptável a topologias de rede do mundo real, garantindo uma experiência de instalação suave e confiável, independentemente de onde você esteja gerenciando o cluster.
+**Acesso Remoto via VPN:**
+O script também perguntará se você deseja adicionar **Redes de Administração**. Se você acessa via VPN (ex: `172.16.2.0/26`), adicione esse CIDR quando solicitado. O script configurará o Firewall (UFW) para permitir sua conexão sem alterar perigosamente as rotas do sistema.
 
 ### O que é Armazenado em Cada Nó?
 
@@ -136,14 +137,14 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     - Como o script não encontrará um arquivo de configuração, ele fará uma série de perguntas para coletar os dados do cluster.
     - Ao final, ele gerará o arquivo `k3s_cluster_vars.sh` no diretório atual com todas as informações e instalará o K3s. O token do cluster será **salvo automaticamente** neste arquivo.
 
-3.  **Transferência do Arquivo de Configuração**
-    - Antes de configurar o segundo master, copie o arquivo de configuração gerado no `master-1` para o `master-2`.
-    - Use o `scp` a partir do `master-1` (ou qualquer outra ferramenta de transferência de arquivos):
+3.  **Transferência dos Scripts para o Segundo Master**
+    - Antes de configurar o segundo master, copie todo o diretório de scripts (que agora contém o `k3s_cluster_vars.sh` com o token) para o `master-2`.
+    - Use o `scp` a partir do `master-1`:
     ```bash
-    # Substitua <user> e o caminho para os scripts no master-2
-    scp /path/to/your/scripts/k3s_cluster_vars.sh <user>@192.168.10.21:/path/to/your/scripts/
+    # Exemplo: Copiando para a home do usuário 'ubuntu' no master-2
+    scp -r ~/scripts-k3s-kubernetes ubuntu@192.168.10.21:~/
     ```
-    - **Importante**: O arquivo `k3s_cluster_vars.sh` deve estar no mesmo diretório que o `install_k3s_master.sh` no segundo master.
+    - **Importante**: O script precisa do arquivo de configuração gerado na etapa anterior para ingressar no cluster automaticamente.
 
 4.  **Segundo Master (`k3s-master-2`)**
     - Execute o **mesmo script** de instalação.
