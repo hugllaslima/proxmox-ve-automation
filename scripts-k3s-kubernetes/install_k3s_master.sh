@@ -411,6 +411,11 @@ if [ "$NODE_ROLE" == "MASTER_1" ]; then
     success_message "kubectl configurado."
     warning_message "Você pode copiar '$HOME/.kube/config' para sua máquina de administração."
 
+    echo -e "\n\e[34m--- Próximos Passos ---\e[0m"
+    echo "Para prosseguir com a instalação no segundo Master ($K3S_MASTER_2_IP), copie este diretório:"
+    echo -e "\e[33mscp -r $SCRIPT_DIR <USUARIO>@$K3S_MASTER_2_IP:~/ \e[0m"
+    echo "Substitua <USUARIO> pelo usuário remoto (ex: ubuntu, debian, root)."
+
 
 elif [ "$NODE_ROLE" == "MASTER_2" ]; then
     # --- 3. Instalação do K3s no Segundo Master (Master 2) ---
