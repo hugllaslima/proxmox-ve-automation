@@ -33,7 +33,7 @@ O cluster resultante é configurado com dois nós de controle (masters), dois n�
 
 ## 🏗️ Arquitetura de Referência Utilizada no Proxmox VE
 
-A arquitetura a seguir é a configuração de referência testada para este projeto. Os valores, como IPs, nomes e recursos de hardware (CPU, RAM e Volume), são sugestões flexíveis. Sinta-se à vontade para adaptá-los durante a execução dos scripts interativos, dimensionando os recursos de acordo com a carga de trabalho (workload) que seu cluster Kubernetes irá suportar.
+A arquitetura a seguir é a configuração de referência testada para este projeto. Os valores, como IPs, nomes e recursos de hardware (CPU, RAM e Volume), são sugestões flexíveis. Sinta-se à vontade para adaptá-los durante a criação do seu ambiente, dimensionando os recursos de acordo com a carga de trabalho (workload) que seu cluster Kubernetes irá suportar.
 
 | VM | Nome | SO | IP/CIDR | CPU | RAM | Volume |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
