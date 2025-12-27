@@ -91,6 +91,7 @@ A localização dos logs depende do que você está tentando depurar:
     kubectl logs <nome-do-pod>
     ```
 
+
 - **Logs da Infraestrutura (Serviços K3s, NFS, etc.)**
   - **Método Recomendado (`journalctl`)**: Para inspecionar os logs dos serviços K3s nos nós master e worker, o `journalctl` é a ferramenta ideal, pois o K3s roda como um serviço `systemd`.
     ```bash
@@ -205,3 +206,19 @@ Isso garantirá que os servidores fiquem em um estado limpo e prontos para serem
 
 - **GitHub:** [@hugllaslima](https://github.com/hugllaslima)
 - **LinkedIn:** [hugllas-lima](https://www.linkedin.com/in/hugllas-lima/)
+
+## 🏭 Considerações para Produção
+
+Este ambiente K3s foi projetado para ser robusto e funcional, utilizando componentes reais de produção (MetalLB, Ingress Nginx, PostgreSQL externo). Ele é adequado para ambientes de desenvolvimento, homelab avançado e pequenas/médias empresas.
+
+No entanto, para ambientes de **Produção Crítica** ("Enterprise"), esteja ciente dos seguintes **Pontos de Atenção**:
+
+1.  **Banco de Dados (SPOF)**:
+    - O PostgreSQL está instalado no `k3s-control-plane-1`. Se esta VM for perdida sem backup, o cluster perderá seu estado, mesmo com um segundo control-plane ativo.
+    - **Recomendação**: Mantenha backups diários/horários desta VM ou externalize o banco de dados.
+
+2.  **Storage NFS (SPOF)**:
+    - O armazenamento persistente depende de uma única VM (`k3s-storage-nfs`). Falhas nela afetarão todos os Pods com volumes persistentes.
+    - **Recomendação**: Utilize RAID no host Proxmox e faça snapshots regulares da VM de NFS.
+
+Mantendo uma rotina de backups adequada, este cluster entregará alta disponibilidade para a API e eficiência de recursos superior a um cluster Kubernetes tradicional.
