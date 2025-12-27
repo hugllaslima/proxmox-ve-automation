@@ -15,12 +15,9 @@
 #  - Reverte as configurações do kernel (sysctl).
 #  - Reabilita o swap.
 #
-# Autor:
-#  Hugllas R. S. Lima
-#
 # Contato:
-#  - GitHub: https://github.com/hugllaslima
-#  - LinkedIn: https://www.linkedin.com/in/hugllas-lima/
+#  - https://www.linkedin.com/in/hugllas-r-s-lima/
+#  - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
 #
 # Versão:
 #  1.0

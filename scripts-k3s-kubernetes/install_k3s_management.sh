@@ -13,10 +13,9 @@
 #   do cluster K3s, IP do servidor NFS, caminho do compartilhamento NFS,
 #   e caminhos de rede, para personalizar a instalação.
 #
-# Autor:
-#   Hugllas Lima <hugllas.l@gmail.com>
-#   GitHub: https://github.com/hugllaslima
-#   LinkedIn: https://www.linkedin.com/in/hugllas-lima/
+# Contato:
+#  - https://www.linkedin.com/in/hugllas-r-s-lima/
+#  - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
 #
 # Versão:
 #   v1.0.0 - 2024-07-29 - Versão inicial do script.

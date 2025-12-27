@@ -16,10 +16,9 @@
 #  - Remove o diretório de compartilhamento criado.
 #  - Desinstala os pacotes do servidor NFS e suas dependências não utilizadas.
 #
-# Autor:
-#  Hugllas Lima <hugllas.l@gmail.com>
-#  GitHub: https://github.com/hugllas
-#  LinkedIn: https://www.linkedin.com/in/hugllas-lima/
+# Contato:
+#  - https://www.linkedin.com/in/hugllas-r-s-lima/
+#  - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
 #
 # Versão:
 #  v1.0.0 - 2024-07-29 - Versão inicial do script.
