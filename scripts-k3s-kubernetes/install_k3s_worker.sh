@@ -203,15 +203,15 @@ sudo systemctl stop ufw > /dev/null 2>&1
 sudo systemctl disable ufw > /dev/null 2>&1
 echo "UFW desabilitado (se estava ativo)."
 
-echo "--- 2. Instalação do K3s Worker ---"
+echo -e "\e[34m--- 2. Instalação do K3s Worker ---\e[0m"
 if [ -z "$K3S_TOKEN" ]; then
     error_exit "O token do K3s não foi fornecido. Por favor, obtenha o token do k3s-control-plane-1."
 fi
-
-echo "Instalando K3s como Worker..."
+    
+echo -e "\n\e[34mInstalando K3s como Worker...\e[0m"
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent --server https://$K3S_CONTROL_PLANE_1_IP:6443 --token $K3S_TOKEN --node-ip $CURRENT_NODE_IP" sh -
 check_command "Falha ao instalar K3s Worker."
 
-echo "--- Instalação do K3s Worker concluída ---"
+echo -e "\n\e[34m--- Instalação do K3s Worker concluída ---\e[0m"
 echo "Este nó worker foi adicionado ao cluster K3s."
 echo "Verifique o status do cluster usando 'kubectl get nodes' na sua máquina de administração."
