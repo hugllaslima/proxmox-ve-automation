@@ -15,6 +15,8 @@
 #  - Configura /etc/hosts e resolução de nomes.
 #  - Instala o K3s server com Etcd embarcado.
 #  - Gerencia automaticamente firewall (UFW) para API e Etcd.
+#  - Configura o arquivo de configuração do cluster.
+#  - Adiciona o token do K3s ao arquivo de configuração.
 #
 # Contato:
 #  - https://www.linkedin.com/in/hugllas-r-s-lima/
