@@ -111,6 +111,9 @@ function gather_info() {
 function confirm_info {
     echo -e "\n\e[34m--- Por favor, revise as informações fornecidas ---\e[0m"
     echo "Control Plane IP: $K3S_CONTROL_PLANE_1_IP"
+    if [ -n "$K3S_CONTROL_PLANE_3_IP" ]; then
+        echo "                : ... (Cluster HA de 3 nós)"
+    fi
     echo "Usuario SSH:      $SSH_USER"
     echo "NFS Server IP:    $NFS_SERVER_IP"
     echo "NFS Share Path:   $NFS_SHARE_PATH"

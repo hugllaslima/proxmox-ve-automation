@@ -29,20 +29,21 @@ Para entender a decisão, veja um comparativo direto entre as duas abordagens:
 
 Em resumo, o K3s oferece a mesma funcionalidade e segurança do Kubernetes tradicional, mas com uma fração do custo operacional e da complexidade, tornando-o a escolha ideal para este ambiente.
 
-O cluster resultante é configurado com dois nós de controle (masters), dois nós de trabalho (workers), um servidor NFS para armazenamento persistente e, por fim, um servidor de gerenciamento para execução de comandos `kubectl` e `helm`.
+O cluster resultante é configurado com **três nós de controle (control planes)** para garantir alta disponibilidade via Etcd embarcado, dois nós de trabalho (workers), um servidor NFS para armazenamento persistente e, por fim, um servidor de gerenciamento.
 
 ## 🏗️ Arquitetura de Referência Utilizada no Proxmox VE
 
-A arquitetura a seguir é a configuração de referência testada para este projeto. Os valores, como IPs, nomes e recursos de hardware (CPU, RAM e Volume), são sugestões flexíveis. Sinta-se à vontade para adaptá-los durante a criação do seu ambiente, dimensionando os recursos de acordo com a carga de trabalho (workload) que seu cluster Kubernetes irá suportar.
+A arquitetura a seguir é a configuração de referência testada para este projeto. Utiliza **3 Control Planes** para garantir quorum no Etcd.
 
 | VM | Nome | SO | IP/CIDR | CPU | RAM | Volume |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
 | 1 | `k3s-control-plane-1` | Ubuntu 24.04 LTS | `192.168.10.20/24` | 2c | 4GB | 40GB |
 | 2 | `k3s-control-plane-2` | Ubuntu 24.04 LTS | `192.168.10.21/24` | 2c | 4GB | 40GB |
-| 3 | `k3s-worker-1` | Ubuntu 24.04 LTS | `192.168.10.22/24` | 4c | 6GB | 40GB |
-| 4 | `k3s-worker-2` | Ubuntu 24.04 LTS | `192.168.10.23/24` | 4c | 6GB | 40GB |
-| 5 | `k3s-storage-nfs` | Ubuntu 24.04 LTS | `192.168.10.24/24` | 2c | 4GB | 80GB |
-| 6 | `k3s-management` | Ubuntu 24.04 LTS | `192.168.10.25/24` | 2c | 4GB | 30GB |
+| 3 | `k3s-control-plane-3` | Ubuntu 24.04 LTS | `192.168.10.22/24` | 2c | 4GB | 40GB |
+| 4 | `k3s-worker-1` | Ubuntu 24.04 LTS | `192.168.10.23/24` | 4c | 6GB | 40GB |
+| 5 | `k3s-worker-2` | Ubuntu 24.04 LTS | `192.168.10.24/24` | 4c | 6GB | 40GB |
+| 6 | `k3s-storage-nfs` | Ubuntu 24.04 LTS | `192.168.10.25/24` | 2c | 4GB | 80GB |
+| 7 | `k3s-management` | Ubuntu 24.04 LTS | `192.168.10.26/24` | 2c | 4GB | 30GB |
 
 ## ⚙️ Como o Ambiente Funciona?
 

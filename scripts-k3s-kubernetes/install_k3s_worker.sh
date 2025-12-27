@@ -181,6 +181,7 @@ echo "Configurando /etc/hosts..."
 # Remover entradas antigas para evitar duplicatas
 sudo sed -i '/k3s-control-plane-1/d' /etc/hosts
 sudo sed -i '/k3s-control-plane-2/d' /etc/hosts
+sudo sed -i '/k3s-control-plane-3/d' /etc/hosts
 sudo sed -i '/k3s-worker-1/d' /etc/hosts
 sudo sed -i '/k3s-worker-2/d' /etc/hosts
 sudo sed -i '/k3s-storage-nfs/d' /etc/hosts
@@ -188,6 +189,7 @@ sudo sed -i '/k3s-storage-nfs/d' /etc/hosts
 sudo tee -a /etc/hosts <<EOF > /dev/null
 $K3S_CONTROL_PLANE_1_IP k3s-control-plane-1
 ${K3S_CONTROL_PLANE_2_IP:+${K3S_CONTROL_PLANE_2_IP} k3s-control-plane-2}
+${K3S_CONTROL_PLANE_3_IP:+${K3S_CONTROL_PLANE_3_IP} k3s-control-plane-3}
 ${K3S_WORKER_1_IP:+${K3S_WORKER_1_IP} k3s-worker-1}
 ${K3S_WORKER_2_IP:+${K3S_WORKER_2_IP} k3s-worker-2}
 $CURRENT_NODE_IP $(hostname)

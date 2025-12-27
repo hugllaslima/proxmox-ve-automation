@@ -5,25 +5,26 @@
 #
 # Descrição:
 #  Este script automatiza a instalação e configuração de um nó Control Plane (Master)
-#  do K3s. Ele suporta a configuração do primeiro nó (inicialização do cluster e DB)
-#  e de nós subsequentes para Alta Disponibilidade (HA).
+#  do K3s com Datastore embutido (Etcd) para Alta Disponibilidade (HA).
+#  Suporta 3 nós de controle:
+#   - O primeiro nó inicializa o cluster (--cluster-init).
+#   - Os nós subsequentes (2 e 3) ingressam no cluster existente.
 #
 # Funcionalidades:
 #  - Prepara o sistema operacional (Update, Swap, Sysctl).
 #  - Configura /etc/hosts e resolução de nomes.
-#  - Instala e configura PostgreSQL (apenas no primeiro nó).
-#  - Instala o K3s server com suporte a HA e banco de dados externo.
-#  - Gerencia automaticamente firewall (UFW) e tokens de acesso.
+#  - Instala o K3s server com Etcd embarcado.
+#  - Gerencia automaticamente firewall (UFW) para API e Etcd.
 #
 # Contato:
 #  - https://www.linkedin.com/in/hugllas-r-s-lima/
 #  - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
 #
 # Versão:
-#  1.1
+#  2.0
 #
 # Data:
-#  26/12/2025
+#  27/12/2025
 #
 # Pré-requisitos:
 #  - Ubuntu 22.04/24.04 LTS.
@@ -60,6 +61,7 @@ function generate_config_file() {
 # --- IPs da Infraestrutura ---
 export K3S_CONTROL_PLANE_1_IP="$K3S_CONTROL_PLANE_1_IP"
 export K3S_CONTROL_PLANE_2_IP="$K3S_CONTROL_PLANE_2_IP"
+export K3S_CONTROL_PLANE_3_IP="$K3S_CONTROL_PLANE_3_IP"
 export K3S_WORKER_1_IP="$K3S_WORKER_1_IP"
 export K3S_WORKER_2_IP="$K3S_WORKER_2_IP"
 export NFS_SERVER_IP="$NFS_SERVER_IP"
@@ -70,7 +72,6 @@ export K3S_LAN_CIDR="$K3S_LAN_CIDR"
 export NFS_SHARE_PATH="$NFS_SHARE_PATH"
 
 # --- Segredos (NÃO FAÇA COMMIT DESTE ARQUIVO) ---
-export K3S_DB_PASSWORD='$K3S_DB_PASSWORD'
 export K3S_TOKEN="" # Será preenchido após a instalação do primeiro control-plane
 
 # --- Redes de Acesso Permitidas ---
@@ -91,18 +92,18 @@ function add_token_to_config() {
 
 # Função para coletar informações do usuário (usada apenas na primeira execução)
 function gather_initial_info() {
-    echo -e "\n\e[33m--- INFORMAÇÕES NECESSÁRIAS PARA A PRIMEIRA INSTALAÇÃO ---\e[0m"
+    echo -e "\n\e[33m--- INFORMAÇÕES NECESSÁRIAS PARA A PRIMEIRA INSTALAÇÃO (ETCD HA) ---\e[0m"
     get_user_input "Digite o IP do k3s-control-plane-1" "192.168.10.20" "K3S_CONTROL_PLANE_1_IP"
     get_user_input "Digite o IP do k3s-control-plane-2" "192.168.10.21" "K3S_CONTROL_PLANE_2_IP"
-    get_user_input "Digite o IP do k3s-worker-1" "192.168.10.22" "K3S_WORKER_1_IP"
-    get_user_input "Digite o IP do k3s-worker-2" "192.168.10.23" "K3S_WORKER_2_IP"
-    get_user_input "Digite a senha para o banco de dados PostgreSQL do K3s" "" "K3S_DB_PASSWORD" "true"
-    get_user_input "Digite o IP do servidor NFS (k3s-storage-nfs)" "192.168.10.24" "NFS_SERVER_IP"
+    get_user_input "Digite o IP do k3s-control-plane-3" "192.168.10.22" "K3S_CONTROL_PLANE_3_IP"
+    get_user_input "Digite o IP do k3s-worker-1" "192.168.10.23" "K3S_WORKER_1_IP"
+    get_user_input "Digite o IP do k3s-worker-2" "192.168.10.24" "K3S_WORKER_2_IP"
+    get_user_input "Digite o IP do servidor NFS (k3s-storage-nfs)" "192.168.10.25" "NFS_SERVER_IP"
     get_user_input "Digite o caminho do compartilhamento NFS no servidor" "/mnt/k3s-share-nfs/" "NFS_SHARE_PATH"
     
     # Separação de redes para evitar conflitos de CNI
     get_user_input "Digite o CIDR da rede de PODS do K3s (NÃO use a rede local)" "10.42.0.0/16" "K3S_POD_CIDR"
-    get_user_input "Digite o CIDR da rede LOCAL (LAN do Datacenter) para acesso ao DB" "10.10.0.0/22" "K3S_LAN_CIDR"
+    get_user_input "Digite o CIDR da rede LOCAL (LAN do Datacenter)" "10.10.0.0/22" "K3S_LAN_CIDR"
 
     # Garante que os CIDRs não terminem com um ponto
     K3S_POD_CIDR=${K3S_POD_CIDR%%.}
@@ -141,8 +142,7 @@ function get_user_input {
     local prompt_message="$1"
     local example_value="$2"
     local var_name="$3"
-    local is_password="$4"
-
+    
     local input_value
     local prompt_string="$prompt_message"
 
@@ -152,13 +152,7 @@ function get_user_input {
     prompt_string+=": "
 
     while true; do
-        if [ "$is_password" == "true" ]; then
-            read -s -p "$prompt_string" input_value
-            echo # Nova linha após a senha
-        else
-            read -p "$prompt_string" input_value
-        fi
-
+        read -p "$prompt_string" input_value
         if [ -n "$input_value" ]; then
             eval "$var_name=\"$input_value\""
             break
@@ -172,9 +166,9 @@ function confirm_info {
     echo -e "\n\e[34m--- Por favor, revise as informações fornecidas ---\e[0m"
     echo "IP do k3s-control-plane-1: $K3S_CONTROL_PLANE_1_IP"
     echo "IP do k3s-control-plane-2: $K3S_CONTROL_PLANE_2_IP"
+    echo "IP do k3s-control-plane-3: $K3S_CONTROL_PLANE_3_IP"
     echo "IP do k3s-worker-1: $K3S_WORKER_1_IP"
     echo "IP do k3s-worker-2: $K3S_WORKER_2_IP"
-    echo "Senha do PostgreSQL: (oculta)"
     echo "IP do servidor NFS: $NFS_SERVER_IP"
     echo "Caminho do compartilhamento NFS: $NFS_SHARE_PATH"
     echo "CIDR da rede de PODS: $K3S_POD_CIDR"
@@ -197,7 +191,7 @@ function confirm_info {
 
 # --- Início do Script ---
 
-echo -e "\e[34m--- Instalação do K3s Control Plane Node ---\e[0m"
+echo -e "\e[34m--- Instalação do K3s Control Plane Node (Etcd HA) ---\e[0m"
 
 # Verifica se o arquivo de configuração existe
 if [ -f "$CONFIG_FILE_PATH" ]; then
@@ -215,14 +209,15 @@ fi
 CURRENT_NODE_IP=$(hostname -I | awk '{print $1}')
 echo -e "\nIP detectado para este nó: \e[36m$CURRENT_NODE_IP\e[0m"
 
+NODE_ROLE=""
 if [ "$CURRENT_NODE_IP" == "$K3S_CONTROL_PLANE_1_IP" ]; then
-    NODE_ROLE="CONTROL_PLANE_1"
-    echo -e "\e[32mEste nó será configurado como o PRIMEIRO K3s Control Plane.\e[0m"
-elif [ "$CURRENT_NODE_IP" == "$K3S_CONTROL_PLANE_2_IP" ]; then
-    NODE_ROLE="CONTROL_PLANE_2"
-    echo -e "\e[32mEste nó será configurado como o SEGUNDO K3s Control Plane.\e[0m"
+    NODE_ROLE="CONTROL_PLANE_INITIAL"
+    echo -e "\e[32mEste nó será o PRIMEIRO Control Plane (Cluster Init).\e[0m"
+elif [ "$CURRENT_NODE_IP" == "$K3S_CONTROL_PLANE_2_IP" ] || [ "$CURRENT_NODE_IP" == "$K3S_CONTROL_PLANE_3_IP" ]; then
+    NODE_ROLE="CONTROL_PLANE_JOIN"
+    echo -e "\e[32mEste nó será um Control Plane adicional (Join no HA).\e[0m"
     if [ -z "$K3S_TOKEN" ]; then
-        error_exit "O K3S_TOKEN está vazio no arquivo de configuração. Por favor, execute o script no k3s-control-plane-1 primeiro para gerar o token."
+        error_exit "O K3S_TOKEN está vazio no arquivo de configuração. Por favor, execute o script no k3s-control-plane-1 primeiro."
     fi
 else
     error_exit "O IP deste nó ($CURRENT_NODE_IP) não corresponde a nenhum IP de control plane definido no arquivo de configuração."
@@ -270,15 +265,14 @@ check_command "Falha ao configurar módulos do kernel/sysctl."
 success_message "Módulos do kernel e sysctl configurados."
 
 echo "Configurando /etc/hosts..."
-sudo sed -i '/k3s-control-plane-1/d' /etc/hosts
-sudo sed -i '/k3s-control-plane-2/d' /etc/hosts
-sudo sed -i '/k3s-worker-1/d' /etc/hosts
-sudo sed -i '/k3s-worker-2/d' /etc/hosts
+sudo sed -i '/k3s-control-plane/d' /etc/hosts
+sudo sed -i '/k3s-worker/d' /etc/hosts
 sudo sed -i '/k3s-storage-nfs/d' /etc/hosts
 
 sudo tee -a /etc/hosts <<EOF > /dev/null
 $K3S_CONTROL_PLANE_1_IP k3s-control-plane-1
 $K3S_CONTROL_PLANE_2_IP k3s-control-plane-2
+$K3S_CONTROL_PLANE_3_IP k3s-control-plane-3
 $K3S_WORKER_1_IP k3s-worker-1
 $K3S_WORKER_2_IP k3s-worker-2
 $NFS_SERVER_IP k3s-storage-nfs
@@ -286,231 +280,125 @@ EOF
 check_command "Falha ao configurar /etc/hosts."
 success_message "/etc/hosts configurado."
 
-# --- 2. Instalação e Configuração por Nó ---
+# --- 2. Instalação e Configuração do K3s ---
 
-if [ "$NODE_ROLE" == "CONTROL_PLANE_1" ]; then
-    # --- ETAPAS PARA O CONTROL PLANE 1 ---
-    echo -e "\n\e[34m--- 2.1. Configurando PostgreSQL para K3s (Control Plane 1) ---\e[0m"
-    sudo apt install -y postgresql postgresql-contrib
-    check_command "Falha ao instalar PostgreSQL."
+echo -e "\n\e[34m--- 2. Instalação do K3s ---\e[0m"
+echo "Desativando temporariamente o firewall (UFW) para a instalação..."
+sudo ufw disable
+check_command "Falha ao desativar o UFW."
 
-    sudo -u postgres psql -c "CREATE USER k3s WITH PASSWORD '$K3S_DB_PASSWORD';"
-    check_command "Falha ao criar usuário k3s no PostgreSQL."
-    sudo -u postgres psql -c "CREATE DATABASE k3s OWNER k3s;"
-    check_command "Falha ao criar banco de dados k3s no PostgreSQL."
+export K3S_KUBECONFIG_MODE="644"
 
-    PG_CONF_PATH=$(find /etc/postgresql/ -name "postgresql.conf" | head -n 1)
-    PG_HBA_CONF_PATH=$(find /etc/postgresql/ -name "pg_hba.conf" | head -n 1)
-
-    if [ -z "$PG_CONF_PATH" ] || [ -z "$PG_HBA_CONF_PATH" ]; then
-        error_exit "Não foi possível encontrar os arquivos de configuração do PostgreSQL."
-    fi
-
-    sudo sed -i "s/^#listen_addresses = 'localhost'/listen_addresses = '*'/" "$PG_CONF_PATH"
-    if ! sudo grep -q "host    k3s             k3s             $K3S_LAN_CIDR            md5" "$PG_HBA_CONF_PATH"; then
-        sudo sed -i "/^# IPv4 local connections:/a host    k3s             k3s             $K3S_LAN_CIDR            md5" "$PG_HBA_CONF_PATH"
-    fi
-    check_command "Falha ao configurar PostgreSQL para conexões externas."
-
-    sudo systemctl restart postgresql
-    check_command "Falha ao reiniciar PostgreSQL."
-    sudo systemctl enable postgresql
-    success_message "PostgreSQL configurado e iniciado."
-
-    echo -e "\n\e[34m--- 2.2. Desativando Firewall e Instalando K3s (Control Plane 1) ---\e[0m"
-    echo "Desativando temporariamente o firewall (UFW) para a instalação do K3s..."
-    sudo ufw disable
-    check_command "Falha ao desativar o UFW."
-    success_message "UFW desativado."
-
-        echo "Instalando K3s como o primeiro Control Plane (sem iniciar o serviço)..."
-    # Usar uma variável para os argumentos melhora a legibilidade e o manuseio de aspas para o systemd.
+if [ "$NODE_ROLE" == "CONTROL_PLANE_INITIAL" ]; then
+    echo "Instalando K3s no PRIMEIRO Control Plane (Cluster Init)..."
+    # --cluster-init: Inicializa o cluster embedded etcd
     K3S_EXEC_ARGS="server \
+        --cluster-init \
         --node-ip $K3S_CONTROL_PLANE_1_IP \
         --tls-san $K3S_CONTROL_PLANE_1_IP \
         --tls-san $K3S_CONTROL_PLANE_2_IP \
-        --cluster-cidr $K3S_POD_CIDR \
-        --datastore-endpoint='postgres://k3s:$K3S_DB_PASSWORD@$K3S_CONTROL_PLANE_1_IP:5432/k3s'"
+        --tls-san $K3S_CONTROL_PLANE_3_IP \
+        --cluster-cidr $K3S_POD_CIDR"
 
     curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC="$K3S_EXEC_ARGS" sh -
-    check_command "Falha ao instalar os binários do K3s no Control Plane 1."
-    success_message "Binários e serviço do K3s instalados no Control Plane 1."
+    check_command "Falha ao instalar binários do K3s (Init)."
+    
+elif [ "$NODE_ROLE" == "CONTROL_PLANE_JOIN" ]; then
+    echo "Instalando K3s em Control Plane ADICIONAL (Join)..."
+    # Conecta-se ao primeiro nó para entrar no cluster
+    K3S_EXEC_ARGS="server \
+        --server https://$K3S_CONTROL_PLANE_1_IP:6443 \
+        --token $K3S_TOKEN \
+        --node-ip $CURRENT_NODE_IP \
+        --tls-san $K3S_CONTROL_PLANE_1_IP \
+        --tls-san $K3S_CONTROL_PLANE_2_IP \
+        --tls-san $K3S_CONTROL_PLANE_3_IP \
+        --cluster-cidr $K3S_POD_CIDR"
 
-    echo -e "\n\e[34m--- 2.3. Iniciando o serviço K3s (Control Plane 1) ---\e[0m"
-    echo "Iniciando o serviço K3s (com UFW ainda desativado)..."
-    sudo systemctl start k3s
-    check_command "Falha ao iniciar o serviço K3s."
+    curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC="$K3S_EXEC_ARGS" sh -
+    check_command "Falha ao instalar binários do K3s (Join)."
+fi
 
-    echo "Aguardando o serviço K3s estabilizar..."
-    for i in {1..12}; do
-        if sudo systemctl is-active --quiet k3s; then
-            echo "Serviço K3s está ativo."
-            break
-        fi
-        echo "Aguardando serviço K3s ficar ativo... (tentativa $i/12)"
-        sleep 5
+echo -e "\n\e[34m--- Iniciando o serviço K3s ---\e[0m"
+sudo systemctl start k3s
+check_command "Falha ao iniciar o serviço K3s."
+
+echo "Aguardando o serviço K3s estabilizar..."
+for i in {1..15}; do
+    if sudo systemctl is-active --quiet k3s; then
+        echo "Serviço K3s está ativo."
+        break
+    fi
+    echo "Aguardando serviço K3s... ($i/15)"
+    sleep 5
+done
+
+if ! sudo systemctl is-active --quiet k3s; then
+    error_exit "O serviço K3s falhou ao iniciar. Verifique 'sudo journalctl -u k3s'."
+fi
+success_message "K3s iniciado!"
+
+
+# --- 3. Pós-Instalação: Firewall e Tokens ---
+
+echo -e "\n\e[34m--- 3. Configurando Firewall (UFW) ---\e[0m"
+
+echo "Alterando a política de encaminhamento para ACCEPT..."
+sudo sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/g' /etc/default/ufw
+
+# Regras básicas
+sudo ufw allow 22/tcp comment 'SSH'
+sudo ufw allow 6443/tcp comment 'K3s API Server'
+sudo ufw allow 10250/tcp comment 'Kubelet'
+sudo ufw allow 8472/udp comment 'Flannel VXLAN'
+
+# Regras para Etcd HA (2379: Client, 2380: Peer)
+# Permitir tráfego de Etcd apenas entre os nós de Control Plane
+echo "Liberando portas do Etcd entre Control Planes..."
+for IP in $K3S_CONTROL_PLANE_1_IP $K3S_CONTROL_PLANE_2_IP $K3S_CONTROL_PLANE_3_IP; do
+    if [ "$IP" != "$CURRENT_NODE_IP" ]; then
+        sudo ufw allow from $IP to any port 2379 proto tcp comment "Etcd Client de $IP"
+        sudo ufw allow from $IP to any port 2380 proto tcp comment "Etcd Peer de $IP"
+    fi
+done
+
+# Redes de Administração
+if [ -n "$ADMIN_NETWORK_CIDRS" ]; then
+    for cidr in $ADMIN_NETWORK_CIDRS; do
+        sudo ufw allow from $cidr to any port 22 comment 'SSH Admin'
     done
+else
+    # Fallback SSH
+    sudo ufw allow 22/tcp
+fi
 
-    if ! sudo systemctl is-active --quiet k3s; then
-        error_exit "O serviço K3s falhou ao iniciar. Verifique os logs com 'sudo journalctl -u k3s'"
-    fi
-    success_message "K3s iniciado com sucesso."
+sudo ufw --force enable
+success_message "Firewall configurado."
 
-    echo -e "\n\e[34m--- 2.3. Reconfigurando Firewall (Pós-Instalação) ---\e[0m"
-    echo "Configurando e reativando o firewall (UFW)..."
-    # Libera o acesso SSH a partir das redes de administração especificadas
-    if [ -n "$ADMIN_NETWORK_CIDRS" ]; then
-        echo "Permitindo acesso SSH das redes de administração..."
-        for cidr in $ADMIN_NETWORK_CIDRS; do
-            echo "  -> Permitindo de $cidr"
-            sudo ufw allow from $cidr to any port 22 comment 'Acesso SSH da rede de admin'
-            check_command "Falha ao adicionar regra de firewall para $cidr."
-        done
-    else
-        # Fallback para uma regra genérica se nenhuma rede de admin for fornecida
-        warning_message "Nenhuma rede de administração foi especificada. Adicionando regra SSH genérica."
-        sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
-    fi
-    sudo ufw allow 6443/tcp comment 'K3s API Server'
-    sudo ufw allow 10250/tcp comment 'Kubelet'
-    sudo ufw allow 8472/udp comment 'Flannel VXLAN'
-    echo "Adicionando regra de firewall para PostgreSQL no Control Plane 1..."
-    sudo ufw allow from $K3S_CONTROL_PLANE_2_IP to any port 5432 proto tcp comment 'Acesso do Control Plane 2 ao PostgreSQL'
-    check_command "Falha ao adicionar regras do firewall."
-    sudo ufw --force enable
-    check_command "Falha ao reativar o UFW."
-    success_message "Regras de firewall adicionadas e UFW reativado."
-
-    # echo -e "\n\e[34m--- 2.4. Configurando Rotas Estáticas para Redes de Administração ---\e[0m"
-    # echo "Desativado: A configuração automática de rotas estáticas via gateway padrão pode quebrar conexões VPN."
-    # if [ -n "$ADMIN_NETWORK_CIDRS" ]; then
-    #     GATEWAY=$(ip route | grep default | awk '{print $3}')
-    #     if [ -z "$GATEWAY" ]; then
-    #         warning_message "Não foi possível detectar o gateway padrão. Pulando a adição de rotas estáticas."
-    #     else
-    #         echo "Configurando rotas estáticas para o gateway $GATEWAY..."
-    #         for cidr in $ADMIN_NETWORK_CIDRS; do
-    #             # Verifica se a rota já não existe para evitar erros
-    #             if ! ip route | grep -q "$cidr"; then
-    #                 echo "  -> Adicionando rota para $cidr via $GATEWAY"
-    #                 # Risco: Forçar a rota via gateway padrão pode quebrar o retorno se a VPN usar outro roteador.
-    #                 # sudo ip route add $cidr via $GATEWAY
-    #                 echo "     [AÇÃO IGNORADA] Adição de rota estática desativada por segurança."
-    #                 # check_command "Falha ao adicionar rota estática para $cidr."
-    #             else
-    #                 echo "  -> Rota para $cidr já existe."
-    #             fi
-    #         done
-    #         # success_message "Rotas estáticas configuradas."
-    #         # warning_message "Atenção: Estas rotas podem não ser persistentes e podem ser perdidas na reinicialização. Se o problema retornar após reiniciar, precisaremos torná-las permanentes."
-    #     fi
-    # fi
-
-    echo -e "\n\e[34m--- 2.5. Obtendo Token e Configurando kubectl (Control Plane 1) ---\e[0m"
-    echo "Obtendo K3s token e salvando no arquivo de configuração..."
+# --- 4. Extração de Token (Apenas no Nó Inicial) ---
+if [ "$NODE_ROLE" == "CONTROL_PLANE_INITIAL" ]; then
+    echo -e "\n\e[34m--- Obtendo Token do Cluster ---\e[0m"
     TOKEN_FILE="/var/lib/rancher/k3s/server/node-token"
-    for i in {1..12}; do
-        if sudo [ -f "$TOKEN_FILE" ]; then break; fi
-        echo "Aguardando arquivo de token... (tentativa $i/12)"
-        sleep 5
+    
+    # Aguarda o token existir
+    while [ ! -f "$TOKEN_FILE" ]; do
+        sleep 2
     done
-
-    if ! sudo [ -f "$TOKEN_FILE" ]; then
-        error_exit "Arquivo de token K3s não foi encontrado após aguardar. Verifique os logs do K3s."
-    fi
 
     K3S_TOKEN_VALUE=$(sudo cat "$TOKEN_FILE")
-    check_command "Falha ao obter o token do K3s."
     add_token_to_config "$K3S_TOKEN_VALUE"
     
     echo -e "\n\e[32m--------------------------------------------------------------------------------\e[0m"
-    echo -e "\e[32mK3s Token: \e[36m$K3S_TOKEN_VALUE\e[0m"
+    echo -e "\e[32mCluster Inicializado! Token salvo em $CONFIG_FILE\e[0m"
     echo -e "\e[32m--------------------------------------------------------------------------------\e[0m"
-    warning_message "O token foi salvo em '$CONFIG_FILE'. Copie todo o diretório '$SCRIPT_DIR' para o k3s-control-plane-2 e execute este script novamente lá."
-
-    echo "Configurando kubectl..."
-    KUBECONFIG_FILE="/etc/rancher/k3s/k3s.yaml"
-    for i in {1..12}; do
-        if sudo [ -f "$KUBECONFIG_FILE" ]; then break; fi
-        echo "Aguardando arquivo kubeconfig... (tentativa $i/12)"
-        sleep 5
-    done
-
-    if ! sudo [ -f "$KUBECONFIG_FILE" ]; then
-        error_exit "Arquivo kubeconfig não foi encontrado após aguardar. Verifique os logs do K3s."
-    fi
-
+    warning_message "Copie o diretório '$SCRIPT_DIR' para os outros 2 Control Planes e execute este mesmo script neles."
+    
+    # Configurar kubectl para o usuário atual
     mkdir -p "$HOME/.kube"
-    sudo cp "$KUBECONFIG_FILE" "$HOME/.kube/config"
+    sudo cp /etc/rancher/k3s/k3s.yaml "$HOME/.kube/config"
     sudo chown "$(id -u):$(id -g)" "$HOME/.kube/config"
     chmod 600 "$HOME/.kube/config"
-    sed -i "s/127.0.0.1/$K3S_CONTROL_PLANE_1_IP/" "$HOME/.kube/config"
-    success_message "kubectl configurado."
-    warning_message "Você pode copiar '$HOME/.kube/config' para sua máquina de administração."
-
-    echo -e "\n\e[34m--- Próximos Passos ---\e[0m"
-    echo "Para prosseguir com a instalação no segundo Control Plane ($K3S_CONTROL_PLANE_2_IP), copie este diretório:"
-    echo -e "\e[33mscp -r $SCRIPT_DIR <USUARIO>@$K3S_CONTROL_PLANE_2_IP:~/ \e[0m"
-    echo "Substitua <USUARIO> pelo usuário remoto (ex: ubuntu, debian, root)."
-
-
-elif [ "$NODE_ROLE" == "CONTROL_PLANE_2" ]; then
-    # --- 3. Instalação do K3s no Segundo Control Plane (Control Plane 2) ---
-    echo -e "\n\e[1;35m### Iniciando Instalação do K3s no Segundo Control Plane (Control Plane 2) ###\e[0m"
-
-    # --- 3.1. Desativando Firewall e Instalando K3s (Control Plane 2) ------\e[0m"
-    echo "Desativando temporariamente o firewall (UFW) para a instalação do K3s..."
-    sudo ufw disable
-    check_command "Falha ao desativar o UFW."
-    success_message "UFW desativado."
-
-    echo "Instalando K3s como o segundo Control Plane (sem iniciar o serviço)..."
-    curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC="server --node-ip $K3S_CONTROL_PLANE_2_IP --tls-san $K3S_CONTROL_PLANE_1_IP --tls-san $K3S_CONTROL_PLANE_2_IP --datastore-endpoint=\"postgres://k3s:$K3S_DB_PASSWORD@$K3S_CONTROL_PLANE_1_IP:5432/k3s\" --token $K3S_TOKEN" sh -
-    check_command "Falha ao instalar os binários do K3s no Control Plane 2."
-    success_message "Binários e serviço do K3s instalados no Control Plane 2."
-
-    echo -e "\n\e[34m--- 2.2. Iniciando o serviço K3s (Control Plane 2) ---\e[0m"
-    echo "Iniciando o serviço K3s (com UFW ainda desativado)..."
-    sudo systemctl start k3s
-    check_command "Falha ao iniciar o serviço K3s."
-
-    echo "Aguardando o serviço K3s estabilizar..."
-    for i in {1..12}; do
-        if sudo systemctl is-active --quiet k3s; then
-            echo "Serviço K3s está ativo."
-            break
-        fi
-        echo "Aguardando serviço K3s ficar ativo... (tentativa $i/12)"
-        sleep 5
-    done
-
-    if ! sudo systemctl is-active --quiet k3s; then
-        error_exit "O serviço K3s falhou ao iniciar. Verifique os logs com 'sudo journalctl -u k3s'"
-    fi
-    success_message "K3s iniciado com sucesso."
-
-    echo -e "\n\e[34m--- 3.3. Reconfigurando Firewall (Pós-Instalação) ---\e[0m"
-    echo "Configurando e reativando o firewall (UFW)..."
-
-    echo "Alterando a política de encaminhamento padrão do UFW para ACCEPT (para futuras reinicializações)..."
-    sudo sed -i 's/DEFAULT_FORWARD_POLICY="DROP"/DEFAULT_FORWARD_POLICY="ACCEPT"/g' /etc/default/ufw
-    check_command "Falha ao configurar a política de encaminhamento do UFW."
-
-    sudo ufw allow 22/tcp comment 'Permitir acesso SSH'
-    sudo ufw allow 6443/tcp comment 'K3s API Server'
-    sudo ufw allow 10250/tcp comment 'Kubelet'
-    sudo ufw allow 8472/udp comment 'Flannel VXLAN'
-    # Regra específica para o outro control plane poder acessar o PostgreSQL e a API
-    sudo ufw allow from $K3S_CONTROL_PLANE_1_IP to any port 5432 proto tcp comment 'Acesso ao PostgreSQL do Control Plane 1'
-    sudo ufw allow from $K3S_CONTROL_PLANE_1_IP to any port 6443 proto tcp comment 'Acesso a API K3s do Control Plane 1'
-
-    echo "Reativando o UFW..."
-sudo ufw --force enable
-check_command "Falha ao reativar o UFW."
-
-success_message "Regras de firewall adicionadas e UFW reativado."
+    echo "kubectl configurado para o usuário atual."
 fi
 
-echo -e "\n\e[34m--- 3.5. Verificação Final ---\e[0m"
-
-echo -e "\n\e[32m--- Instalação do K3s Control Plane concluída para $NODE_ROLE ---\e[0m"
+echo -e "\n\e[32m--- Instalação Concluída em $CURRENT_NODE_IP ---\e[0m"

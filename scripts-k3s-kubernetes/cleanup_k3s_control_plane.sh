@@ -5,172 +5,74 @@
 #
 # Descrição:
 #  Este script realiza a limpeza completa de um nó que foi configurado como
-#  control plane do K3s pelo script 'install_k3s_control_plane.sh'. Ele desinstala o K3s,
-#  remove o PostgreSQL (se aplicável), e reverte as configurações do sistema
-#  para um estado limpo, permitindo a reutilização do servidor.
+#  control plane do K3s. Ele desinstala o K3s e reverte as configurações 
+#  para um estado limpo.
 #
 # Funcionalidades:
-#  - Desinstala o K3s (servidor ou agente).
-#  - Remove completamente o PostgreSQL e seus dados.
-#  - Limpa as configurações de rede (/etc/hosts).
-#  - Reverte as configurações do kernel (sysctl).
-#  - Remove arquivos de configuração do kubectl.
+#  - Executa o script oficial de desinstalação (k3s-uninstall.sh).
+#  - Limpa diretórios residuais (/var/lib/rancher, etc).
+#  - Remove entradas do /etc/hosts geradas pela instalação.
 #  - Reabilita o swap.
-#
-# Autor:
-#  Hugllas R. S. Lima
 #
 # Contato:
 #  - https://www.linkedin.com/in/hugllas-r-s-lima/
 #  - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
 #
 # Versão:
-#  1.0
+#  2.0
 #
 # Data:
-#  24/07/2024
-#
-# Pré-requisitos:
-#  - Acesso root ou um usuário com privilégios sudo.
-#  - O script deve ser executado no nó que precisa ser limpo.
+#  27/12/2025
 #
 # Como usar:
-#  1. Dê permissão de execução ao script:
-#     chmod +x cleanup_k3s_control_plane.sh
-#  2. Execute o script com privilégios de root:
-#     sudo ./cleanup_k3s_control_plane.sh
-#  3. Siga as instruções e confirme as ações de limpeza.
+#  1. chmod +x cleanup_k3s_control_plane.sh
+#  2. sudo ./cleanup_k3s_control_plane.sh
 #
 # -----------------------------------------------------------------------------
 
-set -e
+function error_exit { echo -e "\n\e[31mERRO: $1\e[0m" >&2; exit 1; }
+function check_command { if [ $? -ne 0 ]; then error_exit "$1"; fi; }
 
-# --- Funções Auxiliares ---
-
-function print_info {
-    echo "INFO: $1"
-}
-
-function print_warning {
-    echo "AVISO: $1"
-}
-
-function check_root {
-    if [ "$(id -u)" -ne 0 ]; then
-        echo "ERRO: Este script precisa ser executado como root ou com sudo." >&2
-        exit 1
-    fi
-}
-
-# --- Início do Script ---
-
-check_root
-
-echo "--------------------------------------------------------------------"
-echo "--- Script de Limpeza do K3s Master ---"
-echo "--------------------------------------------------------------------"
-echo "Este script irá remover PERMANENTEMENTE o K3s, PostgreSQL e todas as"
-echo "configurações relacionadas aplicadas pelo script de instalação."
-echo "Esta ação não pode ser desfeita."
-echo ""
-read -p "Você tem certeza que deseja continuar? (s/n): " CONFIRM
-    if [[ ! "$CONFIRM" =~ ^([sS][iI][mM]|[sS])$ ]]; then
-        echo "Limpeza cancelada pelo usuário."
-        exit 0
-    fi
-
-echo ""
-print_info "--- 1. Desinstalando o K3s ---"
-    if [ -f /usr/local/bin/k3s-uninstall.sh ]; then
-        /usr/local/bin/k3s-uninstall.sh
-        print_info "K3s desinstalado com sucesso."
-    else
-        print_warning "Script de desinstalação do K3s não encontrado. Pulando esta etapa."
-    fi
-
-# Remove resíduos
-    rm -rf /var/lib/rancher/
-
-echo ""
-print_info "--- 2. Removendo PostgreSQL ---"
-    if dpkg -l | grep -q postgresql; then
-        systemctl stop postgresql
-        systemctl disable postgresql
-        apt-get purge --auto-remove -y postgresql*
-        rm -rf /var/lib/postgresql/
-        rm -rf /etc/postgresql/
-        print_info "PostgreSQL removido completamente."
-    else
-        print_warning "PostgreSQL não parece estar instalado. Pulando esta etapa."
-    fi
-
-echo ""
-print_info "--- 3. Revertendo Configurações do Sistema ---"
-
-print_info "Limpando /etc/hosts..."
-sed -i '/k3s-control-plane-1/d' /etc/hosts
-sed -i '/k3s-control-plane-2/d' /etc/hosts
-sed -i '/k3s-worker-1/d' /etc/hosts
-sed -i '/k3s-worker-2/d' /etc/hosts
-sed -i '/k3s-storage-nfs/d' /etc/hosts
-print_info "Entradas do K3s removidas do /etc/hosts."
-
-print_info "Removendo arquivo de configuração do cluster..."
-# Encontra o arquivo de configuração no mesmo diretório do script de limpeza
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
-CONFIG_FILE_PATH="$SCRIPT_DIR/k3s_cluster_vars.sh"
-if [ -f "$CONFIG_FILE_PATH" ]; then
-    rm -f "$CONFIG_FILE_PATH"
-    print_info "Arquivo de configuração 'k3s_cluster_vars.sh' removido."
-else
-    print_warning "Arquivo de configuração 'k3s_cluster_vars.sh' não encontrado."
+if [ "$EUID" -ne 0 ]; then
+  error_exit "Por favor, execute este script como root (sudo)."
 fi
 
-print_info "Removendo configurações do kernel para Kubernetes..."
-rm -f /etc/sysctl.d/99-kubernetes-cri.conf
-sysctl --system >/dev/null 2>&1 || print_warning "Não foi possível recarregar sysctl (pode já ter sido removido)."
-print_info "Arquivo de sysctl do Kubernetes removido."
+echo -e "\e[34m--- Iniciando limpeza do nó Control Plane ---\e[0m"
+read -p "TEM CERTEZA que deseja remover COMPLETAMENTE o K3s deste nó? (s/n): " confirm
+if [[ ! "$confirm" =~ ^[Ss]$ ]]; then
+    exit 0
+fi
 
-print_info "Reabilitando swap..."
+# 1. Desinstalar K3s
+if [ -f /usr/local/bin/k3s-uninstall.sh ]; then
+    echo "Executando desinstalador do K3s..."
+    /usr/local/bin/k3s-uninstall.sh
+else
+    echo "Desinstalador não encontrado. Tentando parar serviços manualmente..."
+    systemctl stop k3s 2>/dev/null
+    systemctl disable k3s 2>/dev/null
+    rm -f /usr/local/bin/k3s
+    rm -f /etc/systemd/system/k3s.service
+    systemctl daemon-reload
+fi
 
-# Remove o comentário da linha de swap no fstab
-sed -i '/ swap /s/^#//g' /etc/fstab
-swapon -a
-print_info "Swap reabilitado."
+# 2. Limpeza de Arquivos
+echo "Removendo diretórios e configurações residuais..."
+rm -rf /etc/rancher/k3s
+rm -rf /var/lib/rancher/k3s
+rm -rf /var/lib/kubelet
+rm -rf ~/.kube
+rm -f /usr/local/bin/kubectl
+rm -f /usr/local/bin/crictl
 
-echo ""
-print_info "--- 4. Limpando Configurações de Usuário ---"
+# 3. Limpeza de Hosts
+echo "Limpando /etc/hosts..."
+sed -i '/k3s-control-plane/d' /etc/hosts
+sed -i '/k3s-worker/d' /etc/hosts
+sed -i '/k3s-storage-nfs/d' /etc/hosts
 
-# Encontra todos os diretórios home de usuários reais para limpar o .kube
-    for user_home in /home/*; do
-        if [ -d "$user_home/.kube" ]; then
-            print_info "Removendo $user_home/.kube..."
-            rm -rf "$user_home/.kube"
-        fi
-    done
-    if [ -d "/root/.kube" ]; then
-        print_info "Removendo /root/.kube..."
-        rm -rf "/root/.kube"
-    fi
+# 4. Reabilitar Swap (Opcional, mas volta ao estado original)
+# Descomenta linhas de swap no fstab
+sed -i '/ swap / s/^#//' /etc/fstab
 
-echo ""
-print_info "--- 5. Firewall (UFW) ---"
-print_warning "Este script de limpeza NÃO remove as regras de firewall (UFW) adicionadas durante a instalação."
-print_warning "Se desejar reverter o firewall para o padrão, use o comando 'sudo ufw reset'."
-
-
-echo ""
-echo "--------------------------------------------------------------------"
-echo "--- Limpeza concluída! ---"
-echo "--------------------------------------------------------------------"
-echo "É recomendado reiniciar o servidor para garantir que todas as alterações sejam aplicadas corretamente."
-echo ""
-read -p "Deseja reiniciar agora? (s/n): " REBOOT_CONFIRM
-    if [[ "$REBOOT_CONFIRM" =~ ^([sS][iI][mM]|[sS])$ ]]; then
-        echo "Reiniciando o servidor..."
-        reboot
-    else
-        echo "Reinicialização cancelada. Por favor, reinicie manualmente."
-    fi
-
-exit 0
+echo -e "\e[32mLimpeza concluída! O nó está pronto para uma nova instalação ou reinicialização.\e[0m"
