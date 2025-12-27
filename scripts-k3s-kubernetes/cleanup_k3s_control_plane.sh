@@ -5,7 +5,7 @@
 #
 # Descrição:
 #  Este script realiza a limpeza completa de um nó que foi configurado como
-#  master do K3s pelo script 'install_k3s_master.sh'. Ele desinstala o K3s,
+#  control plane do K3s pelo script 'install_k3s_control_plane.sh'. Ele desinstala o K3s,
 #  remove o PostgreSQL (se aplicável), e reverte as configurações do sistema
 #  para um estado limpo, permitindo a reutilização do servidor.
 #
@@ -36,9 +36,9 @@
 #
 # Como usar:
 #  1. Dê permissão de execução ao script:
-#     chmod +x cleanup_k3s_master.sh
+#     chmod +x cleanup_k3s_control_plane.sh
 #  2. Execute o script com privilégios de root:
-#     sudo ./cleanup_k3s_master.sh
+#     sudo ./cleanup_k3s_control_plane.sh
 #  3. Siga as instruções e confirme as ações de limpeza.
 #
 # -----------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
 #
-# Script: install_k3s_master.sh
+# Script: install_k3s_control_plane.sh
 #
 # Descrição:
 #  Este script automatiza a instalação e configuração de um nó Control Plane (Master)
@@ -34,8 +34,8 @@
 #  - IPs estáticos definidos para todos os nós.
 #
 # Como usar:
-#  1. chmod +x install_k3s_master.sh
-#  2. sudo ./install_k3s_master.sh
+#  1. chmod +x install_k3s_control_plane.sh
+#  2. sudo ./install_k3s_control_plane.sh
 #  3. Siga as instruções interativas.
 #
 # -----------------------------------------------------------------------------

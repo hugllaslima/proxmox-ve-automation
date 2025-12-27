@@ -63,7 +63,7 @@ Um desafio comum em ambientes de Datacenter/VPN é o conflito entre a rede inter
 Se você configurar a Rede de Pod do K3s (`--cluster-cidr`) com o mesmo intervalo da sua Rede Física/LAN, o Kubernetes irá "sequestrar" o tráfego da sua placa de rede, derrubando sua conexão SSH e tornando o servidor inacessível.
 
 **A Solução deste Projeto:**
-O script `install_k3s_master.sh` agora distingue explicitamente estas duas redes:
+O script `install_k3s_control_plane.sh` agora distingue explicitamente estas duas redes:
 
 1.  **Rede de PODS (`K3S_POD_CIDR`)**: O intervalo de IPs virtual para os contêineres.
     -   *Padrão:* `10.42.0.0/16`
@@ -107,14 +107,14 @@ A localização dos logs depende do que você está tentando depurar:
 ### Scripts de Instalação
 
 - **`install_nfs_server.sh`**: Configura uma VM para atuar como um servidor NFS, que fornecerá armazenamento persistente para o cluster.
-- **`install_k3s_master.sh`**: Instala e configura um nó de controle (master) do K3s. Possui lógica para diferenciar o primeiro master (que configura o banco de dados) do segundo, para criar um ambiente de alta disponibilidade (HA).
+- **`install_k3s_control_plane.sh`**: Instala e configura um nó de controle (control plane) do K3s. Possui lógica para diferenciar o primeiro control plane (que configura o banco de dados) do segundo, para criar um ambiente de alta disponibilidade (HA).
 - **`install_k3s_worker.sh`**: Instala e configura um nó de trabalho (worker) e o junta ao cluster K3s.
 - **`install_k3s_management.sh`**: Deve ser executado em uma máquina de gerenciamento. Instala `kubectl`, `helm` e implanta addons essenciais: NFS Provisioner (para StorageClasses), MetalLB (para Load Balancers) e Nginx Ingress Controller.
 
 ### Scripts de Limpeza
 
 - **`cleanup_nfs_server.sh`**: Reverte a instalação do servidor NFS.
-- **`cleanup_k3s_master.sh`**: Desinstala o K3s e limpa todas as configurações de um nó de controle.
+- **`cleanup_k3s_control_plane.sh`**: Desinstala o K3s e limpa todas as configurações de um nó de controle.
 - **`cleanup_k3s_worker.sh`**: Desinstala o agente K3s e limpa as configurações de um nó de trabalho.
 - **`cleanup_k3s_management.sh`**: Remove todos os addons (NFS Provisioner, MetalLB, Nginx) e a configuração local do `kubectl`.
 
@@ -133,7 +133,7 @@ cd /opt/k3s
 
 ## 🚀 Ordem de Execução (Fluxo Automatizado)
 
-Com a refatoração dos scripts, o processo de implantação se tornou mais inteligente e seguro. O script `install_k3s_master.sh` agora detecta automaticamente o seu papel (primeiro, segundo ou terceiro master), eliminando a necessidade de intervenção manual para gerenciar tokens.
+Com a refatoração dos scripts, o processo de implantação se tornou mais inteligente e seguro. O script `install_k3s_control_plane.sh` agora detecta automaticamente o seu papel (primeiro, segundo ou terceiro control plane), eliminando a necessidade de intervenção manual para gerenciar tokens.
 
 Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts antes de começar.
 
@@ -146,7 +146,7 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
 2.  **Primeiro Control Plane (`k3s-control-plane-1`)**
     - Execute o script de instalação do master.
     ```bash
-    sudo ./install_k3s_master.sh
+    sudo ./install_k3s_control_plane.sh
     ```
     - Como o script não encontrará um arquivo de configuração, ele fará uma série de perguntas para coletar os dados do cluster.
     - Ao final, ele gerará o arquivo `k3s_cluster_vars.sh` no diretório atual com todas as informações e instalará o K3s. O token do cluster será **salvo automaticamente** neste arquivo.
@@ -163,7 +163,7 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
 4.  **Segundo Control Plane (`k3s-control-plane-2`)**
     - Execute o **mesmo script** de instalação.
     ```bash
-    sudo ./install_k3s_master.sh
+    sudo ./install_k3s_control_plane.sh
     ```
     - O script detectará o arquivo `k3s_cluster_vars.sh`, carregará todas as variáveis (incluindo o token) e configurará o segundo master em modo de alta disponibilidade (HA) **sem fazer nenhuma pergunta**.
 
@@ -201,7 +201,7 @@ Para desmontar o ambiente, utilize os scripts `cleanup_*.sh`. É recomendado seg
 
 1.  **Na máquina de gerenciamento**: Execute `sudo ./cleanup_k3s_addons.sh`.
 2.  **Nos nós workers**: Execute `sudo ./cleanup_k3s_worker.sh`.
-3.  **Nos nós masters**: Execute `sudo ./cleanup_k3s_master.sh`.
+3.  **Nos nós control planes**: Execute `sudo ./cleanup_k3s_control_plane.sh`.
 4.  **Na VM de armazenamento**: Execute `sudo ./cleanup_nfs_server.sh`.
 
 Isso garantirá que os servidores fiquem em um estado limpo e prontos para serem reutilizados.
