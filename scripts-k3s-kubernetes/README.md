@@ -200,13 +200,6 @@ Para desmontar o ambiente, utilize os scripts `cleanup_*.sh`. É recomendado seg
 
 Isso garantirá que os servidores fiquem em um estado limpo e prontos para serem reutilizados.
 
-## 👨‍💻 Autor
-
-**Hugllas R S Lima**
-
-- **GitHub:** [@hugllaslima](https://github.com/hugllaslima)
-- **LinkedIn:** [hugllas-lima](https://www.linkedin.com/in/hugllas-lima/)
-
 ## 🏭 Considerações para Produção
 
 Este ambiente K3s foi projetado para ser robusto e funcional, utilizando componentes reais de produção (MetalLB, Ingress Nginx, PostgreSQL externo). Ele é adequado para ambientes de desenvolvimento, homelab avançado e pequenas/médias empresas.
@@ -222,3 +215,12 @@ No entanto, para ambientes de **Produção Crítica** ("Enterprise"), esteja cie
     - **Recomendação**: Utilize RAID no host Proxmox e faça snapshots regulares da VM de NFS.
 
 Mantendo uma rotina de backups adequada, este cluster entregará alta disponibilidade para a API e eficiência de recursos superior a um cluster Kubernetes tradicional.
+
+## 👨‍💻 Autor
+
+**Hugllas R S Lima**
+
+- **GitHub:** [@hugllaslima](https://github.com/hugllaslima)
+- **LinkedIn:** [hugllas-lima](https://www.linkedin.com/in/hugllas-lima/)
+
+
