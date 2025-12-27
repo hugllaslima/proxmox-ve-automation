@@ -45,7 +45,12 @@
 #
 # -----------------------------------------------------------------------------
 
-# --- Variáveis de Configuração (Serão preenchidas pelo usuário) ---
+# --- Constantes ---
+CONFIG_FILE="k3s_cluster_vars.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+CONFIG_FILE_PATH="$SCRIPT_DIR/$CONFIG_FILE"
+
+# --- Variáveis de Configuração ---
 K3S_CONTROL_PLANE_1_IP=""
 K3S_TOKEN=""
 NFS_SERVER_IP=""
@@ -97,17 +102,35 @@ function get_user_input {
     done
 }
 
+# Função para coletar informações manualmente se o arquivo de configuração não existir
+function gather_info() {
+    echo "Por favor, forneça as informações solicitadas."
+    get_user_input "Digite o IP do k3s-control-plane-1 (endpoint do cluster)" "192.168.10.20" "K3S_CONTROL_PLANE_1_IP"
+    get_user_input "Digite o token do K3s obtido do k3s-control-plane-1" "" "K3S_TOKEN"
+    get_user_input "Digite o IP do servidor NFS (k3s-storage-nfs)" "192.168.10.24" "NFS_SERVER_IP"
+    get_user_input "Digite o caminho do compartilhamento NFS no servidor" "/mnt/k3s-share-nfs/" "NFS_SHARE_PATH"
+}
+
 # --- Início do Script ---
 
 echo "--- Instalação do K3s Worker Node ---"
 echo "Este script irá configurar um nó K3s Worker."
-echo "Por favor, forneça as informações solicitadas."
 
-# Coletar informações do usuário
-get_user_input "Digite o IP do k3s-control-plane-1 (endpoint do cluster)" "192.168.10.20" "K3S_CONTROL_PLANE_1_IP"
-get_user_input "Digite o token do K3s obtido do k3s-control-plane-1" "" "K3S_TOKEN"
-get_user_input "Digite o IP do servidor NFS (k3s-storage-nfs)" "192.168.10.24" "NFS_SERVER_IP"
-get_user_input "Digite o caminho do compartilhamento NFS no servidor" "/mnt/k3s-share-nfs/" "NFS_SHARE_PATH"
+# Tenta carregar o arquivo de configuração
+if [ -f "$CONFIG_FILE_PATH" ]; then
+    echo -e "\e[32mArquivo de configuração encontrado: $CONFIG_FILE\e[0m"
+    echo "Carregando variáveis..."
+    source "$CONFIG_FILE_PATH"
+    
+    # Validação básica
+    if [ -z "$K3S_CONTROL_PLANE_1_IP" ] || [ -z "$K3S_TOKEN" ]; then
+        echo -e "\e[33mAviso: Variáveis essenciais (K3S_CONTROL_PLANE_1_IP ou K3S_TOKEN) estão vazias no arquivo de configuração.\e[0m"
+        gather_info
+    fi
+else
+    echo -e "\e[33mArquivo de configuração não encontrado. Iniciando coleta manual.\e[0m"
+    gather_info
+fi
 
 CURRENT_NODE_IP=$(hostname -I | awk '{print $1}')
 echo "IP detectado para este nó: $CURRENT_NODE_IP"
@@ -144,8 +167,9 @@ sudo sed -i '/k3s-storage-nfs/d' /etc/hosts
 
 sudo tee -a /etc/hosts <<EOF > /dev/null
 $K3S_CONTROL_PLANE_1_IP k3s-control-plane-1
-# Adicione o control-plane-2 se precisar de resolução de nome nos workers
-# 192.168.10.21 k3s-control-plane-2
+${K3S_CONTROL_PLANE_2_IP:+${K3S_CONTROL_PLANE_2_IP} k3s-control-plane-2}
+${K3S_WORKER_1_IP:+${K3S_WORKER_1_IP} k3s-worker-1}
+${K3S_WORKER_2_IP:+${K3S_WORKER_2_IP} k3s-worker-2}
 $CURRENT_NODE_IP $(hostname)
 $NFS_SERVER_IP k3s-storage-nfs
 EOF
