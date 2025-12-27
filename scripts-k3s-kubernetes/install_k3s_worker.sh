@@ -111,6 +111,26 @@ function gather_info() {
     get_user_input "Digite o caminho do compartilhamento NFS no servidor" "/mnt/k3s-share-nfs/" "NFS_SHARE_PATH"
 }
 
+# Função para confirmar as informações
+function confirm_info {
+    echo -e "\n\e[34m--- Por favor, revise as informações fornecidas ---\e[0m"
+    echo "Endpoint do Cluster (Control Plane 1): $K3S_CONTROL_PLANE_1_IP"
+    echo "Token do Cluster: $(if [ -n "$K3S_TOKEN" ]; then echo "(definido)"; else echo "(não definido)"; fi)"
+    echo "IP do Servidor NFS: $NFS_SERVER_IP"
+    echo "Caminho do Compartilhamento NFS: $NFS_SHARE_PATH"
+    echo "IP deste Nó Worker: $CURRENT_NODE_IP"
+    echo -e "\e[34m---------------------------------------------------\e[0m"
+
+    while true; do
+        read -p "As informações acima estão corretas e deseja prosseguir com a instalação? (s/n): " confirm
+        case $confirm in
+            [Ss]* ) break;;
+            [Nn]* ) error_exit "Instalação cancelada. Por favor, ajuste as configurações e tente novamente.";;
+            * ) echo "Por favor, responda 's' ou 'n'.";;
+        esac
+    done
+}
+
 # --- Início do Script ---
 
 echo "--- Instalação do K3s Worker Node ---"
@@ -133,7 +153,9 @@ else
 fi
 
 CURRENT_NODE_IP=$(hostname -I | awk '{print $1}')
-echo "IP detectado para este nó: $CURRENT_NODE_IP"
+
+# Confirmação antes de prosseguir
+confirm_info
 
 echo "--- 1. Preparação do Sistema Operacional ---"
 echo "Atualizando pacotes..."
@@ -143,7 +165,7 @@ sudo apt autoremove -y
 
 echo "Desabilitando swap..."
 sudo swapoff -a
-sudo sed -i '/ swap / s/^|$.*$|$/#\1/g' /etc/fstab
+sudo sed -i '/ swap / s/^\(.*\)$/#\1/g' /etc/fstab
 check_command "Falha ao desabilitar swap."
 
 echo "Configurando módulos do kernel e sysctl..."
