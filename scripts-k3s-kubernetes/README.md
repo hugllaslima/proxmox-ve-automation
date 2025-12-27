@@ -131,6 +131,28 @@ cp -r k3s_cluster_vars.sh /opt/k3s/
 cd /opt/k3s
 ```
 
+## 🔑 Pré-requisitos: Configuração SSH
+
+Para garantir a automação fluida (especialmente para a máquina de gerenciamento), é altamente recomendado configurar a autenticação via chaves SSH. Isso evita que os scripts parem para pedir senhas repetidamente.
+
+**Onde executar:** Na máquina `k3s-management` (ou onde você rodará o script de gerenciamento).
+
+1.  **Gere um par de chaves SSH (caso não tenha):**
+    ```bash
+    ssh-keygen -t ed25519 -C "k3s-management"
+    # Pressione ENTER para todas as perguntas para aceitar o padrão (sem passphrase).
+    ```
+
+2.  **Copie a chave pública para os nós Control Plane:**
+    O script de gerenciamento precisará acessar o `control-plane-1` (principalmente) para buscar configurações.
+    ```bash
+    # Substitua 'usuario' pelo seu usuário nos servidores (ex: ubuntu)
+    ssh-copy-id usuario@192.168.10.20  # k3s-control-plane-1
+    ssh-copy-id usuario@192.168.10.21  # k3s-control-plane-2 (Opcional, mas recomendado para redundância)
+    ```
+
+Com isso, a máquina de gerenciamento terá acesso seguro e sem senha aos servidores, permitindo que o `install_k3s_management.sh` funcione de forma totalmente automatizada.
+
 ## 🚀 Ordem de Execução (Fluxo Automatizado)
 
 Com a refatoração dos scripts, o processo de implantação se tornou mais inteligente e seguro. O script `install_k3s_control_plane.sh` agora detecta automaticamente o seu papel (primeiro, segundo ou terceiro control plane), eliminando a necessidade de intervenção manual para gerenciar tokens.
