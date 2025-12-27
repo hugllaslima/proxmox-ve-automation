@@ -168,11 +168,17 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     - O script detectará o arquivo `k3s_cluster_vars.sh`, carregará todas as variáveis (incluindo o token) e configurará o segundo master em modo de alta disponibilidade (HA) **sem fazer nenhuma pergunta**.
 
 5.  **Nós Workers (`k3s-worker-1`, `k3s-worker-2`)**
-    - Em cada nó de trabalho, execute o script de instalação do worker.
+    - Assim como nos control planes, **copie o diretório de scripts** (contendo `k3s_cluster_vars.sh`) para cada worker.
+    ```bash
+    # Exemplo: Copiando do control-plane-1 para o worker-1
+    scp -r ~/scripts-k3s-kubernetes ubuntu@192.168.10.22:~/
+    ```
+    - Execute o script de instalação do worker:
     ```bash
     sudo ./install_k3s_worker.sh
     ```
-    - O script solicitará o IP de um dos control planes e o token do cluster. Você pode encontrar o token dentro do arquivo `k3s_cluster_vars.sh` no `control-plane-1` ou `control-plane-2`.
+    - **Instalação Automática**: O script detectará o arquivo de configuração e ingressará no cluster automaticamente, sem fazer perguntas.
+    - **Fallback**: Se você não copiar o arquivo de configuração, o script perguntará manualmente o IP do Control Plane e o Token.
 
 6.  **Máquina de Gerenciamento (`k3s-management`)**
     - Após o cluster estar no ar, execute o script de configuração dos addons para instalar `kubectl`, `helm` e os componentes essenciais.
