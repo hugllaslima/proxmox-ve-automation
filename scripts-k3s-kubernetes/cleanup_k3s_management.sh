@@ -1,10 +1,10 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
 #
-# Script: cleanup_k3s_addons.sh
+# Script: cleanup_k3s_management.sh
 #
 # Descrição:
-#  Este script reverte a configuração realizada pelo 'configure_k3s_addons.sh'.
+#  Este script reverte a configuração realizada pelo 'install_k3s_management.sh'.
 #  Ele desinstala os addons (Nginx Ingress, MetalLB, NFS Provisioner) usando
 #  o Helm, remove os namespaces associados e limpa a configuração local do
 #  kubectl. O objetivo é deixar o cluster em um estado limpo, sem os addons.

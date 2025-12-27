@@ -109,14 +109,14 @@ A localização dos logs depende do que você está tentando depurar:
 - **`install_nfs_server.sh`**: Configura uma VM para atuar como um servidor NFS, que fornecerá armazenamento persistente para o cluster.
 - **`install_k3s_master.sh`**: Instala e configura um nó de controle (master) do K3s. Possui lógica para diferenciar o primeiro master (que configura o banco de dados) do segundo, para criar um ambiente de alta disponibilidade (HA).
 - **`install_k3s_worker.sh`**: Instala e configura um nó de trabalho (worker) e o junta ao cluster K3s.
-- **`configure_k3s_addons.sh`**: Deve ser executado em uma máquina de gerenciamento. Instala `kubectl`, `helm` e implanta addons essenciais: NFS Provisioner (para StorageClasses), MetalLB (para Load Balancers) e Nginx Ingress Controller.
+- **`install_k3s_management.sh`**: Deve ser executado em uma máquina de gerenciamento. Instala `kubectl`, `helm` e implanta addons essenciais: NFS Provisioner (para StorageClasses), MetalLB (para Load Balancers) e Nginx Ingress Controller.
 
 ### Scripts de Limpeza
 
 - **`cleanup_nfs_server.sh`**: Reverte a instalação do servidor NFS.
 - **`cleanup_k3s_master.sh`**: Desinstala o K3s e limpa todas as configurações de um nó de controle.
 - **`cleanup_k3s_worker.sh`**: Desinstala o agente K3s e limpa as configurações de um nó de trabalho.
-- **`cleanup_k3s_addons.sh`**: Remove todos os addons (NFS Provisioner, MetalLB, Nginx) e a configuração local do `kubectl`.
+- **`cleanup_k3s_management.sh`**: Remove todos os addons (NFS Provisioner, MetalLB, Nginx) e a configuração local do `kubectl`.
 
 ## 📂 Organização de Diretórios (Recomendação)
 
@@ -184,7 +184,7 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     - Após o cluster estar no ar, execute o script de configuração dos addons para instalar `kubectl`, `helm` e os componentes essenciais.
     - **Recomendação**: Para maior segurança e isolamento, é preferível utilizar uma VM dedicada (`k3s-management`) para a gerência do cluster.
     ```bash
-    sudo ./configure_k3s_addons.sh
+    sudo ./install_k3s_management.sh
     ```
 
 ## 🔒 Nota sobre Segurança e o `.gitignore`

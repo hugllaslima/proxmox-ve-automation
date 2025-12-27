@@ -31,10 +31,10 @@
 #
 # Como usar:
 #   1. Dê permissão de execução ao script:
-#      chmod +x configure_k8s_addons.sh
+#      chmod +x install_k3s_management.sh
 #
 #   2. Execute o script:
-#      ./configure_k8s_addons.sh
+#      ./install_k3s_management.sh
 #
 #   3. Siga as instruções no terminal, fornecendo os IPs e as configurações
 #      solicitadas. O script usará valores padrão se nenhuma entrada for

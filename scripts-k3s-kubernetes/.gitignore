@@ -1,11 +1,11 @@
 # Arquivos de configuração gerados localmente
 *.sh
 !install_k3s_master.sh
-!install_k3s_worker.sh
 !cleanup_k3s_master.sh
+!install_k3s_worker.sh
 !cleanup_k3s_worker.sh
 !install_k3s_management.sh
-!cleanup_k3s_addons.sh
+!cleanup_k3s_management.sh
 !install_nfs_server.sh
 !cleanup_nfs_server.sh
 
