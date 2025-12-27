@@ -127,7 +127,7 @@ Para facilitar a organização e a gestão futura do seu cluster, recomendamos c
 sudo mkdir -p /opt/k3s
 sudo chown $USER:$USER /opt/k3s
 # Copie os scripts para este diretório
-cp -r scripts-k3s-kubernetes/* /opt/k3s/
+cp -r k3s_cluster_vars.sh /opt/k3s/
 cd /opt/k3s
 ```
 
