@@ -210,7 +210,7 @@ if [ -z "$K3S_TOKEN" ]; then
 fi
 
 echo " "
-echo -e "\n\e[34mInstalando K3s como Worker...\e[0m"
+echo -e "\n\e[34m--- Instalando K3s como Worker...\e[0m"
 curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="agent --server https://$K3S_CONTROL_PLANE_1_IP:6443 --token $K3S_TOKEN --node-ip $CURRENT_NODE_IP" sh -
 check_command "Falha ao instalar K3s Worker."
 
