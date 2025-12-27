@@ -1,7 +1,7 @@
 # Arquivos de configuração gerados localmente
 *.sh
-!install_k3s_master.sh
-!cleanup_k3s_master.sh
+!install_k3s_control_plane.sh
+!cleanup_k3s_control_plane.sh
 !install_k3s_worker.sh
 !cleanup_k3s_worker.sh
 !install_k3s_management.sh

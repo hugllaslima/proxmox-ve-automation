@@ -1,7 +1,7 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
 #
-# Script: cleanup_k3s_master.sh
+# Script: cleanup_k3s_control_plane.sh
 #
 # Descrição:
 #  Este script realiza a limpeza completa de um nó que foi configurado como
