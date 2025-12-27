@@ -135,7 +135,7 @@ cd /opt/k3s
 
 Para garantir a automação fluida (especialmente para a máquina de gerenciamento), é altamente recomendado configurar a autenticação via chaves SSH. Isso evita que os scripts parem para pedir senhas repetidamente.
 
-**Onde executar:** Na máquina `k3s-management` (ou onde você rodará o script de gerenciamento)
+**Onde executar:** Na máquina `k3s-management` (ou onde você rodará o script de gerenciamento).
 
 1.  **Gere um par de chaves SSH (caso não tenha):**
     ```bash
