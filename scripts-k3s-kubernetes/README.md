@@ -156,7 +156,7 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     - Use o `scp` a partir do `k3s-control-plane-1`:
     ```bash
     # Exemplo: Copiando para a home do usuário 'ubuntu' no control-plane-2
-    scp -r ~/scripts-k3s-kubernetes ubuntu@192.168.10.21:~/
+    scp -r ~/opt/k3s/k3s_cluster_vars.sh ubuntu@192.168.10.21:~/opt/k3s/
     ```
     - **Importante**: O script precisa do arquivo de configuração gerado na etapa anterior para ingressar no cluster automaticamente.
 
@@ -171,7 +171,7 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     - Assim como nos control planes, **copie o diretório de scripts** (contendo `k3s_cluster_vars.sh`) para cada worker.
     ```bash
     # Exemplo: Copiando do control-plane-1 para o worker-1
-    scp -r ~/scripts-k3s-kubernetes ubuntu@192.168.10.22:~/
+    scp -r ~/opt/k3s/k3s_cluster_vars.sh ubuntu@192.168.10.22:~/opt/k3s/
     ```
     - Execute o script de instalação do worker:
     ```bash

@@ -58,6 +58,7 @@ K3S_CONTROL_PLANE_1_IP=""
 NFS_SERVER_IP=""
 NFS_SHARE_PATH=""
 METALLB_IP_RANGE=""
+SSH_USER=""
 
 # --- Funções Auxiliares ---
 
@@ -101,6 +102,7 @@ function get_user_input {
 # Função para coletar todas as informações manualmente
 function gather_info() {
     get_user_input "Digite o IP do k3s-control-plane-1 (para configurar o kubectl)" "192.168.10.20" "K3S_CONTROL_PLANE_1_IP"
+    get_user_input "Digite o usuário SSH para conectar no control-plane-1" "root" "SSH_USER"
     get_user_input "Digite o IP do servidor NFS (k3s-storage-nfs)" "192.168.10.24" "NFS_SERVER_IP"
     get_user_input "Digite o caminho do compartilhamento NFS no servidor" "/mnt/nfs_share" "NFS_SHARE_PATH"
     get_user_input "Digite a faixa de IPs para o MetalLB (ex: 10.10.3.200-10.10.3.250)" "10.10.3.200-10.10.3.250" "METALLB_IP_RANGE"
@@ -110,6 +112,7 @@ function gather_info() {
 function confirm_info {
     echo -e "\n\e[34m--- Por favor, revise as informações fornecidas ---\e[0m"
     echo "Control Plane IP: $K3S_CONTROL_PLANE_1_IP"
+    echo "Usuario SSH:      $SSH_USER"
     echo "NFS Server IP:    $NFS_SERVER_IP"
     echo "NFS Share Path:   $NFS_SHARE_PATH"
     echo "MetalLB Range:    $METALLB_IP_RANGE"
@@ -141,7 +144,7 @@ if [ -f "$CONFIG_FILE_PATH" ]; then
         K3S_CONTROL_PLANE_1_IP="$K3S_MASTER_1_IP"
     fi
 
-    # Validação e coleta de dados faltantes (especialmente MetalLB)
+    # Validação e coleta de dados faltantes
     if [ -z "$METALLB_IP_RANGE" ]; then
         echo -e "\e[33mAviso: A faixa de IP do MetalLB não está definida no arquivo de configuração.\e[0m"
         get_user_input "Digite a faixa de IPs para o MetalLB (ex: 10.10.3.200-10.10.3.250)" "10.10.3.200-10.10.3.250" "METALLB_IP_RANGE"
@@ -151,6 +154,11 @@ if [ -f "$CONFIG_FILE_PATH" ]; then
     if [ -z "$K3S_CONTROL_PLANE_1_IP" ] || [ -z "$NFS_SERVER_IP" ]; then
          echo -e "\e[33mAviso: Variáveis essenciais (Control Plane ou NFS) faltando. Iniciando coleta manual.\e[0m"
          gather_info
+    else
+        # Se os IPs vieram do arquivo, ainda precisamos do usuário SSH, pois não é salvo lá
+        if [ -z "$SSH_USER" ]; then
+             get_user_input "Digite o usuário SSH para conectar no control-plane-1" "root" "SSH_USER"
+        fi
     fi
 else
     echo -e "\e[33mArquivo de configuração não encontrado. Iniciando coleta manual.\e[0m"
@@ -171,9 +179,9 @@ else
 fi
 
 echo "Copiando kubeconfig do k3s-control-plane-1..."
-# Assume que você tem acesso SSH sem senha ou que irá digitar a senha
-# Alternativamente, você pode copiar o arquivo manualmente
-ssh root@$K3S_CONTROL_PLANE_1_IP "sudo cat /etc/rancher/k3s/k3s.yaml" > "$HOME/.kube/config"
+# Assume que você tem acesso SSH configurado para o usuário especificado
+echo -e "\e[33mAviso: Será necessário digitar a senha do usuário '$SSH_USER' ou 'root' (via sudo) se solicitado.\e[0m"
+ssh "$SSH_USER@$K3S_CONTROL_PLANE_1_IP" "sudo cat /etc/rancher/k3s/k3s.yaml" > "$HOME/.kube/config"
 check_command "Falha ao copiar kubeconfig do k3s-control-plane-1. Verifique o acesso SSH."
 
 mkdir -p "$HOME/.kube"
