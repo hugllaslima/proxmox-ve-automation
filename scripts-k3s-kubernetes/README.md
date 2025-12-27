@@ -177,7 +177,7 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     ```bash
     sudo ./install_k3s_worker.sh
     ```
-    - **Instalação Automática**: O script detectará o arquivo de configuração e ingressará no cluster automaticamente, sem fazer perguntas.
+    - **Instalação Automática**: O script detectará o arquivo de configuração e ingressará no cluster automaticamente, solicitando apenas uma confirmação final para segurança.
     - **Fallback**: Se você não copiar o arquivo de configuração, o script perguntará manualmente o IP do Control Plane e o Token.
 
 6.  **Máquina de Gerenciamento (`k3s-management`)**
