@@ -4,8 +4,10 @@
 !install_k3s_worker.sh
 !cleanup_k3s_master.sh
 !cleanup_k3s_worker.sh
-!configure_k3s_addons.sh
+!install_k3s_management.sh
 !cleanup_k3s_addons.sh
+!install_nfs_server.sh
+!cleanup_nfs_server.sh
 
 # Arquivos de log
 *.log
