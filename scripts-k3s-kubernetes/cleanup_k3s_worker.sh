@@ -92,13 +92,26 @@ echo ""
 print_info "--- 2. Revertendo Configurações do Sistema ---"
 
 print_info "Limpando /etc/hosts..."
-# Remove as entradas específicas do cluster, mas pode deixar a do próprio host
+# Remove as entradas específicas do cluster
 sed -i '/k3s-control-plane-1/d' /etc/hosts
 sed -i '/k3s-control-plane-2/d' /etc/hosts
+sed -i '/k3s-worker-1/d' /etc/hosts
+sed -i '/k3s-worker-2/d' /etc/hosts
 sed -i '/k3s-storage-nfs/d' /etc/hosts
-# Remove a entrada do próprio hostname, se existir
+# Remove a entrada do próprio hostname, se existir explicitamente adicionada pelo script
 sed -i "/$(hostname)/d" /etc/hosts
 print_info "Entradas do Kubernetes removidas do /etc/hosts."
+
+print_info "Removendo arquivo de configuração do cluster..."
+# Encontra o arquivo de configuração no mesmo diretório do script de limpeza
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+CONFIG_FILE_PATH="$SCRIPT_DIR/k3s_cluster_vars.sh"
+if [ -f "$CONFIG_FILE_PATH" ]; then
+    rm -f "$CONFIG_FILE_PATH"
+    print_info "Arquivo de configuração 'k3s_cluster_vars.sh' removido."
+else
+    print_warning "Arquivo de configuração 'k3s_cluster_vars.sh' não encontrado."
+fi
 
 print_info "Removendo configurações do kernel para Kubernetes..."
 rm -f /etc/sysctl.d/99-kubernetes-cri.conf
