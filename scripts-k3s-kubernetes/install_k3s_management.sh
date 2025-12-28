@@ -132,7 +132,7 @@ function confirm_info {
 
 # --- Início do Script ---
 
-echo "--- Configuração de Addons do Kubernetes ---"
+echo -e "\e[34m--- Configuração de Addons do Kubernetes ---\e[0m"
 echo "Este script irá configurar o kubectl e instalar o NFS Provisioner, MetalLB e Nginx Ingress Controller."
 
 # Tenta carregar o arquivo de configuração
@@ -170,7 +170,7 @@ fi
 # Confirmação antes de prosseguir
 confirm_info
 
-echo "--- 1. Configurando kubectl ---"
+echo -e "\e[34m--- 1. Configurando kubectl ---\e[0m"
 if ! command -v kubectl &> /dev/null; then
     echo "kubectl não encontrado. Instalando kubectl..."
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
@@ -181,19 +181,21 @@ else
 fi
 
 echo "Copiando kubeconfig do k3s-control-plane-1..."
+# Cria o diretório .kube antes de tentar copiar
+mkdir -p "$HOME/.kube"
+
 # Assume que você tem acesso SSH configurado para o usuário especificado
 echo -e "\e[33mAviso: Será necessário digitar a senha do usuário '$SSH_USER' ou 'root' (via sudo) se solicitado.\e[0m"
 ssh "$SSH_USER@$K3S_CONTROL_PLANE_1_IP" "sudo cat /etc/rancher/k3s/k3s.yaml" > "$HOME/.kube/config"
 check_command "Falha ao copiar kubeconfig do k3s-control-plane-1. Verifique o acesso SSH."
 
-mkdir -p "$HOME/.kube"
 chmod 600 "$HOME/.kube/config"
 sed -i "s/127.0.0.1/$K3S_CONTROL_PLANE_1_IP/" "$HOME/.kube/config"
 echo "kubectl configurado. Verificando conexão com o cluster..."
 kubectl get nodes
 check_command "Falha ao conectar ao cluster Kubernetes. Verifique o IP do control-plane e o kubeconfig."
 
-echo "--- 2. Instalando Helm ---"
+echo -e "\e[34m--- 2. Instalando Helm ---\e[0m"
 if ! command -v helm &> /dev/null; then
     echo "Helm não encontrado. Instalando Helm..."
     curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
@@ -202,7 +204,7 @@ else
     echo "Helm já está instalado."
 fi
 
-echo "--- 3. Instalando NFS Subdir External Provisioner ---"
+echo -e "\e[34m--- 3. Instalando NFS Subdir External Provisioner ---\e[0m"
 helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
 helm repo update
 kubectl create namespace nfs-provisioner --dry-run=client -o yaml | kubectl apply -f -
@@ -221,6 +223,14 @@ helm repo update
 kubectl create namespace metallb-system --dry-run=client -o yaml | kubectl apply -f -
 helm upgrade --install metallb metallb/metallb --namespace metallb-system
 check_command "Falha ao instalar MetalLB."
+
+echo "Aguardando os pods do MetalLB ficarem prontos (pode levar alguns instantes)..."
+# Aguarda até que os pods do controller e speaker estejam prontos
+kubectl wait --namespace metallb-system \
+  --for=condition=ready pod \
+  --selector=app.kubernetes.io/name=metallb \
+  --timeout=120s
+
 echo "MetalLB instalado. Configurando IPAddressPool..."
 
 cat <<EOF | kubectl apply -f -
@@ -256,7 +266,7 @@ helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
 check_command "Falha ao instalar Nginx Ingress Controller."
 echo "Nginx Ingress Controller instalado."
 
-echo "--- Configuração de Addons do Kubernetes concluída ---"
+echo -e "\e[34m--- Configuração de Addons do Kubernetes concluída ---\e[0m"
 echo "Verifique o status dos componentes:"
 echo "kubectl get pods -n nfs-provisioner"
 echo "kubectl get pods -n metallb-system"
