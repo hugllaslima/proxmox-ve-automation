@@ -123,7 +123,7 @@ A localização dos logs depende do que você está tentando depurar:
 
 - **`install_nfs_server.sh`**: Configura uma VM para atuar como um servidor NFS, que fornecerá armazenamento persistente para o cluster.
 - **`install_k3s_control_plane.sh`**: Instala e configura um nó de controle (control plane) do K3s. Possui lógica para diferenciar o primeiro control plane (que configura o banco de dados) do segundo, para criar um ambiente de alta disponibilidade (HA).
-- **`install_k3s_worker.sh`**: Instala e configura um nó de trabalho (worker) e o junta ao cluster K3s.
+- **`install_k3s_worker.sh`**: Instala e configura um nó de trabalho (worker) e o junta ao cluster K3s. Instala automaticamente dependências de sistema como `nfs-common` para garantir o funcionamento de volumes persistentes.
 - **`install_k3s_management.sh`**: Deve ser executado em uma máquina de gerenciamento. Instala `kubectl`, `helm` e implanta addons essenciais: NFS Provisioner (para StorageClasses), MetalLB (para Load Balancers) e Nginx Ingress Controller.
 
 ### Scripts de Verificação
@@ -143,8 +143,8 @@ A localização dos logs depende do que você está tentando depurar:
 ### Scripts de Limpeza
 
 - **`cleanup_nfs_server.sh`**: Reverte a instalação do servidor NFS.
-- **`cleanup_k3s_control_plane.sh`**: Desinstala o K3s e limpa todas as configurações de um nó de controle.
-- **`cleanup_k3s_worker.sh`**: Desinstala o agente K3s e limpa as configurações de um nó de trabalho.
+- **`cleanup_k3s_control_plane.sh`**: Realiza uma limpeza profunda em um nó de controle: desinstala K3s, remove binários, limpa regras de firewall (UFW), remove entradas no `/etc/hosts` e exclui arquivos de variáveis.
+- **`cleanup_k3s_worker.sh`**: Realiza uma limpeza profunda em um nó de trabalho: desinstala o agente, limpa firewall e configurações de sistema.
 - **`cleanup_k3s_management.sh`**: Remove todos os addons (NFS Provisioner, MetalLB, Nginx) e a configuração local do `kubectl`.
 
 ## 📂 Organização de Diretórios (Recomendação)
@@ -303,7 +303,7 @@ Ele garante que apenas os scripts principais do projeto sejam rastreados pelo Gi
 
 Para desmontar o ambiente, utilize os scripts `cleanup_*.sh`. É recomendado seguir a ordem inversa da instalação:
 
-1.  **Na máquina de gerenciamento**: Execute `sudo ./cleanup_k3s_addons.sh`.
+1.  **Na máquina de gerenciamento**: Execute `./cleanup_k3s_management.sh` (sem sudo).
 2.  **Nos nós workers**: Execute `sudo ./cleanup_k3s_worker.sh`.
 3.  **Nos nós control planes**: Execute `sudo ./cleanup_k3s_control_plane.sh`.
 4.  **Na VM de armazenamento**: Execute `sudo ./cleanup_nfs_server.sh`.
@@ -350,9 +350,10 @@ Este ambiente K3s foi projetado para ser robusto e funcional, utilizando compone
 
 No entanto, para ambientes de **Produção Crítica** ("Enterprise"), esteja ciente dos seguintes **Pontos de Atenção**:
 
-1.  **Banco de Dados (SPOF)**:
-    - O PostgreSQL está instalado no `k3s-control-plane-1`. Se esta VM for perdida sem backup, o cluster perderá seu estado, mesmo com um segundo control-plane ativo.
-    - **Recomendação**: Mantenha backups diários/horários desta VM ou externalize o banco de dados.
+1.  **Banco de Dados (Etcd)**:
+    - Este projeto utiliza Etcd embarcado em alta disponibilidade (3 nós). O cluster pode sobreviver à perda de 1 nó de controle sem interrupção.
+    - **Risco**: Se você perder 2 nós de controle simultaneamente, perderá o Quorum e o cluster parará.
+    - **Recomendação**: Mantenha backups dos snapshots do Etcd (veja seção de Backup).
 
 2.  **Storage NFS (SPOF)**:
     - O armazenamento persistente depende de uma única VM (`k3s-storage-nfs`). Falhas nela afetarão todos os Pods com volumes persistentes.
