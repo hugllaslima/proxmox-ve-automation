@@ -168,6 +168,8 @@ elif [ "$STATUS" == "Failed" ]; then
     kubectl logs test-nfs-pod-verify
 else
     echo -e "\e[31mTIMEOUT: O Pod de teste demorou muito para responder.\e[0m"
+    echo "Dica: Verifique se o pacote 'nfs-common' está instalado em TODOS os nós (Control Planes e Workers)."
+    echo "      Se o pod ficar em 'ContainerCreating', é quase certeza que falta o cliente NFS."
 fi
 
 # Limpeza

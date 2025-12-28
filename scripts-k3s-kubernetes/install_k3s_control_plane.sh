@@ -232,6 +232,11 @@ echo -e "\n\e[34m--- 1. Preparação do Sistema Operacional ---\e[0m"
 echo "Atualizando pacotes..."
 sudo apt update && sudo apt upgrade -y
 check_command "Falha ao atualizar pacotes."
+
+echo "Instalando dependências (nfs-common)..."
+sudo apt install -y nfs-common
+check_command "Falha ao instalar nfs-common."
+
 sudo apt autoremove -y
 success_message "Pacotes atualizados."
 
