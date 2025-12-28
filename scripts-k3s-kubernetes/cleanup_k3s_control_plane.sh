@@ -12,6 +12,7 @@
 #  - Executa o script oficial de desinstalação (k3s-uninstall.sh).
 #  - Limpa diretórios residuais (/var/lib/rancher, etc).
 #  - Remove entradas do /etc/hosts geradas pela instalação.
+#  - Reverte configurações do Firewall (UFW) para o estado original.
 #  - Reabilita o swap.
 #
 # Contato:
@@ -29,6 +30,11 @@
 #  2. sudo ./cleanup_k3s_control_plane.sh
 #
 # -----------------------------------------------------------------------------
+
+# --- Constantes ---
+CONFIG_FILE="k3s_cluster_vars.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
+CONFIG_FILE_PATH="$SCRIPT_DIR/$CONFIG_FILE"
 
 function error_exit { echo -e "\n\e[31mERRO: $1\e[0m" >&2; exit 1; }
 function check_command { if [ $? -ne 0 ]; then error_exit "$1"; fi; }
@@ -64,6 +70,12 @@ rm -rf /var/lib/kubelet
 rm -rf ~/.kube
 rm -f /usr/local/bin/kubectl
 rm -f /usr/local/bin/crictl
+rm -f /etc/sysctl.d/99-kubernetes-cri.conf
+
+if [ -f "$CONFIG_FILE_PATH" ]; then
+    echo "Removendo arquivo de variáveis ($CONFIG_FILE_PATH)..."
+    rm -f "$CONFIG_FILE_PATH"
+fi
 
 # 3. Limpeza de Hosts
 echo "Limpando /etc/hosts..."
@@ -71,7 +83,19 @@ sed -i '/k3s-control-plane/d' /etc/hosts
 sed -i '/k3s-worker/d' /etc/hosts
 sed -i '/k3s-storage-nfs/d' /etc/hosts
 
-# 4. Reabilitar Swap (Opcional, mas volta ao estado original)
+# 4. Limpeza de Firewall (UFW)
+echo "Revertendo configurações do Firewall (UFW)..."
+ufw delete allow 6443/tcp >/dev/null 2>&1
+ufw delete allow 10250/tcp >/dev/null 2>&1
+ufw delete allow 8472/udp >/dev/null 2>&1
+# Reverte política de encaminhamento para DROP (padrão seguro)
+if grep -q 'DEFAULT_FORWARD_POLICY="ACCEPT"' /etc/default/ufw; then
+    sed -i 's/DEFAULT_FORWARD_POLICY="ACCEPT"/DEFAULT_FORWARD_POLICY="DROP"/g' /etc/default/ufw
+    echo "Política de encaminhamento UFW revertida para DROP."
+fi
+ufw reload >/dev/null 2>&1
+
+# 5. Reabilitar Swap (Opcional, mas volta ao estado original)
 # Descomenta linhas de swap no fstab
 sed -i '/ swap / s/^#//' /etc/fstab
 
