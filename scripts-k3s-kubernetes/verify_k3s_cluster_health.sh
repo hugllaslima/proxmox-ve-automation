@@ -11,7 +11,7 @@
 #  - Verifica o status de todos os nós (Ready/NotReady).
 #  - Valida se os Control Planes estão operacionais.
 #  - Checa se os pods do namespace kube-system estão rodando corretamente.
-#  - Verifica membros do Etcd (se executado com permissões adequadas).
+#  - Verifica membros do Etcd (apenas se executado localmente em um Control Plane).
 #
 # Contato:
 #  - https://www.linkedin.com/in/hugllas-r-s-lima/
@@ -29,7 +29,7 @@
 #
 # Como usar:
 #  1. chmod +x verify_k3s_cluster_health.sh
-#  2. sudo ./verify_k3s_cluster_health.sh
+#  2. ./verify_k3s_cluster_health.sh (Não requer sudo se o kubectl estiver configurado para o usuário)
 #
 # -----------------------------------------------------------------------------
 
@@ -40,7 +40,7 @@ function print_header {
 
 function check_command {
     if ! command -v $1 &> /dev/null; then
-        echo -e "\e[31mErro: Comando '$1' não encontrado. Você está rodando isso em um nó K3s instalado?\e[0m"
+        echo -e "\e[31mErro: Comando '$1' não encontrado. Verifique se o ambiente tem as ferramentas necessárias.\e[0m"
         exit 1
     fi
 }
@@ -49,14 +49,14 @@ function check_command {
 check_command kubectl
 
 print_header "1. Status dos Nós (Nodes)"
-sudo kubectl get nodes -o wide
+kubectl get nodes -o wide
 echo -e "\nVerificando contagem de nós..."
-NODE_COUNT=$(sudo kubectl get nodes --no-headers | wc -l)
+NODE_COUNT=$(kubectl get nodes --no-headers | wc -l)
 echo "Total de nós detectados: $NODE_COUNT"
 
 print_header "2. Status dos Control Planes"
 # Filtra apenas os nós que são control-plane/master
-CP_NODES=$(sudo kubectl get nodes --selector='node-role.kubernetes.io/control-plane' --no-headers)
+CP_NODES=$(kubectl get nodes --selector='node-role.kubernetes.io/control-plane' --no-headers)
 echo "$CP_NODES"
 echo ""
 if echo "$CP_NODES" | grep -q "NotReady"; then
@@ -66,9 +66,9 @@ else
 fi
 
 print_header "3. Status dos Pods do Sistema (kube-system)"
-sudo kubectl get pods -n kube-system -o wide
+kubectl get pods -n kube-system -o wide
 echo ""
-NOT_RUNNING=$(sudo kubectl get pods -n kube-system --field-selector=status.phase!=Running,status.phase!=Succeeded --no-headers 2>/dev/null)
+NOT_RUNNING=$(kubectl get pods -n kube-system --field-selector=status.phase!=Running,status.phase!=Succeeded --no-headers 2>/dev/null)
 if [ -n "$NOT_RUNNING" ]; then
     echo -e "\e[33mAtenção: Existem pods no namespace kube-system que não estão 'Running' ou 'Completed':\e[0m"
     echo "$NOT_RUNNING"

@@ -266,6 +266,22 @@ helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
 check_command "Falha ao instalar Nginx Ingress Controller."
 echo "Nginx Ingress Controller instalado."
 
+echo -e "\e[34m--- 6. Instalando K9s (Terminal UI) ---\e[0m"
+if ! command -v k9s &> /dev/null; then
+    echo "K9s não encontrado. Instalando K9s..."
+    # Baixa a última versão do K9s
+    K9S_VERSION=$(curl -s https://api.github.com/repos/derailed/k9s/releases/latest | grep "tag_name" | cut -d '"' -f 4)
+    echo "Baixando versão: $K9S_VERSION"
+    curl -Lo k9s.tar.gz "https://github.com/derailed/k9s/releases/download/${K9S_VERSION}/k9s_Linux_amd64.tar.gz"
+    tar -xzf k9s.tar.gz
+    sudo install -o root -g root -m 0755 k9s /usr/local/bin/k9s
+    rm k9s k9s.tar.gz
+    check_command "Falha ao instalar K9s."
+    echo "K9s instalado com sucesso!"
+else
+    echo "K9s já está instalado."
+fi
+
 echo -e "\e[34m--- Configuração de Addons do Kubernetes concluída ---\e[0m"
 echo "Verifique o status dos componentes:"
 echo "kubectl get pods -n nfs-provisioner"
