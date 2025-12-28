@@ -408,5 +408,3 @@ Mantendo uma rotina de backups adequada, este cluster entregará alta disponibil
 
 - **GitHub:** [@hugllaslima](https://github.com/hugllaslima)
 - **LinkedIn:** [hugllas-lima](https://www.linkedin.com/in/hugllas-lima/)
-
-
