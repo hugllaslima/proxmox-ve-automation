@@ -129,6 +129,7 @@ A localização dos logs depende do que você está tentando depurar:
 ### Scripts de Verificação
 
 - **`verify_k3s_cluster_health.sh`**: Realiza um diagnóstico completo da saúde do cluster. Verifica o status dos nós, se os pods essenciais do sistema (`kube-system`) estão rodando e valida a consistência do cluster. Ideal para rodar logo após a instalação.
+- **`verify_k3s_addons.sh`**: Executa testes funcionais nos addons (NFS, MetalLB, Ingress). Ele cria recursos temporários para garantir que o armazenamento está gravando e que o LoadBalancer está distribuindo IPs corretamente.
 
 ### Scripts de Manutenção
 
