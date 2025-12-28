@@ -239,6 +239,58 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     ./install_k3s_management.sh
     ```
 
+## 🩺 Guia de Verificação e Solução de Problemas
+
+Esta seção detalha os scripts auxiliares criados para garantir a saúde do cluster e resolver conflitos comuns. Use-os para validar sua instalação ou diagnosticar problemas.
+
+### 1. `verify_k3s_cluster_health.sh` (Saúde do Cluster)
+
+**O que faz:** Realiza um "check-up" completo do cluster, verificando nós, pods do sistema e o banco de dados Etcd.
+
+- **Quando usar:**
+  - Logo após terminar a instalação dos Control Planes e Workers.
+  - Antes de realizar manutenções ou upgrades.
+  - Sempre que suspeitar de lentidão ou falhas nos nós.
+- **Como usar:**
+  Execute em qualquer nó do cluster (Control Plane ou Worker) com `sudo`:
+  ```bash
+  sudo ./verify_k3s_cluster_health.sh
+  ```
+- **Por que usar:**
+  Para ter certeza de que a base do seu cluster (o K3s em si) está sólida antes de tentar rodar aplicações nele. Ele detecta nós "NotReady", valida a consistência do quórum do Etcd (em setups HA) e identifica pods do sistema (`kube-system`) travados ou em loop de erro.
+
+### 2. `verify_k3s_management_addons.sh` (Teste de Funcionalidade)
+
+**O que faz:** Testa se os "Addons" de gerenciamento (NFS, MetalLB, Ingress) estão realmente funcionando, criando recursos de teste temporários.
+
+- **Quando usar:**
+  - Após rodar o script de instalação da máquina de gerenciamento (`install_k3s_management.sh`).
+  - Se suas aplicações não estiverem pegando IP externo (LoadBalancer).
+  - Se seus volumes persistentes (PVCs) ficarem presos em "Pending".
+- **Como usar:**
+  Execute **apenas** na máquina de gerenciamento (`k3s-management`):
+  ```bash
+  ./verify_k3s_management_addons.sh
+  ```
+- **Por que usar:**
+  Diferente do *health check*, este script prova que o cluster é **funcional** para o usuário final. Ele garante que o Storage (NFS) consegue gravar dados reais e que a Rede (MetalLB) consegue atribuir IPs válidos, simulando o uso real de uma aplicação.
+
+### 3. `verify_fix_ingress_conflict.sh` (Correção de Conflito de Portas)
+
+**O que faz:** Desativa o Traefik e o ServiceLB (Klipper) nativos do K3s para permitir que o Nginx Ingress Controller e o MetalLB funcionem sem conflitos nas portas 80 e 443.
+
+- **Quando usar:**
+  - Se você instalou o cluster utilizando versões antigas dos scripts (antes da correção automática na instalação).
+  - Se notar que o Nginx Ingress não inicia ou que as portas 80/443 já estão em uso.
+  - Se reinstalou o K3s manualmente sem passar as flags `--disable traefik --disable servicelb`.
+- **Como usar:**
+  Execute em **TODOS** os nós do Control Plane (`control-plane-1`, `2`, `3`):
+  ```bash
+  sudo ./verify_fix_ingress_conflict.sh
+  ```
+- **Por que usar:**
+  O K3s vem com o Traefik e o ServiceLB habilitados por padrão. Se tentarmos instalar o Nginx Ingress e o MetalLB (nossa stack escolhida) sem desativar os padrões, haverá conflito de portas e IPs. Este script resolve a disputa ajustando o `config.yaml` do K3s e reiniciando o serviço, garantindo que o Nginx assuma o controle do tráfego.
+
 ## 🔒 Nota sobre Segurança e o `.gitignore`
 
 Você notará um arquivo `.gitignore` neste diretório. Sua finalidade é ser uma **medida de segurança preventiva para o seu ambiente de desenvolvimento local**.
