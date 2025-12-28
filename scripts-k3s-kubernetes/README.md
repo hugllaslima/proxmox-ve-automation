@@ -37,8 +37,8 @@ Antes de iniciar a instalação, é fundamental planejar sua rede e acessos para
 
 ### 1. Reserva de IPs (MetalLB)
 O cluster utilizará o **MetalLB** como Load Balancer para expor serviços (como o Ingress Controller) na sua rede local.
-- **Requisito**: Reserve uma faixa de IPs na sua rede (LAN) que **não** esteja sendo distribuída pelo seu servidor DHCP (roteador).
-- **Quantidade**: Um pool pequeno é suficiente. Recomenda-se reservar entre **5 a 10 IPs**.
+- **Requisito**: Reserve uma faixa de IPs na sua rede (LAN) que não esteja sendo distribuída pelo seu servidor DHCP (roteador).
+- **Quantidade**: Um pool pequeno é suficiente. Recomenda-se reservar entre 5 a 10 IPs.
 - **Exemplo**: Se sua rede é `192.168.10.0/24` e o DHCP vai até `.200`, você pode reservar de `192.168.10.240` a `192.168.10.250`.
 
 ### 2. Usuário de Sistema
@@ -216,10 +216,10 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     ```bash
     sudo ./install_k3s_control_plane.sh
     ```
-    - O script detectará o arquivo `k3s_cluster_vars.sh`, carregará todas as variáveis (incluindo o token) e configurará o segundo master em modo de alta disponibilidade (HA) **sem fazer nenhuma pergunta**.
+    - O script detectará o arquivo `k3s_cluster_vars.sh`, carregará todas as variáveis (incluindo o token) e configurará o segundo master em modo de alta disponibilidade (HA) sem fazer nenhuma pergunta.
 
 5.  **Nós Workers (`k3s-worker-1`, `k3s-worker-2`)**
-    - Assim como nos control planes, **copie o diretório de scripts** (contendo `k3s_cluster_vars.sh`) para cada worker.
+    - Assim como nos control planes, copie o diretório de scripts (contendo `k3s_cluster_vars.sh`) para cada worker.
     ```bash
     # Exemplo: Copiando do control-plane-1 para o worker-1
     scp -r ~/opt/k3s/k3s_cluster_vars.sh ubuntu@192.168.10.22:~/opt/k3s/
@@ -293,7 +293,7 @@ Esta seção detalha os scripts auxiliares criados para garantir a saúde do clu
 
 ## 🔒 Nota sobre Segurança e o `.gitignore`
 
-Você notará um arquivo `.gitignore` neste diretório. Sua finalidade é ser uma **medida de segurança preventiva para o seu ambiente de desenvolvimento local**.
+Você notará um arquivo `.gitignore` neste diretório. Sua finalidade é ser uma medida de segurança preventiva para o seu ambiente de desenvolvimento local.
 
 Durante testes, é possível que você execute os scripts na sua própria máquina, o que geraria o arquivo de configuração `k3s_cluster_vars.sh` com dados sensíveis. O `.gitignore` está configurado para ignorar explicitamente este tipo de arquivo gerado localmente, garantindo que você nunca o envie acidentalmente para o seu repositório público no GitHub.
 
