@@ -300,7 +300,9 @@ if [ "$NODE_ROLE" == "CONTROL_PLANE_INITIAL" ]; then
         --tls-san $K3S_CONTROL_PLANE_1_IP \
         --tls-san $K3S_CONTROL_PLANE_2_IP \
         --tls-san $K3S_CONTROL_PLANE_3_IP \
-        --cluster-cidr $K3S_POD_CIDR"
+        --cluster-cidr $K3S_POD_CIDR \
+        --disable traefik \
+        --disable servicelb"
 
     curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC="$K3S_EXEC_ARGS" sh -
     check_command "Falha ao instalar binários do K3s (Init)."
@@ -315,7 +317,9 @@ elif [ "$NODE_ROLE" == "CONTROL_PLANE_JOIN" ]; then
         --tls-san $K3S_CONTROL_PLANE_1_IP \
         --tls-san $K3S_CONTROL_PLANE_2_IP \
         --tls-san $K3S_CONTROL_PLANE_3_IP \
-        --cluster-cidr $K3S_POD_CIDR"
+        --cluster-cidr $K3S_POD_CIDR \
+        --disable traefik \
+        --disable servicelb"
 
     curl -sfL https://get.k3s.io | INSTALL_K3S_SKIP_START=true INSTALL_K3S_EXEC="$K3S_EXEC_ARGS" sh -
     check_command "Falha ao instalar binários do K3s (Join)."
