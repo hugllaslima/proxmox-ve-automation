@@ -112,6 +112,10 @@ A localização dos logs depende do que você está tentando depurar:
 - **`install_k3s_worker.sh`**: Instala e configura um nó de trabalho (worker) e o junta ao cluster K3s.
 - **`install_k3s_management.sh`**: Deve ser executado em uma máquina de gerenciamento. Instala `kubectl`, `helm` e implanta addons essenciais: NFS Provisioner (para StorageClasses), MetalLB (para Load Balancers) e Nginx Ingress Controller.
 
+### Scripts de Verificação
+
+- **`verify_k3s_cluster_health.sh`**: Realiza um diagnóstico completo da saúde do cluster. Verifica o status dos nós, se os pods essenciais do sistema (`kube-system`) estão rodando e valida a consistência do cluster. Ideal para rodar logo após a instalação.
+
 ### Scripts de Limpeza
 
 - **`cleanup_nfs_server.sh`**: Reverte a instalação do servidor NFS.
@@ -229,6 +233,40 @@ Para desmontar o ambiente, utilize os scripts `cleanup_*.sh`. É recomendado seg
 
 Isso garantirá que os servidores fiquem em um estado limpo e prontos para serem reutilizados.
 
+## 💾 Estratégias de Backup e Recuperação
+
+A alta disponibilidade (HA) protege contra falhas de hardware, mas não contra erros humanos ou corrupção catastrófica de dados. Implementar uma rotina de backup é obrigatório.
+
+### 1. Nível Proxmox VE (Infraestrutura)
+
+O Proxmox Backup Server (PBS) ou os backups nativos do Proxmox são a primeira linha de defesa.
+
+-   **O que backupear**:
+    -   Todas as VMs do Control Plane (`k3s-control-plane-*`).
+    -   A VM de Storage NFS (`k3s-storage-nfs`).
+-   **Frequência Recomendada**: Diária.
+-   **Modo**: Utilize o modo "Snapshot" para evitar downtime das VMs.
+
+### 2. Nível Kubernetes/K3s (Aplicação e Estado)
+
+Para recuperações granulares ou migração de cluster, você deve fazer backup do estado do K3s (Etcd).
+
+-   **Backup do Etcd (Automático pelo K3s)**:
+    -   O K3s, por padrão, já realiza snapshots do etcd a cada 12 horas e retém os últimos 5.
+    -   Localização: `/var/lib/rancher/k3s/server/db/snapshots/`
+-   **Backup Manual do Etcd**:
+    -   Você pode forçar um backup a qualquer momento executando no control plane:
+        ```bash
+        sudo k3s etcd-snapshot save
+        ```
+-   **Recuperação (Disaster Recovery)**:
+    -   Em caso de perda total do cluster, você pode restaurar o estado usando um desses snapshots durante a instalação de um novo nó inicial.
+
+### 3. Nível de Armazenamento (Dados Persistentes)
+
+-   Os dados das suas aplicações vivem na VM `k3s-storage-nfs`.
+-   Garanta que o diretório exportado (`/mnt/k3s-share-nfs` ou similar) esteja incluído nos backups da VM ou sincronizado com um local externo (ex: via `rsync` ou backup em nuvem).
+
 ## 🏭 Considerações para Produção
 
 Este ambiente K3s foi projetado para ser robusto e funcional, utilizando componentes reais de produção (MetalLB, Ingress Nginx, PostgreSQL externo). Ele é adequado para ambientes de desenvolvimento, homelab avançado e pequenas/médias empresas.
@@ -244,6 +282,8 @@ No entanto, para ambientes de **Produção Crítica** ("Enterprise"), esteja cie
     - **Recomendação**: Utilize RAID no host Proxmox e faça snapshots regulares da VM de NFS.
 
 Mantendo uma rotina de backups adequada, este cluster entregará alta disponibilidade para a API e eficiência de recursos superior a um cluster Kubernetes tradicional.
+
+---
 
 ## 👨‍💻 Autor
 
