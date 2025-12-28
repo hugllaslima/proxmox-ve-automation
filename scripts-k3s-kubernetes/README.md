@@ -291,6 +291,45 @@ Esta seção detalha os scripts auxiliares criados para garantir a saúde do clu
 - **Por que usar:**
   O K3s vem com o Traefik e o ServiceLB habilitados por padrão. Se tentarmos instalar o Nginx Ingress e o MetalLB (nossa stack escolhida) sem desativar os padrões, haverá conflito de portas e IPs. Este script resolve a disputa ajustando o `config.yaml` do K3s e reiniciando o serviço, garantindo que o Nginx assuma o controle do tráfego.
 
+### 4. `k9s` (Monitoramento Interativo)
+
+**O que faz:** Uma interface de terminal (TUI) poderosa para gerenciar e monitorar o cluster em tempo real. Pense nele como um "Gerenciador de Tarefas" para o Kubernetes.
+
+- **Quando usar:**
+  - Para monitorar logs de pods em tempo real.
+  - Para navegar rapidamente entre namespaces e recursos.
+  - Para deletar pods travados ou editar configurações YAML na hora.
+- **Como usar:**
+  Na máquina de gerenciamento, basta digitar:
+  ```bash
+  k9s
+  ```
+- **Comandos Úteis:**
+
+  **Navegação Básica:**
+  - `:ns` + `Enter`: Ver e trocar de **Namespaces**.
+  - `:pods` + `Enter`: Ver **Pods** (pressione `0` para ver de todos os namespaces).
+  - `:nodes` + `Enter`: Ver **Nós** do cluster.
+  - `:svc` + `Enter`: Ver **Services** (Serviços).
+  - `:deploy` + `Enter`: Ver **Deployments**.
+  - `:ing` + `Enter`: Ver **Ingresses**.
+  - `/`: Iniciar busca/filtro na lista atual.
+  - `Esc`: Voltar para a tela anterior.
+  - `Ctrl+C`: Sair do K9s.
+
+  **Interagindo com Pods (Selecione um pod e use):**
+  - `l`: Ver **Logs** em tempo real (`Esc` para sair).
+  - `s`: Abrir um **Shell** dentro do container do pod.
+  - `y`: Ver o manifesto **YAML** do recurso.
+  - `d`: Ver a descrição detalhada (**Describe**).
+  - `shift+f`: Criar um **Port-Forward** (redirecionar porta) temporário.
+  - `ctrl+d`: **Deletar** o pod (útil para forçar reinício).
+
+  **Dicas de Ouro:**
+  - `0`: Mostrar recursos de todos os namespaces (pressione `1` para voltar ao namespace `default`).
+  - Pressione `?` a qualquer momento para ver a lista completa de atalhos.
+  - Use as setas `↑` e `↓` para navegar e `Enter` para entrar nos detalhes de um recurso.
+
 ## 🔒 Nota sobre Segurança e o `.gitignore`
 
 Você notará um arquivo `.gitignore` neste diretório. Sua finalidade é ser uma medida de segurança preventiva para o seu ambiente de desenvolvimento local.
