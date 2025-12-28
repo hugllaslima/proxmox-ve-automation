@@ -131,7 +131,7 @@ function confirm_info {
 }
 
 # --- Início do Script ---
-
+echo " "
 echo -e "\e[34m--- Configuração de Addons do Kubernetes ---\e[0m"
 echo "Este script irá configurar o kubectl e instalar o NFS Provisioner, MetalLB e Nginx Ingress Controller."
 
@@ -169,7 +169,7 @@ fi
 
 # Confirmação antes de prosseguir
 confirm_info
-
+echo " "
 echo -e "\e[34m--- 1. Configurando kubectl ---\e[0m"
 if ! command -v kubectl &> /dev/null; then
     echo "kubectl não encontrado. Instalando kubectl..."
@@ -195,6 +195,7 @@ echo "kubectl configurado. Verificando conexão com o cluster..."
 kubectl get nodes
 check_command "Falha ao conectar ao cluster Kubernetes. Verifique o IP do control-plane e o kubeconfig."
 
+echo " "
 echo -e "\e[34m--- 2. Instalando Helm ---\e[0m"
 if ! command -v helm &> /dev/null; then
     echo "Helm não encontrado. Instalando Helm..."
@@ -204,6 +205,7 @@ else
     echo "Helm já está instalado."
 fi
 
+echo " "
 echo -e "\e[34m--- 3. Instalando NFS Subdir External Provisioner ---\e[0m"
 helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
 helm repo update
@@ -217,7 +219,8 @@ helm upgrade --install nfs-subdir-external-provisioner nfs-subdir-external-provi
 check_command "Falha ao instalar NFS Subdir External Provisioner."
 echo "NFS Subdir External Provisioner instalado."
 
-echo "--- 4. Instalando MetalLB ---"
+echo " "
+echo -e "\e[34m--- 4. Instalando MetalLB ---\e[0m"
 helm repo add metallb https://metallb.github.io/metallb
 helm repo update
 kubectl create namespace metallb-system --dry-run=client -o yaml | kubectl apply -f -
@@ -255,7 +258,8 @@ EOF
 check_command "Falha ao configurar IPAddressPool do MetalLB."
 echo "MetalLB IPAddressPool configurado."
 
-echo "--- 5. Instalando Nginx Ingress Controller ---"
+echo " "
+echo -e "\e[34m--- 5. Instalando Nginx Ingress Controller ---\e[0m"
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
 kubectl create namespace ingress-nginx --dry-run=client -o yaml | kubectl apply -f -
@@ -266,6 +270,7 @@ helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
 check_command "Falha ao instalar Nginx Ingress Controller."
 echo "Nginx Ingress Controller instalado."
 
+echo " "
 echo -e "\e[34m--- 6. Instalando K9s (Terminal UI) ---\e[0m"
 if ! command -v k9s &> /dev/null; then
     echo "K9s não encontrado. Instalando K9s..."
@@ -289,6 +294,7 @@ else
     echo "K9s já está instalado."
 fi
 
+echo " "
 echo -e "\e[34m--- Configuração de Addons do Kubernetes concluída ---\e[0m"
 echo "Verifique o status dos componentes:"
 echo "kubectl get pods -n nfs-provisioner"
