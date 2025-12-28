@@ -4,30 +4,39 @@
 # Script: verify_fix_ingress_conflict.sh
 #
 # Descrição:
-#  Este script ajusta a configuração de um nó K3s existente para desativar
-#  o Traefik e o ServiceLB (Klipper LB). Isso é necessário para resolver
-#  conflitos de porta (80/443) ao utilizar o Nginx Ingress Controller e MetalLB.
+#   Este script ajusta a configuração de um nó K3s existente para desativar
+#   o Traefik e o ServiceLB (Klipper LB). Isso é necessário para resolver
+#   conflitos de porta (80/443) ao utilizar o Nginx Ingress Controller e MetalLB.
 #
 # Funcionalidades:
-#  - Verifica e cria/atualiza o arquivo /etc/rancher/k3s/config.yaml.
-#  - Adiciona as flags 'disable: traefik' e 'disable: servicelb'.
-#  - Reinicia o serviço K3s para aplicar as alterações.
+#   - Verifica e cria/atualiza o arquivo /etc/rancher/k3s/config.yaml.
+#   - Adiciona as flags 'disable: traefik' e 'disable: servicelb'.
+#   - Reinicia o serviço K3s para aplicar as alterações.
 #
-# Autor: Hugllas Lima
+# Autor:
+#   Hugllas R. S. Lima
+#
 # Contato:
-#  - https://www.linkedin.com/in/hugllas-r-s-lima/
-#  - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
+#   - https://www.linkedin.com/in/hugllas-r-s-lima/
+#   - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
 #
-# Versão: 1.0
-# Data: 28/12/2025
+# Versão:
+#   1.0
+#
+# Data:
+#   19/12/2025
+#
+# Pré-requisitos:
+#   - Acesso root/sudo.
+#   - Cluster K3s instalado.
 #
 # Como usar:
-#  chmod +x verify_fix_ingress_conflict.sh
-#  sudo ./verify_fix_ingress_conflict.sh
+#   1. chmod +x verify_fix_ingress_conflict.sh
+#   2. sudo ./verify_fix_ingress_conflict.sh
 #
-# Nota:
-#  Este script deve ser executado em TODOS os nós do Control Plane se o cluster
-#  já estiver instalado e apresentando conflitos.
+# Onde Utilizar:
+#   - Deve ser executado em TODOS os nós do Control Plane se o cluster
+#     já estiver instalado e apresentando conflitos no Ingress.
 #
 # -----------------------------------------------------------------------------
 

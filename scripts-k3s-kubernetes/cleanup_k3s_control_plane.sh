@@ -4,30 +4,41 @@
 # Script: cleanup_k3s_control_plane.sh
 #
 # Descrição:
-#  Este script realiza a limpeza completa de um nó que foi configurado como
-#  control plane do K3s. Ele desinstala o K3s e reverte as configurações 
-#  para um estado limpo.
+#   Este script realiza a limpeza completa de um nó que foi configurado como
+#   control plane do K3s. Ele desinstala o K3s e reverte as configurações 
+#   para um estado limpo.
 #
 # Funcionalidades:
-#  - Executa o script oficial de desinstalação (k3s-uninstall.sh).
-#  - Limpa diretórios residuais (/var/lib/rancher, etc).
-#  - Remove entradas do /etc/hosts geradas pela instalação.
-#  - Reverte configurações do Firewall (UFW) para o estado original.
-#  - Reabilita o swap.
+#   - Executa o script oficial de desinstalação (k3s-uninstall.sh).
+#   - Limpa diretórios residuais (/var/lib/rancher, etc).
+#   - Remove o arquivo de variáveis de ambiente gerado (k3s_cluster_vars.sh).
+#   - Remove entradas do /etc/hosts geradas pela instalação.
+#   - Reverte configurações do Firewall (UFW) para o estado original.
+#   - Reabilita o swap.
+#
+# Autor:
+#   Hugllas R. S. Lima
 #
 # Contato:
-#  - https://www.linkedin.com/in/hugllas-r-s-lima/
-#  - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
+#   - https://www.linkedin.com/in/hugllas-r-s-lima/
+#   - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
 #
 # Versão:
-#  2.0
+#   1.0
 #
 # Data:
-#  27/12/2025
+#   28/11/2025
+#
+# Pré-requisitos:
+#   - Acesso root (sudo).
+#   - Script deve ser executado no nó que deseja limpar.
 #
 # Como usar:
-#  1. chmod +x cleanup_k3s_control_plane.sh
-#  2. sudo ./cleanup_k3s_control_plane.sh
+#   1. chmod +x cleanup_k3s_control_plane.sh
+#   2. sudo ./cleanup_k3s_control_plane.sh
+#
+# Onde Utilizar:
+#   - Diretamente no nó Control Plane (VM) que será desinstalado/limpo.
 #
 # -----------------------------------------------------------------------------
 
@@ -98,5 +109,3 @@ ufw reload >/dev/null 2>&1
 # 5. Reabilitar Swap (Opcional, mas volta ao estado original)
 # Descomenta linhas de swap no fstab
 sed -i '/ swap / s/^#//' /etc/fstab
-
-echo -e "\e[32mLimpeza concluída! O nó está pronto para uma nova instalação ou reinicialização.\e[0m"

@@ -1,6 +1,6 @@
 #!/bin/bash
-
 # -----------------------------------------------------------------------------
+#
 # Script: install_k3s_management.sh
 #
 # Descrição:
@@ -13,37 +13,45 @@
 #   do cluster K3s, IP do servidor NFS, caminho do compartilhamento NFS,
 #   e caminhos de rede, para personalizar a instalação.
 #
+# Funcionalidades:
+#   - Instalação do Kubectl e Helm.
+#   - Configuração do acesso ao cluster (kubeconfig).
+#   - Instalação e configuração do NFS Subdir External Provisioner.
+#   - Instalação e configuração do MetalLB (Load Balancer).
+#   - Instalação e configuração do Nginx Ingress Controller.
+#   - Instalação do K9s (Terminal UI) para monitoramento.
+#
+# Autor:
+#   Hugllas R. S. Lima
+#
 # Contato:
-#  - https://www.linkedin.com/in/hugllas-r-s-lima/
-#  - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
+#   - https://www.linkedin.com/in/hugllas-r-s-lima/
+#   - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
 #
 # Versão:
-#   v1.0.0 - 2024-07-29 - Versão inicial do script.
+#   1.0
+#
+# Data:
+#   23/11/2025
 #
 # Pré-requisitos:
 #   - Um cluster K3s já deve estar instalado e em execução.
 #   - O nó control-plane do K3s deve estar acessível via SSH a partir da máquina
 #     onde este script será executado.
 #   - Um servidor NFS deve estar configurado e acessível na rede.
-#   - Acesso à internet para baixar as ferramentas (kubectl, Helm) e as
-#     imagens dos addons.
+#   - Acesso à internet para baixar as ferramentas e imagens.
 #
 # Como usar:
 #   1. Dê permissão de execução ao script:
 #      chmod +x install_k3s_management.sh
-#
 #   2. Execute o script:
-#      ./install_k3s_management.sh
+#      ./install_k3s_management.sh (NÃO usar sudo, a menos que necessário)
+#   3. Siga as instruções no terminal.
 #
-#   3. Siga as instruções no terminal, fornecendo os IPs e as configurações
-#      solicitadas. O script usará valores padrão se nenhuma entrada for
-#      fornecida.
-#
-# Onde utilizar:
-#   Este script deve ser executado em uma máquina de gerenciamento (como um
-#   laptop ou um servidor de administração) que tenha acesso de rede ao
-#   cluster Kubernetes e ao servidor NFS. Não é necessário executá-lo
-#   diretamente em um dos nós do cluster.
+# Onde Utilizar:
+#   - Este script deve ser executado em uma máquina de gerenciamento (como um
+#     laptop ou um servidor de administração) que tenha acesso de rede ao
+#     cluster Kubernetes e ao servidor NFS.
 #
 # -----------------------------------------------------------------------------
 
@@ -94,153 +102,132 @@ function get_user_input {
             break
         else
             echo "Entrada não pode ser vazia. Por favor, tente novamente."
+            continue
         fi
-    done
-}
-
-# Função para coletar todas as informações manualmente
-function gather_info() {
-    get_user_input "Digite o IP do k3s-control-plane-1 (para configurar o kubectl)" "192.168.10.20" "K3S_CONTROL_PLANE_1_IP"
-    get_user_input "Digite o usuário SSH para conectar no control-plane-1" "root" "SSH_USER"
-    get_user_input "Digite o IP do servidor NFS (k3s-storage-nfs)" "192.168.10.24" "NFS_SERVER_IP"
-    get_user_input "Digite o caminho do compartilhamento NFS no servidor" "/mnt/nfs_share" "NFS_SHARE_PATH"
-    get_user_input "Digite a faixa de IPs para o MetalLB (ex: 10.10.3.200-10.10.3.250)" "10.10.3.200-10.10.3.250" "METALLB_IP_RANGE"
-}
-
-# Função para confirmar as informações
-function confirm_info {
-    echo -e "\n\e[34m--- Por favor, revise as informações fornecidas ---\e[0m"
-    echo "Control Plane IP: $K3S_CONTROL_PLANE_1_IP"
-    if [ -n "$K3S_CONTROL_PLANE_3_IP" ]; then
-        echo "                : ... (Cluster HA de 3 nós)"
-    fi
-    echo "Usuario SSH:      $SSH_USER"
-    echo "NFS Server IP:    $NFS_SERVER_IP"
-    echo "NFS Share Path:   $NFS_SHARE_PATH"
-    echo "MetalLB Range:    $METALLB_IP_RANGE"
-    echo -e "\e[34m---------------------------------------------------\e[0m"
-
-    while true; do
-        read -p "As informações acima estão corretas e deseja prosseguir com a instalação? (s/n): " confirm
-        case $confirm in
-            [Ss]* ) break;;
-            [Nn]* ) error_exit "Instalação cancelada. Por favor, ajuste as configurações e tente novamente.";;
-            * ) echo "Por favor, responda 's' ou 'n'.";;
-        esac
     done
 }
 
 # --- Início do Script ---
-echo " "
+
 echo -e "\e[34m--- Configuração de Addons do Kubernetes ---\e[0m"
 echo "Este script irá configurar o kubectl e instalar o NFS Provisioner, MetalLB e Nginx Ingress Controller."
 
-# Tenta carregar o arquivo de configuração
+# Tenta carregar variáveis do arquivo de configuração
 if [ -f "$CONFIG_FILE_PATH" ]; then
     echo -e "\e[32mArquivo de configuração encontrado: $CONFIG_FILE\e[0m"
     echo "Carregando variáveis..."
     source "$CONFIG_FILE_PATH"
-
-    # --- Compatibilidade com versões antigas ---
-    if [ -z "$K3S_CONTROL_PLANE_1_IP" ] && [ -n "$K3S_MASTER_1_IP" ]; then
-        K3S_CONTROL_PLANE_1_IP="$K3S_MASTER_1_IP"
-    fi
-
-    # Validação e coleta de dados faltantes
-    if [ -z "$METALLB_IP_RANGE" ]; then
-        echo -e "\e[33mAviso: A faixa de IP do MetalLB não está definida no arquivo de configuração.\e[0m"
-        get_user_input "Digite a faixa de IPs para o MetalLB (ex: 10.10.3.200-10.10.3.250)" "10.10.3.200-10.10.3.250" "METALLB_IP_RANGE"
-    fi
-     
-    # Se ainda faltar algo essencial, pergunta tudo para garantir
-    if [ -z "$K3S_CONTROL_PLANE_1_IP" ] || [ -z "$NFS_SERVER_IP" ]; then
-         echo -e "\e[33mAviso: Variáveis essenciais (Control Plane ou NFS) faltando. Iniciando coleta manual.\e[0m"
-         gather_info
-    else
-        # Se os IPs vieram do arquivo, ainda precisamos do usuário SSH, pois não é salvo lá
-        if [ -z "$SSH_USER" ]; then
-             get_user_input "Digite o usuário SSH para conectar no control-plane-1" "root" "SSH_USER"
-        fi
-    fi
 else
-    echo -e "\e[33mArquivo de configuração não encontrado. Iniciando coleta manual.\e[0m"
-    gather_info
+    echo -e "\e[33mAviso: Arquivo de configuração '$CONFIG_FILE' não encontrado.\e[0m"
+    echo "Você precisará fornecer as informações manualmente."
 fi
 
-# Confirmação antes de prosseguir
-confirm_info
-echo " "
-echo -e "\e[34m--- 1. Configurando kubectl ---\e[0m"
+# Solicita informações faltantes ou confirma as carregadas
+if [ -z "$K3S_CONTROL_PLANE_1_IP" ]; then
+    get_user_input "Digite o IP do Control Plane 1" "192.168.10.20" "K3S_CONTROL_PLANE_1_IP"
+fi
+
+if [ -z "$NFS_SERVER_IP" ]; then
+    get_user_input "Digite o IP do Servidor NFS" "192.168.10.25" "NFS_SERVER_IP"
+fi
+
+if [ -z "$NFS_SHARE_PATH" ]; then
+    get_user_input "Digite o Caminho do Compartilhamento NFS" "/mnt/k3s-share-nfs/" "NFS_SHARE_PATH"
+fi
+
+# MetalLB precisa de um range de IPs. Isso geralmente não está no config do cluster base.
+if [ -z "$METALLB_IP_RANGE" ]; then
+    echo -e "\e[33mAviso: A faixa de IP do MetalLB não está definida no arquivo de configuração.\e[0m"
+    get_user_input "Digite a faixa de IPs para o MetalLB (ex: 10.10.3.200-10.10.3.250)" "10.10.3.200-10.10.3.250" "METALLB_IP_RANGE"
+fi
+
+# Usuário SSH para buscar o kubeconfig
+get_user_input "Digite o usuário SSH do servidor K3s (para buscar o kubeconfig)" "ubuntu" "SSH_USER"
+
+echo ""
+echo "--- Resumo das Configurações ---"
+echo "Control Plane IP: $K3S_CONTROL_PLANE_1_IP"
+echo "NFS Server: $NFS_SERVER_IP:$NFS_SHARE_PATH"
+echo "MetalLB Range: $METALLB_IP_RANGE"
+echo "Usuário SSH: $SSH_USER"
+echo ""
+read -p "Confirma as informações? (s/n): " confirm
+if [[ ! "$confirm" =~ ^[Ss]$ ]]; then
+    exit 0
+fi
+
+# 1. Instalar Kubectl
+echo -e "\n\e[34m--- 1. Instalando/Atualizando Kubectl ---\e[0m"
 if ! command -v kubectl &> /dev/null; then
-    echo "kubectl não encontrado. Instalando kubectl..."
+    echo "Baixando kubectl..."
     curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-    sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
+    chmod +x kubectl
+    sudo mv kubectl /usr/local/bin/
     check_command "Falha ao instalar kubectl."
 else
-    echo "kubectl já está instalado."
+    echo "kubectl já instalado."
 fi
 
-echo "Copiando kubeconfig do k3s-control-plane-1..."
-# Cria o diretório .kube antes de tentar copiar
-mkdir -p "$HOME/.kube"
+# 2. Configurar Kubeconfig
+echo -e "\n\e[34m--- 2. Configurando Acesso ao Cluster ---\e[0m"
+mkdir -p ~/.kube
+echo "Buscando kubeconfig do servidor $K3S_CONTROL_PLANE_1_IP..."
+scp "$SSH_USER@$K3S_CONTROL_PLANE_1_IP:/etc/rancher/k3s/k3s.yaml" ~/.kube/config
+check_command "Falha ao copiar kubeconfig. Verifique o acesso SSH."
 
-# Assume que você tem acesso SSH configurado para o usuário especificado
-echo -e "\e[33mAviso: Será necessário digitar a senha do usuário '$SSH_USER' ou 'root' (via sudo) se solicitado.\e[0m"
-ssh "$SSH_USER@$K3S_CONTROL_PLANE_1_IP" "sudo cat /etc/rancher/k3s/k3s.yaml" > "$HOME/.kube/config"
-check_command "Falha ao copiar kubeconfig do k3s-control-plane-1. Verifique o acesso SSH."
-
-chmod 600 "$HOME/.kube/config"
-sed -i "s/127.0.0.1/$K3S_CONTROL_PLANE_1_IP/" "$HOME/.kube/config"
-echo "kubectl configurado. Verificando conexão com o cluster..."
+# Ajustar o IP no kubeconfig (de 127.0.0.1 para o IP real)
+sed -i "s/127.0.0.1/$K3S_CONTROL_PLANE_1_IP/g" ~/.kube/config
+chmod 600 ~/.kube/config
+echo "Acesso configurado. Testando..."
 kubectl get nodes
-check_command "Falha ao conectar ao cluster Kubernetes. Verifique o IP do control-plane e o kubeconfig."
+check_command "Falha ao conectar ao cluster."
 
-echo " "
-echo -e "\e[34m--- 2. Instalando Helm ---\e[0m"
+# 3. Instalar Helm
+echo -e "\n\e[34m--- 3. Instalando Helm ---\e[0m"
 if ! command -v helm &> /dev/null; then
-    echo "Helm não encontrado. Instalando Helm..."
     curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
     check_command "Falha ao instalar Helm."
 else
-    echo "Helm já está instalado."
+    echo "Helm já instalado."
 fi
 
-echo " "
-echo -e "\e[34m--- 3. Instalando NFS Subdir External Provisioner ---\e[0m"
+# Adicionar repositórios Helm
+echo "Adicionando repositórios Helm..."
 helm repo add nfs-subdir-external-provisioner https://kubernetes-sigs.github.io/nfs-subdir-external-provisioner/
+helm repo add metallb https://metallb.github.io/metallb
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo update
+
+# 4. Instalar NFS Provisioner
+echo -e "\n\e[34m--- 4. Instalando NFS Provisioner ---\e[0m"
+# Cria namespace se não existir
 kubectl create namespace nfs-provisioner --dry-run=client -o yaml | kubectl apply -f -
+
+echo "Instalando Chart NFS..."
 helm upgrade --install nfs-subdir-external-provisioner nfs-subdir-external-provisioner/nfs-subdir-external-provisioner \
     --namespace nfs-provisioner \
     --set nfs.server="$NFS_SERVER_IP" \
     --set nfs.path="$NFS_SHARE_PATH" \
-    --set storageClass.name=nfs-client \
-    --set storageClass.defaultClass=true
-check_command "Falha ao instalar NFS Subdir External Provisioner."
-echo "NFS Subdir External Provisioner instalado."
+    --set storageClass.onDelete="true" # Mantém dados se o PVC for deletado (opcional, mude para false para limpar)
 
-echo " "
-echo -e "\e[34m--- 4. Instalando MetalLB ---\e[0m"
-helm repo add metallb https://metallb.github.io/metallb
-helm repo update
+check_command "Falha ao instalar NFS Provisioner."
+
+# 5. Instalar MetalLB
+echo -e "\n\e[34m--- 5. Instalando MetalLB ---\e[0m"
 kubectl create namespace metallb-system --dry-run=client -o yaml | kubectl apply -f -
+
 helm upgrade --install metallb metallb/metallb --namespace metallb-system
 check_command "Falha ao instalar MetalLB."
 
-echo "Aguardando os pods do MetalLB ficarem prontos (pode levar alguns instantes)..."
-# Aguarda até que os pods do controller e speaker estejam prontos
-kubectl wait --namespace metallb-system \
-  --for=condition=ready pod \
-  --selector=app.kubernetes.io/name=metallb \
-  --timeout=120s
+echo "Aguardando MetalLB Controller ficar pronto..."
+kubectl rollout status deployment/metallb-controller -n metallb-system --timeout=90s
 
-echo "MetalLB instalado. Configurando IPAddressPool..."
-
+echo "Configurando IP Address Pool do MetalLB..."
 cat <<EOF | kubectl apply -f -
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
-  name: default-pool
+  name: first-pool
   namespace: metallb-system
 spec:
   addresses:
@@ -249,32 +236,19 @@ spec:
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
-  name: default-advertisement
+  name: l2-advert
   namespace: metallb-system
 spec:
   ipAddressPools:
-  - default-pool
+  - first-pool
 EOF
-check_command "Falha ao configurar IPAddressPool do MetalLB."
-echo "MetalLB IPAddressPool configurado."
+check_command "Falha ao aplicar configuração do MetalLB."
 
-echo " "
-echo -e "\e[34m--- 5. Instalando Nginx Ingress Controller ---\e[0m"
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-helm repo update
-kubectl create namespace ingress-nginx --dry-run=client -o yaml | kubectl apply -f -
-helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-    --namespace ingress-nginx \
-    --set controller.service.type=LoadBalancer \
-    --set controller.service.externalTrafficPolicy=Local
-check_command "Falha ao instalar Nginx Ingress Controller."
-echo "Nginx Ingress Controller instalado."
 
-echo " "
-echo -e "\e[34m--- 6. Instalando K9s (Terminal UI) ---\e[0m"
+# 6. Instalar K9s
+echo -e "\n\e[34m--- 6. Instalando K9s (Terminal UI) ---\e[0m"
 if ! command -v k9s &> /dev/null; then
     echo "K9s não encontrado. Instalando K9s..."
-    # Baixa a última versão do K9s
     K9S_VERSION=$(curl -s https://api.github.com/repos/derailed/k9s/releases/latest | grep "tag_name" | cut -d '"' -f 4)
     echo "Baixando versão: $K9S_VERSION"
     
@@ -288,17 +262,27 @@ if ! command -v k9s &> /dev/null; then
     # Limpeza
     rm -rf "$TEMP_DIR"
     
-    check_command "Falha ao instalar K9s."
-    echo "K9s instalado com sucesso!"
+    if command -v k9s &> /dev/null; then
+        echo "K9s instalado com sucesso!"
+    else
+        echo "ERRO: Falha ao instalar K9s."
+    fi
 else
-    echo "K9s já está instalado."
+    echo "K9s já instalado."
 fi
 
-echo " "
-echo -e "\e[34m--- Configuração de Addons do Kubernetes concluída ---\e[0m"
-echo "Verifique o status dos componentes:"
-echo "kubectl get pods -n nfs-provisioner"
-echo "kubectl get pods -n metallb-system"
-echo "kubectl get pods -n ingress-nginx"
-echo "kubectl get storageclass"
-echo "kubectl get svc -n ingress-nginx"
+
+# 7. Instalar Nginx Ingress
+echo -e "\n\e[34m--- 7. Instalando Nginx Ingress Controller ---\e[0m"
+kubectl create namespace ingress-nginx --dry-run=client -o yaml | kubectl apply -f -
+
+# Instalação básica. O MetalLB vai atribuir um IP externo automaticamente ao serviço LoadBalancer do Ingress.
+helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
+    --namespace ingress-nginx \
+    --set controller.service.type=LoadBalancer
+
+check_command "Falha ao instalar Nginx Ingress."
+
+echo -e "\n\e[32m--- Configuração de Addons do Kubernetes concluída ---\e[0m"
+echo "Use 'kubectl get pods -A' para verificar o status dos pods."
+echo "Use 'kubectl get svc -n ingress-nginx' para ver o IP externo atribuído ao Ingress."

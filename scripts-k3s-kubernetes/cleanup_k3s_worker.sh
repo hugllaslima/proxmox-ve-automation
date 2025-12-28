@@ -4,37 +4,43 @@
 # Script: cleanup_k3s_worker.sh
 #
 # Descrição:
-#  Este script realiza a limpeza completa de um nó que foi configurado como
-#  worker do K3s pelo script 'install_k3s_worker.sh'. Ele desinstala o agente
-#  K3s e reverte as configurações do sistema para um estado limpo, permitindo
-#  a reutilização do servidor.
+#   Este script realiza a limpeza completa de um nó que foi configurado como
+#   worker do K3s pelo script 'install_k3s_worker.sh'. Ele desinstala o agente
+#   K3s e reverte as configurações do sistema para um estado limpo, permitindo
+#   a reutilização do servidor.
 #
 # Funcionalidades:
-#  - Desinstala o agente K3s.
-#  - Limpa as configurações de rede (/etc/hosts).
-#  - Reverte as configurações do kernel (sysctl).
-#  - Reabilita o swap.
+#   - Desinstala o agente K3s.
+#   - Limpa as configurações de rede (/etc/hosts).
+#   - Reverte as configurações do kernel (sysctl).
+#   - Reabilita o swap.
+#
+# Autor:
+#   Hugllas R. S. Lima
 #
 # Contato:
-#  - https://www.linkedin.com/in/hugllas-r-s-lima/
-#  - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
+#   - https://www.linkedin.com/in/hugllas-r-s-lima/
+#   - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
 #
 # Versão:
-#  1.0
+#   1.0
 #
 # Data:
-#  24/07/2024
+#   28/11/2025
 #
 # Pré-requisitos:
-#  - Acesso root ou um usuário com privilégios sudo.
-#  - O script deve ser executado no nó worker que precisa ser limpo.
+#   - Acesso root ou um usuário com privilégios sudo.
+#   - O script deve ser executado no nó worker que precisa ser limpo.
 #
 # Como usar:
-#  1. Dê permissão de execução ao script:
-#     chmod +x cleanup_k3s_worker.sh
-#  2. Execute o script com privilégios de root:
-#     sudo ./cleanup_k3s_worker.sh
-#  3. Siga as instruções e confirme as ações de limpeza.
+#   1. Dê permissão de execução ao script:
+#      chmod +x cleanup_k3s_worker.sh
+#   2. Execute o script com privilégios de root:
+#      sudo ./cleanup_k3s_worker.sh
+#   3. Siga as instruções e confirme as ações de limpeza.
+#
+# Onde Utilizar:
+#   - Diretamente no nó Worker (VM) que será desinstalado/limpo.
 #
 # -----------------------------------------------------------------------------
 
@@ -98,48 +104,22 @@ sed -i '/k3s-worker-2/d' /etc/hosts
 sed -i '/k3s-storage-nfs/d' /etc/hosts
 print_info "Entradas do Kubernetes removidas do /etc/hosts."
 
-echo ""
-print_info "--- 3. Limpeza de Arquivos e Sistema ---"
-
-print_info "Removendo arquivo de configuração do cluster..."
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
-CONFIG_FILE_PATH="$SCRIPT_DIR/k3s_cluster_vars.sh"
-if [ -f "$CONFIG_FILE_PATH" ]; then
-    rm -f "$CONFIG_FILE_PATH"
-    print_info "Arquivo de configuração 'k3s_cluster_vars.sh' removido."
-fi
-
-print_info "Removendo configurações do kernel para Kubernetes..."
-rm -f /etc/sysctl.d/99-kubernetes-cri.conf
-sysctl --system > /dev/null 2>&1
-print_info "Arquivo de sysctl do Kubernetes removido."
-
-print_info "Reabilitando swap..."
-# Remove o comentário da linha de swap no fstab
-sed -i '/ swap /s/^#//g' /etc/fstab
-swapon -a 2>/dev/null
-print_info "Swap reabilitado."
-
-echo ""
-print_info "--- 4. Limpeza de Firewall (UFW) ---"
-# Limpa regras de Firewall criadas pelo instalador
+# Reverter Firewall (UFW)
+print_info "Limpando regras do UFW..."
 ufw delete allow 10250/tcp >/dev/null 2>&1
 ufw delete allow 8472/udp >/dev/null 2>&1
-# Nota: Não removemos a regra SSH (22/tcp) para não bloquear o acesso remoto acidentalmente.
-print_info "Regras de firewall do K3s (Kubelet/Flannel) removidas."
+# Reverte política de encaminhamento para DROP se tiver sido alterada
+if grep -q 'DEFAULT_FORWARD_POLICY="ACCEPT"' /etc/default/ufw; then
+    sed -i 's/DEFAULT_FORWARD_POLICY="ACCEPT"/DEFAULT_FORWARD_POLICY="DROP"/g' /etc/default/ufw
+    print_info "Política de encaminhamento UFW revertida para DROP."
+fi
+ufw reload >/dev/null 2>&1
+
+# Reabilitar Swap
+print_info "Reabilitando Swap no /etc/fstab..."
+sed -i '/ swap / s/^#//' /etc/fstab
 
 echo ""
 echo "--------------------------------------------------------------------"
-echo "--- Limpeza concluída! ---"
+echo "Limpeza do worker concluída com sucesso."
 echo "--------------------------------------------------------------------"
-echo "É recomendado reiniciar o servidor para garantir que todas as alterações sejam aplicadas corretamente."
-echo ""
-read -p "Deseja reiniciar agora? (s/n): " REBOOT_CONFIRM
-    if [[ "$REBOOT_CONFIRM" =~ ^([sS][iI][mM]|[sS])$ ]]; then
-        echo "Reiniciando o servidor..."
-        reboot
-    else
-        echo "Reinicialização cancelada. Por favor, reinicie manualmente."
-    fi
-
-exit 0

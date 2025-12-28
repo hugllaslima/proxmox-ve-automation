@@ -12,6 +12,7 @@
 !cluster_maintenance_tool.sh
 !verify_k3s_management_addons.sh
 !verify_fix_ingress_conflict.sh
+!deploy_demo_app.sh
 
 # Arquivos de log
 *.log

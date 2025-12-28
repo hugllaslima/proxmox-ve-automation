@@ -4,32 +4,40 @@
 # Script: verify_k3s_cluster_health.sh
 #
 # Descrição:
-#  Este script realiza uma verificação de saúde (Health Check) no cluster K3s,
-#  validando o status dos nós, pods do sistema e a consistência do Etcd.
+#   Este script realiza uma verificação de saúde (Health Check) no cluster K3s,
+#   validando o status dos nós, pods do sistema e a consistência do Etcd.
 #
 # Funcionalidades:
-#  - Verifica o status de todos os nós (Ready/NotReady).
-#  - Valida se os Control Planes estão operacionais.
-#  - Checa se os pods do namespace kube-system estão rodando corretamente.
-#  - Verifica membros do Etcd (apenas se executado localmente em um Control Plane).
+#   - Verifica o status de todos os nós (Ready/NotReady).
+#   - Valida se os Control Planes estão operacionais.
+#   - Checa se os pods do namespace kube-system estão rodando corretamente.
+#   - Verifica membros do Etcd (apenas se executado localmente em um Control Plane).
+#
+# Autor:
+#   Hugllas R. S. Lima
 #
 # Contato:
-#  - https://www.linkedin.com/in/hugllas-r-s-lima/
-#  - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
+#   - https://www.linkedin.com/in/hugllas-r-s-lima/
+#   - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
 #
 # Versão:
-#  1.0
+#   1.0
 #
 # Data:
-#  28/12/2025
+#   19/12/2025
 #
 # Pré-requisitos:
-#  - Cluster K3s instalado.
-#  - Acesso root/sudo (para comandos k3s/kubectl).
+#   - Cluster K3s instalado.
+#   - Acesso root/sudo (para comandos k3s/kubectl).
 #
 # Como usar:
-#  1. chmod +x verify_k3s_cluster_health.sh
-#  2. ./verify_k3s_cluster_health.sh (Não requer sudo se o kubectl estiver configurado para o usuário)
+#   1. chmod +x verify_k3s_cluster_health.sh
+#   2. ./verify_k3s_cluster_health.sh (Não requer sudo se o kubectl estiver configurado para o usuário)
+#
+# Onde Utilizar:
+#   - Pode ser executado em qualquer nó do cluster ou na máquina de gerenciamento
+#     (para verificações básicas). Para verificação profunda do Etcd, execute
+#     em um nó Control Plane.
 #
 # -----------------------------------------------------------------------------
 
