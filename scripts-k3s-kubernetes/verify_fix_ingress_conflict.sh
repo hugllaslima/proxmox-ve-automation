@@ -1,8 +1,37 @@
 #!/bin/bash
-# Script: fix_ingress_conflict.sh
-# Descrição: Desativa Traefik e ServiceLB para permitir uso de Nginx e MetalLB
+# -----------------------------------------------------------------------------
+#
+# Script: verify_fix_ingress_conflict.sh
+#
+# Descrição:
+#  Este script ajusta a configuração de um nó K3s existente para desativar
+#  o Traefik e o ServiceLB (Klipper LB). Isso é necessário para resolver
+#  conflitos de porta (80/443) ao utilizar o Nginx Ingress Controller e MetalLB.
+#
+# Funcionalidades:
+#  - Verifica e cria/atualiza o arquivo /etc/rancher/k3s/config.yaml.
+#  - Adiciona as flags 'disable: traefik' e 'disable: servicelb'.
+#  - Reinicia o serviço K3s para aplicar as alterações.
+#
+# Autor: Hugllas Lima
+# Contato:
+#  - https://www.linkedin.com/in/hugllas-r-s-lima/
+#  - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
+#
+# Versão: 1.0
+# Data: 28/12/2025
+#
+# Como usar:
+#  chmod +x verify_fix_ingress_conflict.sh
+#  sudo ./verify_fix_ingress_conflict.sh
+#
+# Nota:
+#  Este script deve ser executado em TODOS os nós do Control Plane se o cluster
+#  já estiver instalado e apresentando conflitos.
+#
+# -----------------------------------------------------------------------------
 
-echo "--- Ajustando configuração do K3s para desativar Traefik e ServiceLB ---"
+echo -e "\e[34m--- Ajustando configuração do K3s para desativar Traefik e ServiceLB ---\e[0m"
 
 CONFIG_FILE="/etc/rancher/k3s/config.yaml"
 mkdir -p /etc/rancher/k3s
@@ -26,7 +55,7 @@ if ! grep -q "servicelb" "$CONFIG_FILE"; then
     echo "ServiceLB desativado no config."
 fi
 
-echo "Reiniciando serviço K3s..."
+echo -e "\e[34mReiniciando serviço K3s...\e[0m"
 systemctl restart k3s
 
-echo "Concluído neste nó."
+echo -e "\e[34mConcluído neste nó.\e[0m"
