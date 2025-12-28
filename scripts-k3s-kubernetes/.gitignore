@@ -9,6 +9,7 @@
 !install_nfs_server.sh
 !cleanup_nfs_server.sh
 !verify_k3s_cluster_health.sh
+!cluster_maintenance_tool.sh
 
 # Arquivos de log
 *.log
