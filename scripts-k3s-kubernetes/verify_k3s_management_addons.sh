@@ -1,10 +1,10 @@
 #!/bin/bash
 # -----------------------------------------------------------------------------
-# Script: verify_k3s_addons.sh
+# Script: verify_k3s_management_addons.sh
 #
 # Descrição:
 #   Realiza testes funcionais nos addons instalados (NFS, MetalLB, Ingress)
-#   para garantir que o cluster está operando corretamente.
+#   para garantir que o cluster K3s está operando corretamente.
 #
 # O que ele testa:
 #   1. Status dos Pods: Verifica se os pods dos addons estão rodando.
@@ -12,8 +12,8 @@
 #   3. NFS: Cria um PVC e um Pod de teste para escrever e validar a persistência.
 #
 # Como usar:
-#   chmod +x verify_k3s_addons.sh
-#   ./verify_k3s_addons.sh
+#   chmod +x verify_k3s_management_addons.sh
+#   ./verify_k3s_management_addons.sh
 #
 # -----------------------------------------------------------------------------
 
