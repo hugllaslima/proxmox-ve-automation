@@ -31,6 +31,20 @@ Em resumo, o K3s oferece a mesma funcionalidade e segurança do Kubernetes tradi
 
 O cluster resultante é configurado com **três nós de controle (control planes)** para garantir alta disponibilidade via Etcd embarcado, dois nós de trabalho (workers), um servidor NFS para armazenamento persistente e, por fim, um servidor de gerenciamento.
 
+## 📋 Planejamento e Pré-requisitos de Rede
+
+Antes de iniciar a instalação, é fundamental planejar sua rede e acessos para garantir que a automação funcione corretamente.
+
+### 1. Reserva de IPs (MetalLB)
+O cluster utilizará o **MetalLB** como Load Balancer para expor serviços (como o Ingress Controller) na sua rede local.
+- **Requisito**: Reserve uma faixa de IPs na sua rede (LAN) que **não** esteja sendo distribuída pelo seu servidor DHCP (roteador).
+- **Quantidade**: Um pool pequeno é suficiente. Recomenda-se reservar entre **5 a 10 IPs**.
+- **Exemplo**: Se sua rede é `192.168.10.0/24` e o DHCP vai até `.200`, você pode reservar de `192.168.10.240` a `192.168.10.250`.
+
+### 2. Usuário de Sistema
+Os scripts assumem que você está utilizando um usuário padrão (como **`ubuntu`**) em todas as VMs, com privilégios de `sudo` sem senha (ou que você conheça a senha).
+- Este usuário será utilizado para conexões SSH entre a máquina de gerenciamento e os nós do cluster.
+
 ## 🏗️ Arquitetura de Referência Utilizada no Proxmox VE
 
 A arquitetura a seguir é a configuração de referência testada para este projeto. Utiliza **3 Control Planes** para garantir quorum no Etcd.
@@ -218,9 +232,10 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
 
 6.  **Máquina de Gerenciamento (`k3s-management`)**
     - Após o cluster estar no ar, execute o script de configuração dos addons para instalar `kubectl`, `helm` e os componentes essenciais.
-    - **Recomendação**: Para maior segurança e isolamento, é preferível utilizar uma VM dedicada (`k3s-management`) para a gerência do cluster.
+    - **Atenção:** Execute este script **SEM sudo**, pois ele configura o ambiente para o seu usuário atual.
+    - **Pré-requisito**: Certifique-se de ter configurado as chaves SSH (passo "Pré-requisitos: Configuração SSH" acima) antes de rodar este script.
     ```bash
-    sudo ./install_k3s_management.sh
+    ./install_k3s_management.sh
     ```
 
 ## 🔒 Nota sobre Segurança e o `.gitignore`
