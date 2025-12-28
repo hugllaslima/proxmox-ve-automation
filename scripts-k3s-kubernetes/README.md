@@ -116,6 +116,15 @@ A localização dos logs depende do que você está tentando depurar:
 
 - **`verify_k3s_cluster_health.sh`**: Realiza um diagnóstico completo da saúde do cluster. Verifica o status dos nós, se os pods essenciais do sistema (`kube-system`) estão rodando e valida a consistência do cluster. Ideal para rodar logo após a instalação.
 
+### Scripts de Manutenção
+
+- **`cluster_maintenance_tool.sh`**: Ferramenta interativa (menu) para facilitar tarefas rotineiras de manutenção. Permite:
+    - Excluir nós antigos ou duplicados (limpeza de nós "órfãos").
+    - Drenar nós para manutenção (Drain).
+    - Forçar a exclusão de Pods travados em estado `Terminating`.
+    - Gerenciar e excluir Namespaces inteiros.
+    - Executar verificações de saúde rápidas.
+
 ### Scripts de Limpeza
 
 - **`cleanup_nfs_server.sh`**: Reverte a instalação do servidor NFS.
