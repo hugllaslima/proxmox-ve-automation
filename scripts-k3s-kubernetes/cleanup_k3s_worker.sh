@@ -92,38 +92,41 @@ print_info "Limpando /etc/hosts..."
 # Remove as entradas específicas do cluster
 sed -i '/k3s-control-plane-1/d' /etc/hosts
 sed -i '/k3s-control-plane-2/d' /etc/hosts
+sed -i '/k3s-control-plane-3/d' /etc/hosts
 sed -i '/k3s-worker-1/d' /etc/hosts
 sed -i '/k3s-worker-2/d' /etc/hosts
 sed -i '/k3s-storage-nfs/d' /etc/hosts
-# Remove a entrada do próprio hostname, se existir explicitamente adicionada pelo script
-sed -i "/$(hostname)/d" /etc/hosts
 print_info "Entradas do Kubernetes removidas do /etc/hosts."
 
+echo ""
+print_info "--- 3. Limpeza de Arquivos e Sistema ---"
+
 print_info "Removendo arquivo de configuração do cluster..."
-# Encontra o arquivo de configuração no mesmo diretório do script de limpeza
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" &> /dev/null && pwd)"
 CONFIG_FILE_PATH="$SCRIPT_DIR/k3s_cluster_vars.sh"
 if [ -f "$CONFIG_FILE_PATH" ]; then
     rm -f "$CONFIG_FILE_PATH"
     print_info "Arquivo de configuração 'k3s_cluster_vars.sh' removido."
-else
-    print_warning "Arquivo de configuração 'k3s_cluster_vars.sh' não encontrado."
 fi
 
 print_info "Removendo configurações do kernel para Kubernetes..."
 rm -f /etc/sysctl.d/99-kubernetes-cri.conf
-sysctl --system
+sysctl --system > /dev/null 2>&1
 print_info "Arquivo de sysctl do Kubernetes removido."
 
 print_info "Reabilitando swap..."
 # Remove o comentário da linha de swap no fstab
 sed -i '/ swap /s/^#//g' /etc/fstab
-swapon -a
+swapon -a 2>/dev/null
 print_info "Swap reabilitado."
 
 echo ""
-print_info "--- 3. Firewall (UFW) ---"
-print_warning "O script de instalação desabilitou o UFW. Se necessário, reabilite-o manualmente com 'sudo ufw enable'."
+print_info "--- 4. Limpeza de Firewall (UFW) ---"
+# Limpa regras de Firewall criadas pelo instalador
+ufw delete allow 10250/tcp >/dev/null 2>&1
+ufw delete allow 8472/udp >/dev/null 2>&1
+# Nota: Não removemos a regra SSH (22/tcp) para não bloquear o acesso remoto acidentalmente.
+print_info "Regras de firewall do K3s (Kubelet/Flannel) removidas."
 
 echo ""
 echo "--------------------------------------------------------------------"
