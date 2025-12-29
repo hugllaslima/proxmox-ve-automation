@@ -29,7 +29,7 @@ Para entender a decisão, veja um comparativo direto entre as duas abordagens:
 
 Em resumo, o K3s oferece a mesma funcionalidade e segurança do Kubernetes tradicional, mas com uma fração do custo operacional e da complexidade, tornando-o a escolha ideal para este ambiente.
 
-O cluster resultante é configurado com **três nós de controle (control planes)** para garantir alta disponibilidade via Etcd embarcado, dois nós de trabalho (workers), um servidor NFS para armazenamento persistente e, por fim, um servidor de gerenciamento.
+O cluster resultante é configurado com três nós de controle (control planes) para garantir alta disponibilidade via Etcd embarcado, dois nós de trabalho (workers), um servidor NFS para armazenamento persistente e, por fim, um servidor de gerenciamento.
 
 ## 📋 Planejamento e Pré-requisitos de Rede
 
@@ -47,7 +47,7 @@ Os scripts assumem que você está utilizando um usuário padrão (como **`ubunt
 
 ## 🏗️ Arquitetura de Referência Utilizada no Proxmox VE
 
-A arquitetura a seguir é a configuração de referência testada para este projeto. Utiliza **3 Control Planes** para garantir quorum no Etcd.
+A arquitetura a seguir é a configuração de referência testada para este projeto. Utiliza três nós de controle (control planes) para garantir quorum no Etcd.
 
 | VM | Nome | SO | IP/CIDR | CPU | RAM | Volume |
 | :--- | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -105,7 +105,6 @@ A localização dos logs depende do que você está tentando depurar:
     ```bash
     kubectl logs <nome-do-pod>
     ```
-
 
 - **Logs da Infraestrutura (Serviços K3s, NFS, etc.)**
   - **Método Recomendado (`journalctl`)**: Para inspecionar os logs dos serviços K3s nos nós master e worker, o `journalctl` é a ferramenta ideal, pois o K3s roda como um serviço `systemd`.
