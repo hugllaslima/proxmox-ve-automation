@@ -72,7 +72,7 @@ Esta seção detalha o papel de cada componente e como eles interagem para forma
 
 ### 🔒 Planejamento de Rede e Segurança (Redes Complexas)
 
-A configuração correta das redes é **CRÍTICA** para a segurança e funcionamento do cluster. O script solicitará dois tipos de redes que você precisa distinguir com atenção:
+A configuração correta das redes é crítica para a segurança e funcionamento do cluster. O script solicitará dois tipos de redes que você precisa distinguir com atenção:
 
 **1. Rede LOCAL/LAN (`K3S_LAN_CIDR`)**
 -   **O que é:** A faixa de IP física onde seus servidores estão conectados (ex: `192.168.10.0/24`).
@@ -80,18 +80,13 @@ A configuração correta das redes é **CRÍTICA** para a segurança e funcionam
 -   **Importante:** Se você informar isso errado, os nós não conseguirão se comunicar entre si (Join falhará).
 
 **2. Redes de Administração (`ADMIN_NETWORK_CIDRS`)**
--   **O que é:** As redes de onde **VPC** (seu computador, VPN ou Jump Server) acessará o cluster via SSH ou `kubectl`.
+-   **O que é:** As redes de onde seu computador, VPN ou Jump Server acessará o cluster via SSH ou `kubectl`.
 -   **Para que serve:** Libera as portas SSH (22) e API (6443) para gerenciamento externo.
 -   **Segurança:** Isso permite fechar o cluster para o resto do mundo, aceitando comandos apenas de IPs confiáveis.
-
-**3. Acesso Remoto Via VPN (`VPN_NETWORK_CIDRS`)** 
--   **O que é:** As redes de onde **VPC** (seu computador, VPN ou Jump Server) acessará o cluster via SSH ou `kubectl`.
--   **Para que serve:** Libera as portas SSH (22) e API (6443) para gerenciamento externo.
--   **Segurança:** Isso permite fechar o cluster para o resto do mundo, aceitando comandos apenas de IPs confiáveis.
--   **Acesso Remoto Via VPN:** O script também perguntará se você deseja adicionar "Redes de Administração". Se você acessa via VPN ou algum jump server (ex: 172.20.1.0/16, 53.136.46.128/32), adicione esse CIDR quando solicitado. O script configurará o Firewall (UFW) para permitir sua conexão sem alterar perigosamente as rotas do sistema. 
+-   **Acesso Remoto Via VPN:** O script lhe perguntará se deseja adicionar "Redes de Administração". Se você acessa via VPN ou algum jump server (ex: 172.20.1.0/16, 53.136.46.128/32), adicione esse CIDR quando solicitado. O script configurará o Firewall (UFW) para permitir sua conexão sem alterar perigosamente as rotas do sistema. 
  
-**4. Cuidado com Conflitos (Hijacking de Rede):**
--   **O que é:** Nunca defina a **Rede de PODS** (`--cluster-cidr`, padrão `10.42.0.0/16`) sobrepondo sua rede física. Se você fizer isso, o Kubernetes "roubará" o tráfego da sua placa de rede e você perderá acesso ao servidor.
+**3. Cuidado com Conflitos (Hijacking de Rede):**
+-   **Atenção:** Nunca defina a **Rede de PODS** (`--cluster-cidr`, padrão `10.42.0.0/16`) sobrepondo sua rede física. Se você fizer isso, o Kubernetes "roubará" o tráfego da sua placa de rede e você perderá acesso ao servidor.
 
 ### O que é Armazenado em Cada Nó?
 
