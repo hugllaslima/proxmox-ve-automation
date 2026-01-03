@@ -122,7 +122,7 @@ A localização dos logs depende do que você está tentando depurar:
 - **`install_nfs_server.sh`**: Configura uma VM para atuar como um servidor NFS, que fornecerá armazenamento persistente para o cluster.
 - **`install_k3s_control_plane.sh`**: Instala e configura um nó de controle (control plane) do K3s. Possui lógica para diferenciar o primeiro control plane (que configura o banco de dados) do segundo, para criar um ambiente de alta disponibilidade (HA).
 - **`install_k3s_worker.sh`**: Instala e configura um nó de trabalho (worker) e o junta ao cluster K3s. Instala automaticamente dependências de sistema como `nfs-common` para garantir o funcionamento de volumes persistentes.
-- **`install_k3s_management.sh`**: Deve ser executado em uma máquina de gerenciamento. Instala `kubectl`, `helm` e implanta addons essenciais: NFS Provisioner (para StorageClasses), MetalLB (para Load Balancers) e Nginx Ingress Controller.
+- **`install_k3s_management.sh`**: Deve ser executado em uma máquina de gerenciamento. Instala `kubectl`, `helm`, `k9s` (Terminal UI) e implanta addons essenciais: NFS Provisioner (para StorageClasses), MetalLB (para Load Balancers) e Nginx Ingress Controller.
 
 ### Scripts de Verificação
 
