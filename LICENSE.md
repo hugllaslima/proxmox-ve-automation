@@ -2,7 +2,7 @@
 
 **Version 3, 29 June 2007**
 
-Copyright (C) 2024 Hugllas R S Lima <hugllaslima@gmail.com>
+Copyright (C) 2022 Hugllas R S Lima
 
 ## Proxmox VE Automation Scripts
 
