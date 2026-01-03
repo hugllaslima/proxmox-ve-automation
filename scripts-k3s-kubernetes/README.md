@@ -70,24 +70,24 @@ Esta seção detalha o papel de cada componente e como eles interagem para forma
 - **`k3s-storage-nfs` (Armazenamento Persistente)**: Atua como um servidor NFS centralizado. Quando uma aplicação precisa de dados persistentes (através de um `PersistentVolumeClaim`), o K3s provisiona um diretório neste servidor. Isso garante que os dados sobrevivam a reinicializações de Pods e possam ser compartilhados entre eles.
 - **`k3s-management` (Gerenciamento Centralizado)**: É a VM de onde todos os comandos de gerenciamento (`kubectl`, `helm`) são executados. Centralizar o gerenciamento em um nó dedicado é uma boa prática de segurança, pois isola as credenciais de acesso ao cluster.
 
-### 🔒 Lidando com Redes Complexas e Conflitos de IP
+### 🔒 Planejamento de Rede e Segurança (Redes Complexas)
 
-Um desafio comum em ambientes de Datacenter/VPN é o conflito entre a rede interna do Kubernetes e a rede física.
+A configuração correta das redes é **CRÍTICA** para a segurança e funcionamento do cluster. O script solicitará dois tipos de redes que você precisa distinguir com atenção:
 
-**O Problema (Hijacking de Rede):**
-Se você configurar a Rede de Pod do K3s (`--cluster-cidr`) com o mesmo intervalo da sua Rede Física/LAN, o Kubernetes irá "sequestrar" o tráfego da sua placa de rede, derrubando sua conexão SSH e tornando o servidor inacessível.
+**1. Rede LOCAL/LAN (`K3S_LAN_CIDR`)**
+-   **O que é:** A faixa de IP física onde seus servidores estão conectados (ex: `192.168.10.0/24`).
+-   **Para que serve:** O script usa este CIDR para liberar automaticamente no Firewall (UFW) todo o tráfego **interno do cluster** (API Server, Banco de Dados Etcd, Kubelet e Flannel VXLAN).
+-   **Importante:** Se você informar isso errado, os nós não conseguirão se comunicar entre si (Join falhará).
 
-**A Solução deste Projeto:**
-O script `install_k3s_control_plane.sh` agora distingue explicitamente estas duas redes:
+**2. Redes de Administração (`ADMIN_NETWORK_CIDRS`)**
+-   **O que é:** As redes de onde **VPC** (seu computador, VPN ou Jump Server) acessará o cluster via SSH ou `kubectl`.
+-   **Para que serve:** Libera as portas SSH (22) e API (6443) para gerenciamento externo.
+-   **Segurança:** Isso permite fechar o cluster para o resto do mundo, aceitando comandos apenas de IPs confiáveis.
 
-1.  **Rede de PODS (`K3S_POD_CIDR`)**: O intervalo de IPs virtual para os contêineres.
-    -   *Padrão:* `10.42.0.0/16`
-    -   **NUNCA** coloque o IP da sua rede física aqui.
-2.  **Rede LOCAL/LAN (`K3S_LAN_CIDR`)**: A sua rede física real (ex: `192.168.10.0/24`).
-    -   Usada apenas para liberar o acesso ao Banco de Dados (PostgreSQL) no firewall.
+**Acesso Remoto Via VPN:** O script também perguntará se você deseja adicionar "Redes de Administração". Se você acessa via VPN ou algum jump server (ex: 172.20.1.0/16, 53.136.46.128/32), adicione esse CIDR quando solicitado. O script configurará o Firewall (UFW) para permitir sua conexão sem alterar perigosamente as rotas do sistema.
 
-**Acesso Remoto via VPN:**
-O script também perguntará se você deseja adicionar "Redes de Administração". Se você acessa via VPN ou algum jump server (ex: `172.20.1.0/16`, `53.136.46.128/32`), adicione esse CIDR quando solicitado. O script configurará o Firewall (UFW) para permitir sua conexão sem alterar perigosamente as rotas do sistema.
+**Cuidado com Conflitos (Hijacking de Rede):**
+Nunca defina a **Rede de PODS** (`--cluster-cidr`, padrão `10.42.0.0/16`) sobrepondo sua rede física. Se você fizer isso, o Kubernetes "roubará" o tráfego da sua placa de rede e você perderá acesso ao servidor. 
 
 ### O que é Armazenado em Cada Nó?
 
