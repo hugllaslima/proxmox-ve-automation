@@ -25,7 +25,7 @@ Para entender a decisão, veja um comparativo direto entre as duas abordagens:
     - Utiliza `containerd` como runtime padrão, que é mais leve e eficiente que o Docker para o contexto do Kubernetes.
 - **Banco de Dados Flexível**:
     - Para nós únicos, pode usar **SQLite** embutido, tornando-o extremamente leve.
-    - Para alta disponibilidade (HA), suporta bancos de dados externos como **PostgreSQL**, que é a abordagem de alta disponibilidade utilizada neste projeto.
+    - Para alta disponibilidade (HA), utiliza **Embedded Etcd** (nativamente), eliminando a necessidade de banco de dados externo. Esta é a abordagem utilizada neste projeto.
 
 Em resumo, o K3s oferece a mesma funcionalidade e segurança do Kubernetes tradicional, mas com uma fração do custo operacional e da complexidade, tornando-o a escolha ideal para este ambiente.
 
@@ -84,14 +84,18 @@ A configuração correta das redes é **CRÍTICA** para a segurança e funcionam
 -   **Para que serve:** Libera as portas SSH (22) e API (6443) para gerenciamento externo.
 -   **Segurança:** Isso permite fechar o cluster para o resto do mundo, aceitando comandos apenas de IPs confiáveis.
 
-**Acesso Remoto Via VPN:** O script também perguntará se você deseja adicionar "Redes de Administração". Se você acessa via VPN ou algum jump server (ex: 172.20.1.0/16, 53.136.46.128/32), adicione esse CIDR quando solicitado. O script configurará o Firewall (UFW) para permitir sua conexão sem alterar perigosamente as rotas do sistema.
-
-**Cuidado com Conflitos (Hijacking de Rede):**
-Nunca defina a **Rede de PODS** (`--cluster-cidr`, padrão `10.42.0.0/16`) sobrepondo sua rede física. Se você fizer isso, o Kubernetes "roubará" o tráfego da sua placa de rede e você perderá acesso ao servidor. 
+**3. Acesso Remoto Via VPN (`VPN_NETWORK_CIDRS`)** 
+-   **O que é:** As redes de onde **VPC** (seu computador, VPN ou Jump Server) acessará o cluster via SSH ou `kubectl`.
+-   **Para que serve:** Libera as portas SSH (22) e API (6443) para gerenciamento externo.
+-   **Segurança:** Isso permite fechar o cluster para o resto do mundo, aceitando comandos apenas de IPs confiáveis.
+-   **Acesso Remoto Via VPN:** O script também perguntará se você deseja adicionar "Redes de Administração". Se você acessa via VPN ou algum jump server (ex: 172.20.1.0/16, 53.136.46.128/32), adicione esse CIDR quando solicitado. O script configurará o Firewall (UFW) para permitir sua conexão sem alterar perigosamente as rotas do sistema. 
+ 
+**4. Cuidado com Conflitos (Hijacking de Rede):**
+-   **O que é:** Nunca defina a **Rede de PODS** (`--cluster-cidr`, padrão `10.42.0.0/16`) sobrepondo sua rede física. Se você fizer isso, o Kubernetes "roubará" o tráfego da sua placa de rede e você perderá acesso ao servidor.
 
 ### O que é Armazenado em Cada Nó?
 
-- **Nós Control Plane**: A configuração e o estado do cluster (objetos Kubernetes como `Deployments`, `Services`, etc.), que são mantidos no banco de dados PostgreSQL.
+- **Nós Control Plane**: A configuração e o estado do cluster (objetos Kubernetes como `Deployments`, `Services`, etc.), que são mantidos no banco de dados **Etcd** embarcado.
 - **Nós Worker**: As imagens de contêiner das aplicações em execução e dados temporários.
 - **Nó de Armazenamento (NFS)**: Todos os dados persistentes das aplicações. É o "disco rígido" do cluster.
 - **Nó de Gerenciamento**: Os arquivos de configuração do `kubectl`, charts do Helm e manifestos YAML usados para gerenciar o cluster.
@@ -385,7 +389,7 @@ Para recuperações granulares ou migração de cluster, você deve fazer backup
 
 ## 🏭 Considerações para Produção
 
-Este ambiente K3s foi projetado para ser robusto e funcional, utilizando componentes reais de produção (MetalLB, Ingress Nginx, PostgreSQL externo). Ele é adequado para ambientes de desenvolvimento, homelab avançado e pequenas/médias empresas.
+Este ambiente K3s foi projetado para ser robusto e funcional, utilizando componentes reais de produção (MetalLB, Ingress Nginx, Etcd HA). Ele é adequado para ambientes de desenvolvimento, homelab avançado e pequenas/médias empresas.
 
 No entanto, para ambientes de **Produção Crítica** ("Enterprise"), esteja ciente dos seguintes **Pontos de Atenção**:
 
