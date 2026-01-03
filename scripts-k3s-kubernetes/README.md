@@ -177,9 +177,10 @@ Para garantir a automação fluida (especialmente para a máquina de gerenciamen
     # Substitua 'usuario' pelo seu usuário nos servidores (ex: ubuntu)
     ssh-copy-id usuario@192.168.10.20  # k3s-control-plane-1
     ssh-copy-id usuario@192.168.10.21  # k3s-control-plane-2 (Opcional, mas recomendado para redundância)
+    ssh-copy-id usuario@192.168.10.22  # k3s-control-plane-3 (Opcional, mas recomendado para redundância)
     ```
 
-Com isso, a máquina de gerenciamento terá acesso seguro e sem senha aos servidores, permitindo que o `install_k3s_management.sh` funcione de forma totalmente automatizada.
+Com isso, a máquina de gerenciamento terá acesso seguro e sem senha aos servidores, permitindo que o `install_k3s_management.sh` funcione de forma totalmente automatizada. 
 
 ## 🚀 Ordem de Execução (Fluxo Automatizado)
 
@@ -210,7 +211,7 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     ```
     - **Importante**: O script precisa do arquivo de configuração gerado na etapa anterior para ingressar no cluster automaticamente.
 
-4.  **Segundo Control Plane (`k3s-control-plane-2`)**
+4.  **Segundo Control Plane (`k3s-control-plane-2` e `k3s-control-plane-3`)**
     - Execute o **mesmo script** de instalação.
     ```bash
     sudo ./install_k3s_control_plane.sh
