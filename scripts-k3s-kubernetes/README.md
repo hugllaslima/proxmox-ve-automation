@@ -70,7 +70,7 @@ Esta seção detalha o papel de cada componente e como eles interagem para forma
 - **`k3s-storage-nfs` (Armazenamento Persistente)**: Atua como um servidor NFS centralizado. Quando uma aplicação precisa de dados persistentes (através de um `PersistentVolumeClaim`), o K3s provisiona um diretório neste servidor. Isso garante que os dados sobrevivam a reinicializações de Pods e possam ser compartilhados entre eles.
 - **`k3s-management` (Gerenciamento Centralizado)**: É a VM de onde todos os comandos de gerenciamento (`kubectl`, `helm`) são executados. Centralizar o gerenciamento em um nó dedicado é uma boa prática de segurança, pois isola as credenciais de acesso ao cluster.
 
-### 🔒 Planejamento de Rede e Segurança (Redes Complexas)
+## 🔒 Planejamento de Rede e Segurança (Redes Complexas)
 
 A configuração correta das redes é crítica para a segurança e funcionamento do cluster. O script solicitará dois tipos de redes que você precisa distinguir com atenção:
 
@@ -88,14 +88,14 @@ A configuração correta das redes é crítica para a segurança e funcionamento
 **3. Cuidado com Conflitos (Hijacking de Rede):**
 -   **Atenção:** Nunca defina a **Rede de PODS** (`--cluster-cidr`, padrão `10.42.0.0/16`) sobrepondo sua rede física. Se você fizer isso, o Kubernetes "roubará" o tráfego da sua placa de rede e você perderá acesso ao servidor.
 
-### O que é Armazenado em Cada Nó?
+## 💿 O que é Armazenado em Cada Nó?
 
 - **Nós Control Plane**: A configuração e o estado do cluster (objetos Kubernetes como `Deployments`, `Services`, etc.), que são mantidos no banco de dados **Etcd** embarcado.
 - **Nós Worker**: As imagens de contêiner das aplicações em execução e dados temporários.
 - **Nó de Armazenamento (NFS)**: Todos os dados persistentes das aplicações. É o "disco rígido" do cluster.
 - **Nó de Gerenciamento**: Os arquivos de configuração do `kubectl`, charts do Helm e manifestos YAML usados para gerenciar o cluster.
 
-### Onde Encontrar os Logs?
+## 📊 Onde Encontrar os Logs?
 
 A localização dos logs depende do que você está tentando depurar:
 
@@ -115,7 +115,7 @@ A localização dos logs depende do que você está tentando depurar:
     - **Nós Master e Worker**: `/var/log/k3s/` (logs específicos do K3s) e `/var/log/` (logs gerais do sistema).
     - **Servidor NFS**: `/var/log/` (para logs do serviço NFS e outros logs do sistema).
 
-## 📜 Scripts Disponíveis
+## 📜 Scripts Disponíveis 
 
 ### Scripts de Instalação
 
