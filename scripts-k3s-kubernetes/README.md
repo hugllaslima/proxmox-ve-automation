@@ -235,6 +235,7 @@ Lembre-se de dar permissão de execução (`chmod +x *.sh`) a todos os scripts a
     - **Fallback**: Se você não copiar o arquivo de configuração, o script perguntará manualmente o IP do Control Plane e o Token.
 
 6.  **Máquina de Gerenciamento (`k3s-management`)**
+    - Assim como nos control planes, copie o diretório de scripts (contendo `k3s_cluster_vars.sh`) para a máquina de gerenciamento.
     - Após o cluster estar no ar, execute o script de configuração dos addons para instalar `kubectl`, `helm` e os componentes essenciais.
     - **Atenção:** Execute este script **SEM sudo**, pois ele configura o ambiente para o seu usuário atual.
     - **Pré-requisito**: Certifique-se de ter configurado as chaves SSH (passo "Pré-requisitos: Configuração SSH" acima) antes de rodar este script.
