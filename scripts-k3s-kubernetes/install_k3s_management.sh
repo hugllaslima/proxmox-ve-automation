@@ -281,7 +281,12 @@ helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
     --namespace ingress-nginx \
     --set controller.service.type=LoadBalancer
 
+    --set controller.service.type=LoadBalancer
+
 check_command "Falha ao instalar Nginx Ingress."
+
+# > [!WARNING]
+# > **Nota sobre o Ingress NGINX**: O projeto comunitário `ingress-nginx` anunciou o fim do suporte "best-effort" para março de 2026. Uma atualização futura deste projeto migrará para uma alternativa (como Traefik v3 ou Gateway API). Por enquanto, ele continua funcional e estável.
 
 echo -e "\n\e[32m--- Configuração de Addons do Kubernetes concluída ---\e[0m"
 echo "Use 'kubectl get pods -A' para verificar o status dos pods."
