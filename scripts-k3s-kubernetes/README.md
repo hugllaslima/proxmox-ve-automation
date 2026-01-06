@@ -62,47 +62,35 @@ A arquitetura a seguir é a configuração de referência testada para este proj
 ### 🗺️ Diagrama da Topologia
 
 ```mermaid
-graph TD
-    subgraph Management_Zone [Gerenciamento & Acesso]
-        User((Usuário/Dev)) -->|SSH/Kubectl| Management["VM: Management\n(kubectl, helm, k9s)"]
-        User -->|HTTP/HTTPS| VIP["MetalLB VIP\n(192.168.10.x)"]
-    end
-
-    subgraph Control_Plane [Control Plane HA - Etcd]
-        direction TB
-        VIP -.->|Roteamento| CP1
-        VIP -.->|Roteamento| CP2
-        VIP -.->|Roteamento| CP3
-        
-        CP1[k3s-control-plane-1] <-->|Etcd Sync| CP2[k3s-control-plane-2]
-        CP2 <-->|Etcd Sync| CP3[k3s-control-plane-3]
-        CP3 <-->|Etcd Sync| CP1
-        
-        CP1 -->|Gerencia| API[API Server]
-    end
-
-    subgraph Data_Plane [Worker Nodes]
-        Worker1["k3s-worker-1\n(Workloads)"]
-        Worker2["k3s-worker-2\n(Workloads)"]
-        
-        API -->|Scheduling| Worker1
-        API -->|Scheduling| Worker2
-        
-        Ingress["Ingress Controller\n(Nginx)"] -->|Proxies| Pods(App Pods)
-    end
-
-    subgraph Storage_Zone [Persistência]
-        NFS[VM: Storage NFS]
-        Worker1 -->|Mount| NFS
-        Worker2 -->|Mount| NFS
-    end
-
-    classDef plain fill:#fff,stroke:#333,stroke-width:1px;
-    classDef highlight fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
-    classDef storage fill:#fff3e0,stroke:#e65100,stroke-width:2px;
+graph LR
+    User((User)) -->|SSH/HTTP| MetalLB
+    User -->|SSH| Management
     
-    class CP1,CP2,CP3 highlight;
-    class NFS storage;
+    subgraph Management_Net [Rede de Gerenciamento]
+        Management[VM: Management]
+        MetalLB[VIP: 192.168.10.x]
+    end
+
+    subgraph Cluster_K3s [Cluster K3s HA]
+        direction TB
+        CP1[Control Plane 1] <--> CP2[Control Plane 2]
+        CP2 <--> CP3[Control Plane 3]
+        CP3 <--> CP1
+        
+        MetalLB -->|Route| CP1
+        MetalLB -->|Route| CP2
+        MetalLB -->|Route| CP3
+        
+        CP1 --> Worker1[Worker 1]
+        CP2 --> Worker2[Worker 2]
+    end
+
+    subgraph Storage [Armazenamento]
+        NFS[Server NFS]
+    end
+
+    Worker1 -->|PV Mount| NFS
+    Worker2 -->|PV Mount| NFS
 ```
 
 ## ⚙️ Como o Ambiente Funciona?
