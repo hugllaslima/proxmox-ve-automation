@@ -64,8 +64,8 @@ A arquitetura a seguir é a configuração de referência testada para este proj
 ```mermaid
 graph TD
     subgraph Management_Zone [Gerenciamento & Acesso]
-        User((Usuário/Dev)) -->|SSH/Kubectl| Management[VM: Management\n(kubectl, helm, k9s)]
-        User -->|HTTP/HTTPS| VIP[MetalLB VIP\n(192.168.10.x)]
+        User((Usuário/Dev)) -->|SSH/Kubectl| Management["VM: Management\n(kubectl, helm, k9s)"]
+        User -->|HTTP/HTTPS| VIP["MetalLB VIP\n(192.168.10.x)"]
     end
 
     subgraph Control_Plane [Control Plane HA - Etcd]
@@ -82,13 +82,13 @@ graph TD
     end
 
     subgraph Data_Plane [Worker Nodes]
-        Worker1[k3s-worker-1\n(Workloads)]
-        Worker2[k3s-worker-2\n(Workloads)]
+        Worker1["k3s-worker-1\n(Workloads)"]
+        Worker2["k3s-worker-2\n(Workloads)"]
         
         API -->|Scheduling| Worker1
         API -->|Scheduling| Worker2
         
-        Ingress[Ingress Controller\n(Nginx)] -->|Proxies| Pods(App Pods)
+        Ingress["Ingress Controller\n(Nginx)"] -->|Proxies| Pods(App Pods)
     end
 
     subgraph Storage_Zone [Persistência]
