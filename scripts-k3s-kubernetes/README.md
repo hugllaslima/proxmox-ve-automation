@@ -59,6 +59,52 @@ A arquitetura a seguir é a configuração de referência testada para este proj
 | 6 | `k3s-storage-nfs` | Ubuntu 24.04 LTS | `192.168.10.25/24` | 2c | 4GB | 80GB |
 | 7 | `k3s-management` | Ubuntu 24.04 LTS | `192.168.10.26/24` | 2c | 4GB | 30GB |
 
+### 🗺️ Diagrama da Topologia
+
+```mermaid
+graph TD
+    subgraph Management_Zone [Gerenciamento & Acesso]
+        User((Usuário/Dev)) -->|SSH/Kubectl| Management[VM: Management\n(kubectl, helm, k9s)]
+        User -->|HTTP/HTTPS| VIP[MetalLB VIP\n(192.168.10.x)]
+    end
+
+    subgraph Control_Plane [Control Plane HA - Etcd]
+        direction TB
+        VIP -.->|Roteamento| CP1
+        VIP -.->|Roteamento| CP2
+        VIP -.->|Roteamento| CP3
+        
+        CP1[k3s-control-plane-1] <-->|Etcd Sync| CP2[k3s-control-plane-2]
+        CP2 <-->|Etcd Sync| CP3[k3s-control-plane-3]
+        CP3 <-->|Etcd Sync| CP1
+        
+        CP1 -->|Gerencia| API[API Server]
+    end
+
+    subgraph Data_Plane [Worker Nodes]
+        Worker1[k3s-worker-1\n(Workloads)]
+        Worker2[k3s-worker-2\n(Workloads)]
+        
+        API -->|Scheduling| Worker1
+        API -->|Scheduling| Worker2
+        
+        Ingress[Ingress Controller\n(Nginx)] -->|Proxies| Pods(App Pods)
+    end
+
+    subgraph Storage_Zone [Persistência]
+        NFS[VM: Storage NFS]
+        Worker1 -->|Mount| NFS
+        Worker2 -->|Mount| NFS
+    end
+
+    classDef plain fill:#fff,stroke:#333,stroke-width:1px;
+    classDef highlight fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
+    classDef storage fill:#fff3e0,stroke:#e65100,stroke-width:2px;
+    
+    class CP1,CP2,CP3 highlight;
+    class NFS storage;
+```
+
 ## ⚙️ Como o Ambiente Funciona?
 
 Esta seção detalha o papel de cada componente e como eles interagem para formar um cluster funcional e resiliente. ao seu ambiente.
