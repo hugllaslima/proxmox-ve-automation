@@ -54,6 +54,11 @@ if [ "$EUID" -ne 0 ]; then
   error_exit "Por favor, execute este script como root (sudo)."
 fi
 
+# Load variables if config exists to help with cleanup
+if [ -f "$CONFIG_FILE_PATH" ]; then
+    source "$CONFIG_FILE_PATH"
+fi
+
 echo -e "\e[34m--- Iniciando limpeza do nó Control Plane ---\e[0m"
 read -p "TEM CERTEZA que deseja remover COMPLETAMENTE o K3s deste nó? (s/n): " confirm
 if [[ ! "$confirm" =~ ^[Ss]$ ]]; then
@@ -83,10 +88,7 @@ rm -f /usr/local/bin/kubectl
 rm -f /usr/local/bin/crictl
 rm -f /etc/sysctl.d/99-kubernetes-cri.conf
 
-if [ -f "$CONFIG_FILE_PATH" ]; then
-    echo "Removendo arquivo de variáveis ($CONFIG_FILE_PATH)..."
-    rm -f "$CONFIG_FILE_PATH"
-fi
+
 
 # 3. Limpeza de Hosts
 echo "Limpando /etc/hosts..."
@@ -95,16 +97,40 @@ sed -i '/k3s-worker/d' /etc/hosts
 sed -i '/k3s-storage-nfs/d' /etc/hosts
 
 # 4. Limpeza de Firewall (UFW)
-echo "Revertendo configurações do Firewall (UFW)..."
+# Elimina regras específicas baseadas nas variáveis carregadas
+if [ -n "$ADMIN_NETWORK_CIDRS" ]; then
+    for cidr in $ADMIN_NETWORK_CIDRS; do
+        ufw delete allow from "$cidr" to any port 22 proto tcp >/dev/null 2>&1
+        ufw delete allow from "$cidr" to any port 6443 proto tcp >/dev/null 2>&1
+    done
+fi
+
+if [ -n "$K3S_LAN_CIDR" ]; then
+    ufw delete allow from "$K3S_LAN_CIDR" to any port 6443 proto tcp >/dev/null 2>&1
+    ufw delete allow from "$K3S_LAN_CIDR" to any port 2379:2380 proto tcp >/dev/null 2>&1
+    ufw delete allow from "$K3S_LAN_CIDR" to any port 10250 proto tcp >/dev/null 2>&1
+    ufw delete allow from "$K3S_LAN_CIDR" to any port 8472 proto udp >/dev/null 2>&1
+    ufw delete allow from "$K3S_LAN_CIDR" to any port 10251 proto tcp >/dev/null 2>&1
+    ufw delete allow from "$K3S_LAN_CIDR" to any port 10252 proto tcp >/dev/null 2>&1
+fi
+
+# Limpeza genérica de backup
 ufw delete allow 6443/tcp >/dev/null 2>&1
 ufw delete allow 10250/tcp >/dev/null 2>&1
 ufw delete allow 8472/udp >/dev/null 2>&1
+
 # Reverte política de encaminhamento para DROP (padrão seguro)
 if grep -q 'DEFAULT_FORWARD_POLICY="ACCEPT"' /etc/default/ufw; then
     sed -i 's/DEFAULT_FORWARD_POLICY="ACCEPT"/DEFAULT_FORWARD_POLICY="DROP"/g' /etc/default/ufw
     echo "Política de encaminhamento UFW revertida para DROP."
 fi
 ufw reload >/dev/null 2>&1
+
+# Remove arquivo de variáveis por último
+if [ -f "$CONFIG_FILE_PATH" ]; then
+    echo "Removendo arquivo de variáveis ($CONFIG_FILE_PATH)..."
+    rm -f "$CONFIG_FILE_PATH"
+fi
 
 # 5. Reabilitar Swap (Opcional, mas volta ao estado original)
 # Descomenta linhas de swap no fstab
