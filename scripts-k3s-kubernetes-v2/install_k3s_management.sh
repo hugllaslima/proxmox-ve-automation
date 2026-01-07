@@ -121,7 +121,7 @@ else
 fi
 
 echo -e "\e[34m--- Configuração de Addons do Kubernetes ---\e[0m"
-echo "Este script irá configurar o kubectl e instalar o NFS Provisioner, MetalLB e Nginx Ingress Controller."
+echo "Este script irá configurar o kubectl e instalar o NFS Provisioner, MetalLB e Gateway API (CRDs)."
 
 # Tenta carregar variáveis do arquivo de configuração
 if [ -f "$CONFIG_FILE_PATH" ]; then
@@ -194,16 +194,16 @@ fi
 
 echo "Buscando kubeconfig do servidor $K3S_CONTROL_PLANE_1_IP..."
 
-# Executa o SCP como o usuário real para usar as chaves SSH corretas
+# Executa o SSH como o usuário real para usar as chaves SSH corretas e sudo no remote para ler o arquivo
 if [ -n "$SUDO_USER" ]; then
-    if sudo -u "$REAL_USER" scp -o StrictHostKeyChecking=no "$SSH_USER@$K3S_CONTROL_PLANE_1_IP:/etc/rancher/k3s/k3s.yaml" "$KUBE_CONFIG"; then
-        echo "Kubeconfig copiado com sucesso (via sudo -u $REAL_USER)."
+    if sudo -u "$REAL_USER" ssh -o StrictHostKeyChecking=no "$SSH_USER@$K3S_CONTROL_PLANE_1_IP" "sudo cat /etc/rancher/k3s/k3s.yaml" > "$KUBE_CONFIG"; then
+        echo "Kubeconfig copiado com sucesso (via ssh sudo cat)."
     else
-        check_command "Falha ao copiar kubeconfig. Verifique se o usuário '$REAL_USER' tem chave SSH configurada para '$SSH_USER@$K3S_CONTROL_PLANE_1_IP'."
+        check_command "Falha ao copiar kubeconfig. Verifique se o usuário '$REAL_USER' tem chave SSH configurada e se '$SSH_USER' tem sudo no servidor."
     fi
 else
-    scp -o StrictHostKeyChecking=no "$SSH_USER@$K3S_CONTROL_PLANE_1_IP:/etc/rancher/k3s/k3s.yaml" "$KUBE_CONFIG"
-    check_command "Falha ao copiar kubeconfig. Verifique o acesso SSH."
+    ssh -o StrictHostKeyChecking=no "$SSH_USER@$K3S_CONTROL_PLANE_1_IP" "sudo cat /etc/rancher/k3s/k3s.yaml" > "$KUBE_CONFIG"
+    check_command "Falha ao copiar kubeconfig. Verifique o acesso SSH e permissões de sudo."
 fi
 
 # Ajustar o IP no kubeconfig (de 127.0.0.1 para o IP real)
