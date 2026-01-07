@@ -147,11 +147,24 @@ print_info "--- 4. Limpando Configuração Local do Kubectl ---"
     fi
     
     # Remove binário kubectl residual no diretório atual (se houver)
+    # Remove binário kubectl residual no diretório atual (se houver)
     if [ -f "kubectl" ]; then
         print_info "Removendo binário kubectl do diretório atual..."
         rm kubectl
     fi
 
+echo ""
+print_info "--- 5. Removendo Ferramentas Instaladas (Opcional) ---"
+    
+    if [ -f "/usr/local/bin/k9s" ]; then
+        print_info "Removendo K9s (/usr/local/bin/k9s)..."
+        rm /usr/local/bin/k9s
+    fi
+
+    if [ -f "/usr/local/bin/kubectl" ]; then
+        print_info "Removendo Kubectl (/usr/local/bin/kubectl)..."
+        rm /usr/local/bin/kubectl
+    fi
 
 echo ""
 echo "--------------------------------------------------------------------"
