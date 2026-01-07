@@ -83,6 +83,10 @@ graph LR
         
         CP1 --> Worker1[Worker 1]
         CP2 --> Worker2[Worker 2]
+        
+        Gateway[Gateway API / Traefik] --> Worker1
+        Gateway --> Worker2
+        MetalLB -->|Traffic| Gateway
     end
 
     subgraph Storage [Armazenamento]
@@ -156,7 +160,7 @@ A localização dos logs depende do que você está tentando depurar:
 - **`install_nfs_server.sh`**: Configura uma VM para atuar como um servidor NFS, que fornecerá armazenamento persistente para o cluster.
 - **`install_k3s_control_plane.sh`**: Instala e configura um nó de controle (control plane) do K3s. Possui lógica para diferenciar o primeiro control plane (que configura o banco de dados) do segundo, para criar um ambiente de alta disponibilidade (HA).
 - **`install_k3s_worker.sh`**: Instala e configura um nó de trabalho (worker) e o junta ao cluster K3s. Instala automaticamente dependências de sistema como `nfs-common` para garantir o funcionamento de volumes persistentes.
-- **`install_k3s_management.sh`**: Deve ser executado em uma máquina de gerenciamento. Instala `kubectl`, `helm`, `k9s` (Terminal UI) e implanta addons essenciais: NFS Provisioner (para StorageClasses), MetalLB (para Load Balancers) e Nginx Ingress Controller.
+- **`install_k3s_management.sh`**: Deve ser executado em uma máquina de gerenciamento. Instala `kubectl`, `helm`, `k9s` (Terminal UI) e implanta addons essenciais: NFS Provisioner (para StorageClasses), MetalLB (para Load Balancers) e os CRDs da **Gateway API** (para roteamento via Traefik).
 
 ### Scripts de Verificação
 
@@ -165,7 +169,7 @@ A localização dos logs depende do que você está tentando depurar:
 
 ### Scripts de Demonstração
 
-- **`deploy_demo_app.sh`**: Implanta uma aplicação simples ("Hello World" via Nginx) para validar o fluxo completo: Deployment > Service > Ingress > Acesso Externo via Navegador. Ideal para ver seu cluster funcionando na prática.
+- **`deploy_demo_app.sh`**: Implanta uma aplicação simples ("Hello World") para validar o fluxo completo: Deployment > Service > Gateway > MetalLB > Acesso Externo. Ideal para ver seu cluster funcionando na prática.
 
 ### Scripts de Manutenção
 
@@ -313,21 +317,6 @@ Esta seção detalha os scripts auxiliares criados para garantir a saúde do clu
 - **Por que usar:**
   Diferente do *health check*, este script prova que o cluster é **funcional** para o usuário final. Ele garante que o Storage (NFS) consegue gravar dados reais e que a Rede (MetalLB) consegue atribuir IPs válidos, simulando o uso real de uma aplicação.
 
-### 3. `verify_fix_ingress_conflict.sh` (Correção de Conflito de Portas)
-
-**O que faz:** Desativa o Traefik e o ServiceLB (Klipper) nativos do K3s para permitir que o Nginx Ingress Controller e o MetalLB funcionem sem conflitos nas portas 80 e 443.
-
-- **Quando usar:**
-  - Se você instalou o cluster utilizando versões antigas dos scripts (antes da correção automática na instalação).
-  - Se notar que o Nginx Ingress não inicia ou que as portas 80/443 já estão em uso.
-  - Se reinstalou o K3s manualmente sem passar as flags `--disable traefik --disable servicelb`.
-- **Como usar:**
-  Execute em **TODOS** os nós do Control Plane (`control-plane-1`, `2`, `3`):
-  ```bash
-  sudo ./verify_fix_ingress_conflict.sh
-  ```
-- **Por que usar:**
-  O K3s vem com o Traefik e o ServiceLB habilitados por padrão. Se tentarmos instalar o Nginx Ingress e o MetalLB (nossa stack escolhida) sem desativar os padrões, haverá conflito de portas e IPs. Este script resolve a disputa ajustando o `config.yaml` do K3s e reiniciando o serviço, garantindo que o Nginx assuma o controle do tráfego.
 
 ### 4. `k9s` (Monitoramento Interativo)
 
@@ -423,7 +412,7 @@ Para recuperações granulares ou migração de cluster, você deve fazer backup
 
 ## 🏭 Considerações para Produção
 
-Este ambiente K3s foi projetado para ser robusto e funcional, utilizando componentes reais de produção (MetalLB, Ingress Nginx, Etcd HA). Ele é adequado para ambientes de desenvolvimento, homelab avançado e pequenas/médias empresas.
+Este ambiente K3s foi projetado para ser robusto e funcional, utilizando componentes reais de produção (MetalLB, Gateway API, Etcd HA). Ele é adequado para ambientes de desenvolvimento, homelab avançado e pequenas/médias empresas.
 
 No entanto, para ambientes de **Produção Crítica** ("Enterprise"), esteja ciente dos seguintes **Pontos de Atenção**:
 

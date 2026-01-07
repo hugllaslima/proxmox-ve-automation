@@ -5,12 +5,12 @@
 #
 # Descrição:
 #   Implanta uma aplicação de demonstração ("Hello World") para validar o funcionamento
-#   completo do cluster: Deployment -> Service -> Ingress -> MetalLB -> Navegador.
+#   completo do cluster utilizando Gateway API: Deployment -> Service -> Gateway -> MetalLB.
 #
 # Funcionalidades:
 #   - Cria um Deployment do Nginx (nginxdemos/hello).
 #   - Cria um Service ClusterIP para expor os pods.
-#   - Cria um Ingress Resource para roteamento externo via Nginx Ingress Controller.
+#   - Cria um Gateway e HTTPRoute para roteamento via Traefik (Gateway API).
 #   - Exibe a URL final de acesso (baseada no IP do MetalLB).
 #
 # Autor:
@@ -89,42 +89,54 @@ spec:
   - port: 80
     targetPort: 80
 ---
-apiVersion: networking.k8s.io/v1
-kind: Ingress
+apiVersion: gateway.networking.k8s.io/v1
+kind: Gateway
 metadata:
-  name: $APP_NAME-ingress
+  name: $APP_NAME-gateway
   namespace: $NAMESPACE
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
 spec:
-  ingressClassName: nginx
+  gatewayClassName: traefik
+  listeners:
+  - name: web
+    port: 80
+    protocol: HTTP
+    allowedRoutes:
+      namespaces:
+        from: Same
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: $APP_NAME-route
+  namespace: $NAMESPACE
+spec:
+  parentRefs:
+  - name: $APP_NAME-gateway
   rules:
-  - http:
-      paths:
-      - path: /hello
-        pathType: Prefix
-        backend:
-          service:
-            name: $APP_NAME-svc
-            port:
-              number: 80
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /hello
+    backendRefs:
+    - name: $APP_NAME-svc
+      port: 80
 EOF
 
 echo -e "\n\e[32mAplicação implantada com sucesso!\e[0m"
-echo "Aguardando Ingress Controller obter o IP..."
+echo "Aguardando Gateway obter o IP..."
 
 sleep 5
 
-# Obtém o IP do Ingress Controller
-INGRESS_IP=$(kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
+# Obtém o IP do Gateway (Traefik Service)
+INGRESS_IP=$(kubectl get svc -n kube-system traefik -o jsonpath='{.status.loadBalancer.ingress[0].ip}' 2>/dev/null)
 
 if [ -z "$INGRESS_IP" ]; then
-    echo -e "\e[33mAviso: O IP do Ingress ainda não foi atribuído. Verifique 'kubectl get svc -n ingress-nginx'.\e[0m"
+    echo -e "\e[33mAviso: O IP do Gateway ainda não foi atribuído. Verifique 'kubectl get svc -n kube-system traefik'.\e[0m"
 else
     echo -e "\n\e[32m=== Teste de Acesso ===\e[0m"
     echo "Abra o navegador ou use o curl no seguinte endereço:"
     echo -e "\e[36mhttp://$INGRESS_IP/hello\e[0m"
     echo ""
     echo "Se você ver uma página com 'Server address' e 'Server name', tudo está funcionando!"
-    echo "Para remover essa demo depois, execute: kubectl delete deployment,svc,ingress -l app=$APP_NAME"
+    echo "Para remover essa demo depois, execute: kubectl delete deployment,svc,gateway,httproute -l app=$APP_NAME"
 fi

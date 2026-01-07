@@ -265,7 +265,7 @@ if [ "$NODE_TYPE" == "INIT" ]; then
     echo "Inicializando o Cluster no Control Plane 1..."
     
     # Adicionadas flags --disable traefik e --disable servicelb para evitar conflitos com MetalLB/Nginx
-    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --cluster-init --tls-san $K3S_CONTROL_PLANE_1_IP --node-ip $K3S_CONTROL_PLANE_1_IP --disable traefik --disable servicelb" sh -
+    curl -sfL https://get.k3s.io | INSTALL_K3S_EXEC="server --cluster-init --tls-san $K3S_CONTROL_PLANE_1_IP --node-ip $K3S_CONTROL_PLANE_1_IP --disable servicelb" sh -
     check_command "Falha na instalação do K3s (Init)."
     
     # Aguardar o token ser gerado
@@ -290,7 +290,7 @@ elif [ "$NODE_TYPE" == "JOIN" ]; then
     echo "Ingressando no Cluster existente..."
     
     # Adicionadas flags --disable traefik e --disable servicelb para consistência
-    curl -sfL https://get.k3s.io | K3S_TOKEN="$K3S_TOKEN" INSTALL_K3S_EXEC="server --server https://$K3S_CONTROL_PLANE_1_IP:6443 --tls-san $CURRENT_IP --node-ip $CURRENT_IP --disable traefik --disable servicelb" sh -
+    curl -sfL https://get.k3s.io | K3S_TOKEN="$K3S_TOKEN" INSTALL_K3S_EXEC="server --server https://$K3S_CONTROL_PLANE_1_IP:6443 --tls-san $CURRENT_IP --node-ip $CURRENT_IP --disable servicelb" sh -
     check_command "Falha ao ingressar no cluster."
     
     echo -e "\e[32mNÓ ADICIONADO AO CLUSTER COM SUCESSO!\e[0m"

@@ -272,22 +272,13 @@ else
 fi
 
 
-# 7. Instalar Nginx Ingress
-echo -e "\n\e[34m--- 7. Instalando Nginx Ingress Controller ---\e[0m"
-kubectl create namespace ingress-nginx --dry-run=client -o yaml | kubectl apply -f -
-
-# Instalação básica. O MetalLB vai atribuir um IP externo automaticamente ao serviço LoadBalancer do Ingress.
-helm upgrade --install ingress-nginx ingress-nginx/ingress-nginx \
-    --namespace ingress-nginx \
-    --set controller.service.type=LoadBalancer
-
-    --set controller.service.type=LoadBalancer
-
-check_command "Falha ao instalar Nginx Ingress."
-
-# > [!WARNING]
-# > **Nota sobre o Ingress NGINX**: O projeto comunitário `ingress-nginx` anunciou o fim do suporte "best-effort" para março de 2026. Uma atualização futura deste projeto migrará para uma alternativa (como Traefik v3 ou Gateway API). Por enquanto, ele continua funcional e estável.
+# 7. Instalar Gateway API CRDs
+echo -e "\n\e[34m--- 7. Instalando Gateway API CRDs ---\e[0m"
+# Instala os CRDs oficiais (Standard Channel) para habilitar Gateways e HTTPRoutes
+kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml
+check_command "Falha ao instalar Gateway API CRDs."
 
 echo -e "\n\e[32m--- Configuração de Addons do Kubernetes concluída ---\e[0m"
-echo "Use 'kubectl get pods -A' para verificar o status dos pods."
-echo "Use 'kubectl get svc -n ingress-nginx' para ver o IP externo atribuído ao Ingress."
+echo -e "O cluster agora usa \e[36mTraefik (Nativo)\e[0m com suporte a \e[36mGateway API\e[0m."
+echo "Use 'kubectl get gatewayclasses' para verificar a classe de gateway 'traefik'."
+echo "Use 'kubectl get svc -n kube-system traefik' para ver o IP do LoadBalancer."

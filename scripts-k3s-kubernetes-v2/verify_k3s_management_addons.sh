@@ -84,7 +84,7 @@ fi
 # 1. Verificação Visual dos Pods
 echo -e "\n\e[34m--- 1. Status dos Pods ---\e[0m"
 ALL_HEALTHY=true
-for ns in nfs-provisioner metallb-system ingress-nginx; do
+for ns in nfs-provisioner metallb-system; do
     echo "Verificando namespace: $ns"
     # Conta linhas que não sejam cabeçalho e não estejam Running ou Completed
     PROBLEMATIC_PODS=$(kubectl get pods -n "$ns" --no-headers | grep -v "Running\|Completed")
@@ -100,15 +100,15 @@ for ns in nfs-provisioner metallb-system ingress-nginx; do
 done
 
 # 2. Teste do Ingress/MetalLB
-echo -e "\e[34m--- 2. Verificando MetalLB e Ingress IP ---\e[0m"
-INGRESS_IP=$(kubectl get svc -n ingress-nginx ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+echo -e "\e[34m--- 2. Verificando MetalLB e Gateway IP (Traefik) ---\e[0m"
+INGRESS_IP=$(kubectl get svc -n kube-system traefik -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
 
 if [ -z "$INGRESS_IP" ]; then
-    echo -e "\e[31mFALHA: O Ingress Controller não recebeu um IP externo do MetalLB.\e[0m"
-    echo "Verifique se o range de IPs do MetalLB está correto e se não há conflitos."
+    echo -e "\e[31mFALHA: O Traefik Gateway não recebeu um IP externo do MetalLB.\e[0m"
+    echo "Verifique se o range de IPs do MetalLB está correto e se o serviço 'traefik' está rodando no namespace 'kube-system'."
     ALL_HEALTHY=false
 else
-    echo -e "\e[32mSUCESSO: Ingress Controller recebeu o IP: $INGRESS_IP\e[0m"
+    echo -e "\e[32mSUCESSO: Traefik Gateway recebeu o IP: $INGRESS_IP\e[0m"
 fi
 
 # 3. Teste Funcional do NFS
