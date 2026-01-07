@@ -45,7 +45,9 @@
 #   1. Dê permissão de execução ao script:
 #      chmod +x install_k3s_management.sh
 #   2. Execute o script:
-#      ./install_k3s_management.sh (NÃO usar sudo, a menos que necessário)
+#      sudo ./install_k3s_management.sh (Recomendado para evitar pedidos de senha)
+#      ou
+#      ./install_k3s_management.sh (Pedirá senha sudo durante a execução)
 #   3. Siga as instruções no terminal.
 #
 # Onde Utilizar:
