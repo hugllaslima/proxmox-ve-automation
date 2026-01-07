@@ -10,8 +10,9 @@
 #   kubectl. O objetivo é deixar o cluster em um estado limpo, sem os addons.
 #
 # Funcionalidades:
-#   - Desinstala os charts Helm do Nginx Ingress, MetalLB e NFS Provisioner.
-#   - Remove os namespaces 'ingress-nginx', 'metallb-system' e 'nfs-provisioner'.
+#   - Desinstala os charts Helm do MetalLB e NFS Provisioner.
+#   - Remove os namespaces 'metallb-system' e 'nfs-provisioner'.
+#   - Remove os CRDs da Gateway API.
 #   - Remove os repositórios Helm adicionados.
 #   - Limpa o arquivo de configuração local do kubectl (~/.kube/config).
 #
@@ -70,8 +71,8 @@ function check_command_exists {
 echo "--------------------------------------------------------------------"
 echo "--- Script de Limpeza dos Addons do K3s ---"
 echo "--------------------------------------------------------------------"
-echo "Este script irá remover PERMANENTEMENTE os addons Nginx, MetalLB,"
-echo "e NFS Provisioner, além de limpar a configuração local do kubectl."
+echo "Este script irá remover PERMANENTEMENTE os addons MetalLB,"
+echo "NFS Provisioner e os CRDs da Gateway API, além de limpar"
 echo "Esta ação não pode ser desfeita."
 echo ""
 read -p "Você tem certeza que deseja continuar? (s/n): " CONFIRM
@@ -84,9 +85,6 @@ echo ""
 print_info "--- 1. Desinstalando Addons com Helm ---"
 
     if check_command_exists helm; then
-        print_info "Desinstalando Nginx Ingress Controller..."
-        helm uninstall ingress-nginx --namespace ingress-nginx || print_warning "Falha ao desinstalar ingress-nginx. Pode já ter sido removido."
-
         print_info "Desinstalando MetalLB..."
         helm uninstall metallb --namespace metallb-system || print_warning "Falha ao desinstalar metallb. Pode já ter sido removido."
 
@@ -100,14 +98,13 @@ echo ""
 print_info "--- 2. Removendo Namespaces ---"
 
     if check_command_exists kubectl; then
-        print_info "Removendo namespace ingress-nginx..."
-        kubectl delete namespace ingress-nginx --ignore-not-found
-
         print_info "Removendo namespace metallb-system..."
         kubectl delete namespace metallb-system --ignore-not-found
 
         print_info "Removendo namespace nfs-provisioner..."
         kubectl delete namespace nfs-provisioner --ignore-not-found
+        print_info "Removendo Gateway API CRDs..."
+        kubectl delete -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.1.0/standard-install.yaml --ignore-not-found || print_warning "Falha ao remover CRDs. Podem já ter sido removidos."
     else
         print_warning "Kubectl não encontrado. Pulando a remoção de namespaces."
     fi
@@ -116,7 +113,6 @@ echo ""
 print_info "--- 3. Removendo Repositórios Helm ---"
 
     if check_command_exists helm; then
-        helm repo remove ingress-nginx 2>/dev/null || true
         helm repo remove metallb 2>/dev/null || true
         helm repo remove nfs-subdir-external-provisioner 2>/dev/null || true
         print_info "Repositórios removidos."
