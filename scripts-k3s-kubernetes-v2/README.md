@@ -3,7 +3,7 @@
 Este projeto oferece uma solução de automação completa para implantar um cluster K3s de alta disponibilidade, otimizado especificamente para ambientes Proxmox VE com recursos computacionais limitados. A suíte de scripts `bash` foi desenvolvida para ser leve e eficiente, permitindo que você crie e gerencie um ambiente Kubernetes robusto, aproveitando a flexibilidade da virtualização sem a necessidade de hardware de ponta.
 
 > [!NOTE]
-> **Atualização Importante Para a 'Versão 2' Deste Projeto (Gateway API & Traefik):**
+> **Atualização Importante Para a 'Versão 2' Deste Projeto - (Gateway API & Traefik):**
 > Devido ao [anúncio de fim de suporte](https://kubernetes.github.io/ingress-nginx/) do projeto comunitário *Ingress NGINX*, esta versão do projeto migrou para o uso nativo do **Traefik** em conjunto com a moderna **Gateway API**.
 > Isso garante uma stack mais sustentável, performática e alinhada com o futuro do Kubernetes, sem depender de componentes legados.
  
