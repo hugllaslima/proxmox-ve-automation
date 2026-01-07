@@ -250,6 +250,7 @@ sysctl --system
 success_message "Configurações de Kernel aplicadas."
 
 # 2. Configuração de Firewall (UFW)
+echo " "
 echo -e "\e[34m--- 2. Configurando Firewall (UFW) ---\e[0m"
 ufw default deny incoming
 ufw default allow outgoing
@@ -286,6 +287,7 @@ success_message "Firewall configurado."
 
 
 # 3. Instalação do K3s
+echo " "
 echo -e "\e[34m--- 3. Instalando K3s ---\e[0m"
 
 if [ "$NODE_TYPE" == "INIT" ]; then
@@ -325,6 +327,7 @@ elif [ "$NODE_TYPE" == "JOIN" ]; then
 fi
 
 # 4. Verificação Final
+echo " "
 echo -e "\e[34m--- 4. Verificação de Status ---\e[0m"
 sleep 5
 /usr/local/bin/kubectl get nodes
