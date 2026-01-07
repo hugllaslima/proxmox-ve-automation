@@ -109,6 +109,15 @@ function get_user_input {
 
 # --- Início do Script ---
 
+# Determina o usuário real se estiver rodando com sudo
+if [ -n "$SUDO_USER" ]; then
+    REAL_USER=$SUDO_USER
+    REAL_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+else
+    REAL_USER=$(whoami)
+    REAL_HOME=$HOME
+fi
+
 echo -e "\e[34m--- Configuração de Addons do Kubernetes ---\e[0m"
 echo "Este script irá configurar o kubectl e instalar o NFS Provisioner, MetalLB e Nginx Ingress Controller."
 
@@ -170,17 +179,46 @@ fi
 
 # 2. Configurar Kubeconfig
 echo -e "\n\e[34m--- 2. Configurando Acesso ao Cluster ---\e[0m"
-mkdir -p ~/.kube
+
+# Define o caminho do kubeconfig para o usuário real
+KUBE_DIR="$REAL_HOME/.kube"
+KUBE_CONFIG="$KUBE_DIR/config"
+
+echo "Configurando diretório para o usuário $REAL_USER: $KUBE_DIR"
+if [ ! -d "$KUBE_DIR" ]; then
+    mkdir -p "$KUBE_DIR"
+    chown "$REAL_USER":"$REAL_USER" "$KUBE_DIR"
+fi
+
 echo "Buscando kubeconfig do servidor $K3S_CONTROL_PLANE_1_IP..."
-scp "$SSH_USER@$K3S_CONTROL_PLANE_1_IP:/etc/rancher/k3s/k3s.yaml" ~/.kube/config
-check_command "Falha ao copiar kubeconfig. Verifique o acesso SSH."
+
+# Executa o SCP como o usuário real para usar as chaves SSH corretas
+if [ -n "$SUDO_USER" ]; then
+    if sudo -u "$REAL_USER" scp -o StrictHostKeyChecking=no "$SSH_USER@$K3S_CONTROL_PLANE_1_IP:/etc/rancher/k3s/k3s.yaml" "$KUBE_CONFIG"; then
+        echo "Kubeconfig copiado com sucesso (via sudo -u $REAL_USER)."
+    else
+        check_command "Falha ao copiar kubeconfig. Verifique se o usuário '$REAL_USER' tem chave SSH configurada para '$SSH_USER@$K3S_CONTROL_PLANE_1_IP'."
+    fi
+else
+    scp -o StrictHostKeyChecking=no "$SSH_USER@$K3S_CONTROL_PLANE_1_IP:/etc/rancher/k3s/k3s.yaml" "$KUBE_CONFIG"
+    check_command "Falha ao copiar kubeconfig. Verifique o acesso SSH."
+fi
 
 # Ajustar o IP no kubeconfig (de 127.0.0.1 para o IP real)
-sed -i "s/127.0.0.1/$K3S_CONTROL_PLANE_1_IP/g" ~/.kube/config
-chmod 600 ~/.kube/config
-echo "Acesso configurado. Testando..."
-kubectl get nodes
-check_command "Falha ao conectar ao cluster."
+sed -i "s/127.0.0.1/$K3S_CONTROL_PLANE_1_IP/g" "$KUBE_CONFIG"
+chmod 600 "$KUBE_CONFIG"
+chown "$REAL_USER":"$REAL_USER" "$KUBE_CONFIG"
+
+# Exporta KUBECONFIG para que o root (este script) consiga usar o arquivo do usuário
+export KUBECONFIG="$KUBE_CONFIG"
+
+echo "Acesso configurado para usuário $REAL_USER. Testando conexão..."
+if kubectl get nodes; then
+    echo -e "\e[32mConexão com o cluster estabelecida com sucesso!\e[0m"
+else
+    echo -e "\e[31mFalha ao conectar ao cluster.\e[0m"
+    exit 1
+fi
 
 # 3. Instalar Helm
 echo -e "\n\e[34m--- 3. Instalando Helm ---\e[0m"
