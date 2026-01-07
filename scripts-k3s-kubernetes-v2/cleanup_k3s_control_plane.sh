@@ -135,3 +135,16 @@ fi
 # 5. Reabilitar Swap (Opcional, mas volta ao estado original)
 # Descomenta linhas de swap no fstab
 sed -i '/ swap / s/^#//' /etc/fstab
+
+echo ""
+echo "--------------------------------------------------------------------"
+echo "Limpeza concluída."
+echo "--------------------------------------------------------------------"
+read -p "Deseja reiniciar o servidor agora para aplicar todas as mudanças de kernel/network? (s/n): " reboot_ans
+if [[ "$reboot_ans" =~ ^[Ss]$ ]]; then
+    echo "Reiniciando em 5 segundos..."
+    sleep 5
+    reboot
+else
+    echo "Reinicialização adiada. Lembre-se de reiniciar manualmente."
+fi
