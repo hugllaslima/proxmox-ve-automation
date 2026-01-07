@@ -175,6 +175,12 @@ echo -e "\e[34m--- Instalação do K3s Control Plane (HA) ---\e[0m"
 if [ -f "$CONFIG_FILE_PATH" ]; then
     echo -e "\e[32mArquivo de configuração encontrado: $CONFIG_FILE\e[0m"
     source "$CONFIG_FILE_PATH"
+    
+    echo -e "\e[34mConfigurações carregadas do arquivo:\e[0m"
+    if ! confirm_info; then
+        echo "Instalação cancelada pelo usuário."
+        exit 0
+    fi
 else
     echo -e "\e[33mArquivo de configuração não encontrado.\e[0m"
     echo "Iniciando assistente de configuração..."
