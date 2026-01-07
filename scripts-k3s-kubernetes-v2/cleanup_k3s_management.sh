@@ -46,7 +46,18 @@
 #
 # -----------------------------------------------------------------------------
 
-set -e
+
+# Determina o usuário real se estiver rodando com sudo
+if [ -n "$SUDO_USER" ]; then
+    REAL_USER=$SUDO_USER
+    REAL_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+else
+    REAL_USER=$(whoami)
+    REAL_HOME=$HOME
+fi
+
+# Define o KUBECONFIG correto para que root consiga usar o arquivo do usuário
+export KUBECONFIG="$REAL_HOME/.kube/config"
 
 # --- Funções Auxiliares ---
 
@@ -121,12 +132,26 @@ print_info "--- 3. Removendo Repositórios Helm ---"
 echo ""
 print_info "--- 4. Limpando Configuração Local do Kubectl ---"
     
-    if [ -f ~/.kube/config ]; then
-        print_info "Removendo ~/.kube/config..."
-        rm ~/.kube/config
+    
+    if [ -f "$REAL_HOME/.kube/config" ]; then
+        print_info "Removendo $REAL_HOME/.kube/config..."
+        rm "$REAL_HOME/.kube/config"
     else
-        print_info "Arquivo ~/.kube/config não encontrado."
+        print_info "Arquivo $REAL_HOME/.kube/config não encontrado."
     fi
+
+    # Remove o arquivo k3s_cluster_vars.sh, se existir
+    if [ -f "k3s_cluster_vars.sh" ]; then
+        print_info "Removendo k3s_cluster_vars.sh..."
+        rm k3s_cluster_vars.sh
+    fi
+    
+    # Remove binário kubectl residual no diretório atual (se houver)
+    if [ -f "kubectl" ]; then
+        print_info "Removendo binário kubectl do diretório atual..."
+        rm kubectl
+    fi
+
 
 echo ""
 echo "--------------------------------------------------------------------"
