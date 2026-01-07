@@ -1,0 +1,22 @@
+# Arquivos de configuração gerados localmente
+*.sh
+!install_k3s_control_plane.sh
+!cleanup_k3s_control_plane.sh
+!install_k3s_worker.sh
+!cleanup_k3s_worker.sh
+!install_k3s_management.sh
+!cleanup_k3s_management.sh
+!install_nfs_server.sh
+!cleanup_nfs_server.sh
+!verify_k3s_cluster_health.sh
+!cluster_maintenance_tool.sh
+!verify_k3s_management_addons.sh
+!verify_fix_ingress_conflict.sh
+!deploy_demo_app.sh
+
+# Arquivos de log
+*.log
+
+# Arquivos temporários
+*.tmp
+*.bak
