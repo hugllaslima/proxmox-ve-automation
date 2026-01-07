@@ -15,7 +15,7 @@
 #   - Diagnostica problemas comuns de conexão (kubeconfig) e dependências (nfs-common).
 #
 # Autor:
-#   Hugllas R. S. Lima
+#   Hugllas R. S. Limasudo nano 
 #
 # Contato:
 #   - https://www.linkedin.com/in/hugllas-r-s-lima/
@@ -49,36 +49,23 @@ if ! command -v kubectl &> /dev/null; then
     exit 1
 fi
 
+# Detecta se está rodando com sudo e configura KUBECONFIG antes de testar
+if [ "$EUID" -eq 0 ] && [ -n "$SUDO_USER" ]; then
+    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+    if [ -f "$USER_HOME/.kube/config" ]; then
+        export KUBECONFIG="$USER_HOME/.kube/config"
+        echo -e "\e[33mNota: Detectado uso de sudo. Usando configuração do usuário '$SUDO_USER'.\e[0m"
+    fi
+fi
+
 # Verifica a conexão com o cluster
 if ! kubectl get nodes &> /dev/null; then
     echo -e "\e[31mERRO: Não foi possível conectar ao cluster Kubernetes.\e[0m"
     echo "Diagnóstico:"
     echo "1. O arquivo de configuração (~/.kube/config) pode não existir ou estar incorreto."
     echo "2. O serviço K3s pode estar parado no control-plane."
-    
-    # Tentativa de recuperação para uso com sudo
-    if [ "$EUID" -eq 0 ] && [ -n "$SUDO_USER" ]; then
-        USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
-        if [ -f "$USER_HOME/.kube/config" ]; then
-             echo -e "\n\e[33mALERTA: Você executou como root (sudo), mas a configuração está no usuário '$SUDO_USER'.\e[0m"
-             echo "Tentando usar a configuração em: $USER_HOME/.kube/config"
-             export KUBECONFIG="$USER_HOME/.kube/config"
-             
-             if kubectl get nodes &> /dev/null; then
-                 echo -e "\e[32mConexão estabelecida com sucesso!\e[0m"
-                 echo "Dica: Para evitar isso, execute o script SEM sudo: ./verify_k3s_management_addons.sh"
-             else
-                 echo -e "\e[31mFalha mesmo usando o arquivo de configuração do usuário.\e[0m"
-                 exit 1
-             fi
-        else
-            echo "Dica: Tente rodar este script SEM sudo."
-            exit 1
-        fi
-    else
-        echo "Dica: Verifique se o arquivo ~/.kube/config existe."
-        exit 1
-    fi
+    echo "Dica: Verifique se o arquivo ~/.kube/config existe e está configurado corretamente."
+    exit 1
 fi
 
 # 1. Verificação Visual dos Pods
