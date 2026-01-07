@@ -17,7 +17,8 @@
 #   - Gerencia automaticamente firewall (UFW) para API e Etcd.
 #   - Configura o arquivo de configuração do cluster.
 #   - Adiciona o token do K3s ao arquivo de configuração.
-#   - Desabilita Traefik e ServiceLB por padrão para evitar conflitos com MetalLB/Nginx.
+#   - Adiciona o token do K3s ao arquivo de configuração.
+#   - Mantém o Traefik habilitado (nativo) para uso com Gateway API.
 #
 # Autor:
 #   Hugllas R. S. Lima

@@ -7,7 +7,7 @@
 #   Este script automatiza a configuração de addons essenciais para um cluster
 #   Kubernetes (K3s), incluindo a configuração do kubectl, a instalação do Helm,
 #   K9s (Terminal UI) e a implantação de componentes como NFS Subdir External
-#   Provisioner, MetalLB e Nginx Ingress Controller.
+#   Provisioner, MetalLB e os CRDs da Gateway API.
 #
 #   O script é interativo e solicita as informações necessárias, como IPs
 #   do cluster K3s, IP do servidor NFS, caminho do compartilhamento NFS,
@@ -18,7 +18,7 @@
 #   - Configuração do acesso ao cluster (kubeconfig).
 #   - Instalação e configuração do NFS Subdir External Provisioner.
 #   - Instalação e configuração do MetalLB (Load Balancer).
-#   - Instalação e configuração do Nginx Ingress Controller.
+#   - Instalação dos CRDs da Gateway API (para uso com Traefik nativo).
 #   - Instalação do K9s (Terminal UI) para monitoramento.
 #
 # Autor:

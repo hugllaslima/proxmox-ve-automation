@@ -5,12 +5,12 @@
 #
 # Descrição:
 #   Este script realiza testes funcionais automatizados para validar se os
-#   Addons essenciais do cluster (NFS Provisioner, MetalLB e Ingress Nginx)
+#   Addons essenciais do cluster (NFS Provisioner, MetalLB e Gateway API/Traefik)
 #   estão operando corretamente na prática.
 #
 # Funcionalidades:
 #   - Valida se os pods dos addons estão com status 'Running'.
-#   - Testa o MetalLB verificando se o Ingress Controller recebe um IP externo.
+#   - Testa o MetalLB verificando se o Gateway (Traefik) recebe um IP externo.
 #   - Testa o NFS Provisioner criando um PVC e um Pod de teste que escreve dados reais.
 #   - Diagnostica problemas comuns de conexão (kubeconfig) e dependências (nfs-common).
 #
