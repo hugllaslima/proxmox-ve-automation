@@ -168,6 +168,7 @@ if [ "$EUID" -ne 0 ]; then
   error_exit "Por favor, execute este script como root (sudo)."
 fi
 
+echo " "
 echo -e "\e[34m--- Instalação do K3s Control Plane (HA) ---\e[0m"
 
 # Verifica se o arquivo de configuração existe
