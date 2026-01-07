@@ -41,6 +41,20 @@
 #
 # -----------------------------------------------------------------------------
 
+# Determina o usuário real se estiver rodando com sudo
+if [ -n "$SUDO_USER" ]; then
+    REAL_USER=$SUDO_USER
+    REAL_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
+else
+    REAL_USER=$(whoami)
+    REAL_HOME=$HOME
+fi
+
+# Define o KUBECONFIG correto para que root consiga usar o arquivo do usuário
+if [ -f "$REAL_HOME/.kube/config" ]; then
+    export KUBECONFIG="$REAL_HOME/.kube/config"
+fi
+
 # Função para imprimir cabeçalhos coloridos
 function print_header {
     echo -e "\n\e[34m=== $1 ===\e[0m"
