@@ -118,6 +118,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 # 1. Preparação do Sistema
+echo " "
 echo -e "\e[34m--- 1. Preparando o Sistema ---\e[0m"
 apt update && apt upgrade -y
 check_command "Falha ao atualizar o sistema."
@@ -159,11 +160,12 @@ sysctl --system
 success_message "Configurações de Kernel aplicadas."
 
 # 2. Configuração de Firewall (UFW)
+echo " " 
 echo -e "\e[34m--- 2. Configurando Firewall (UFW) ---\e[0m"
 ufw default deny incoming
 ufw default allow outgoing
 
-# Permitir SSH das redes administrativas
+# Permitir SSH das redes administrativas 
 if [ -n "$ADMIN_NETWORK_CIDRS" ]; then
     for cidr in $ADMIN_NETWORK_CIDRS; do
         ufw allow from "$cidr" to any port 22 proto tcp comment 'SSH Admin Access'
@@ -187,6 +189,7 @@ echo "y" | ufw enable
 success_message "Firewall configurado."
 
 # 3. Instalação do K3s Agent
+echo " " 
 echo -e "\e[34m--- 3. Instalando K3s Agent (Worker) ---\e[0m"
 
 echo "Ingressando no cluster..."
