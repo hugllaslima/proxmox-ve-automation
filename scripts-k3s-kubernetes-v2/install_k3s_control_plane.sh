@@ -117,9 +117,28 @@ function gather_initial_info() {
     get_user_input "Digite o CIDR da sua rede LAN (para liberar firewall)" "192.168.10.0/24" "K3S_LAN_CIDR"
     
     echo -e "\n\e[33m--- Segurança (Acesso SSH/API) ---\e[0m"
-    echo "Especifique as redes ou IPs que terão acesso TOTAL ao servidor (SSH e API Kubernetes)."
-    echo "Exemplo: 192.168.10.0/24 (sua rede local) ou 10.0.0.5/32 (IP de gestão específico)."
+    echo "Especifique as redes ou IPs que terão acesso externo ao servidor (VPN's, SSH, API Kubernetes)."
+    echo "Exemplo: 192.168.10.0/24 (VPN's) ou 10.0.0.5/32 (IP de gestão específico)." 
     get_user_input "Digite os CIDRs permitidos (separados por espaço se mais de um)" "192.168.10.0/24" "ADMIN_NETWORK_CIDRS"
+}
+
+# Função para exibir resumo e solicitar confirmação
+function confirm_info() {
+    echo -e "\n\e[34m--- Resumo da Configuração ---\e[0m"
+    echo "Control Plane 1 : $K3S_CONTROL_PLANE_1_IP"
+    echo "Control Plane 2 : $K3S_CONTROL_PLANE_2_IP"
+    echo "Control Plane 3 : $K3S_CONTROL_PLANE_3_IP"
+    echo "Worker 1        : $K3S_WORKER_1_IP"
+    echo "Worker 2        : $K3S_WORKER_2_IP"
+    echo "NFS Server      : $NFS_SERVER_IP"
+    echo "NFS Share Path  : $NFS_SHARE_PATH"
+    echo "Pod CIDR        : $K3S_POD_CIDR"
+    echo "LAN CIDR        : $K3S_LAN_CIDR"
+    echo "Admin CIDRs     : $ADMIN_NETWORK_CIDRS"
+    echo "--------------------------------------------------"
+    
+    read -p "As informações estão corretas? [S/n]: " confirm
+    [[ "$confirm" =~ ^[Nn]$ ]] && return 1 || return 0
 }
 
 # Função para coletar entrada do usuário
@@ -158,7 +177,14 @@ if [ -f "$CONFIG_FILE_PATH" ]; then
 else
     echo -e "\e[33mArquivo de configuração não encontrado.\e[0m"
     echo "Iniciando assistente de configuração..."
-    gather_initial_info
+    while true; do
+        gather_initial_info
+        if confirm_info; then
+            break
+        else
+            echo -e "\n\e[33mReiniciando assistente...\e[0m\n"
+        fi
+    done
     generate_config_file
 fi
 
