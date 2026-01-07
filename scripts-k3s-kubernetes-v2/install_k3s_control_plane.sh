@@ -117,9 +117,17 @@ function gather_initial_info() {
     get_user_input "Digite o CIDR da sua rede LAN (para liberar firewall)" "192.168.10.0/24" "K3S_LAN_CIDR"
     
     echo -e "\n\e[33m--- Segurança (Acesso SSH/API) ---\e[0m"
-    echo "Especifique as redes ou IPs que terão acesso externo ao servidor (VPN's, SSH, API Kubernetes)."
-    echo "Exemplo: 192.168.10.0/24 (VPN's) ou 10.0.0.5/32 (IP de gestão específico)." 
-    get_user_input "Digite os CIDRs permitidos (separados por espaço se mais de um)" "192.168.10.0/24" "ADMIN_NETWORK_CIDRS"
+    ADMIN_NETWORK_CIDRS="$K3S_LAN_CIDR"
+    echo "A rede local ($K3S_LAN_CIDR) já será incluída nas permissões de acesso SSH/API."
+    
+    read -p "Deseja adicionar outras redes (VPN, Jump Server) para acesso administrativo? [s/N]: " add_extra_nets
+    if [[ "$add_extra_nets" =~ ^[Ss]$ ]]; then
+        echo "Exemplo: 10.8.0.0/24 (VPN Wireguard) ou 203.0.113.10/32 (IP Público)."
+        get_user_input "Digite os CIDRs ADICIONAIS (separados por espaço)" "" "EXTRA_CIDRS"
+        if [ -n "$EXTRA_CIDRS" ]; then
+            ADMIN_NETWORK_CIDRS="$ADMIN_NETWORK_CIDRS $EXTRA_CIDRS"
+        fi
+    fi
 }
 
 # Função para exibir resumo e solicitar confirmação
