@@ -219,6 +219,7 @@ else
 fi
 
 # 1. Preparação do Sistema (Comum a todos)
+echo " " 
 echo -e "\e[34m--- 1. Preparando o Sistema ---\e[0m"
 apt update && apt upgrade -y
 check_command "Falha ao atualizar o sistema."
