@@ -4,7 +4,7 @@ Este projeto oferece uma solução de automação completa para implantar um clu
 
 > [!NOTE]
 > **Atualização Importante Para a 'Versão 2' Deste Projeto - (Gateway API & Traefik):**
-> O projeto original foi desenvolvido com o **'Ingress NGINX'** como Ingress Controller, mas devido ao [anúncio de fim de suporte](https://kubernetes.github.io/ingress-nginx/) do projeto comunitário **'Ingress NGINX'** em 11 de novembro de 2025, esta versão do projeto original migrou para o uso nativo do **'Traefik'** em conjunto com a moderna **'Gateway API'**.
+> O projeto original foi desenvolvido com o **'Ingress NGINX'** como Ingress Controller, mas devido ao [anúncio de fim de suporte](https://kubernetes.github.io/ingress-nginx/) do projeto **'Ingress NGINX'** em 11 de novembro de 2025, esta versão do projeto original migrou para o uso nativo do **'Traefik'** em conjunto com a moderna **'Gateway API'**.
 > Isso garante uma stack mais sustentável, performática e alinhada com o futuro do Kubernetes, sem depender de componentes legados.
  
 ## 🤔 Por que K3s? Uma Análise Comparativa
