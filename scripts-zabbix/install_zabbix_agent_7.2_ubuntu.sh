@@ -87,7 +87,7 @@
 #   - Validar configuração: cat /etc/zabbix/zabbix_agentd.conf | grep -E "^Server=|^ServerActive=|^Hostname="
 #
 # REPOSITÓRIO:
-#   https://github.com/hugllaslima/proxmox-ve-automation
+#   https://github.com/hugllaslima/proxmox-ve-workspace
 #
 # CHANGELOG:
 #   v1.1 (2025-10-24):
@@ -740,7 +740,7 @@ Se métricas não aparecerem:
 
 SUPORTE:
 
-Repositório: https://github.com/hugllaslima/proxmox-ve-automation
+Repositório: https://github.com/hugllaslima/proxmox-ve-workspace
 Documentação Zabbix: https://www.zabbix.com/documentation/7.2/
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━

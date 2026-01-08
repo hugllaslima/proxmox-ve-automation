@@ -11,7 +11,7 @@
 # Data: $(date +%Y-%m-%d)
 # Versão: 1.4 (Adição de tratamento de duplicidade de chaves)
 # Licença: MIT
-# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
+# Repositório: https://github.com/hugllaslima/proxmox-ve-workspace
 #==============================================================================
 #
 # ETAPAS DO SCRIPT:

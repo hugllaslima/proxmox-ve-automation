@@ -111,7 +111,7 @@ Ao contribuir para este projeto, você concorda que suas contribuições serão 
 **Autor:** Hugllas R S Lima
 - **Email:** hugllaslima@gmail.com
 - **GitHub:** [@hugllaslima](https://github.com/hugllaslima)
-- **Projeto:** [proxmox-ve-automation](https://github.com/hugllaslima/proxmox-ve-automation)
+- **Projeto:** [proxmox-ve-workspace](https://github.com/hugllaslima/proxmox-ve-workspace)
 
 ---
 

@@ -1,9 +1,9 @@
 # Proxmox VE Automation Suite
 
 <p align="center">
-  <img src="https://img.shields.io/github/license/hugllaslima/proxmox-ve-automation?style=for-the-badge" alt="Licença">
-  <img src="https://img.shields.io/github/stars/hugllaslima/proxmox-ve-automation?style=for-the-badge" alt="Estrelas">
-  <img src="https://img.shields.io/github/forks/hugllaslima/proxmox-ve-automation?style=for-the-badge" alt="Forks">
+  <img src="https://img.shields.io/github/license/hugllaslima/proxmox-ve-workspace?style=for-the-badge" alt="Licença">
+  <img src="https://img.shields.io/github/stars/hugllaslima/proxmox-ve-workspace?style=for-the-badge" alt="Estrelas">
+  <img src="https://img.shields.io/github/forks/hugllaslima/proxmox-ve-workspace?style=for-the-badge" alt="Forks">
 </p>
 
 Bem-vindo à **Proxmox VE Automation Suite**, uma coleção completa de scripts de automação projetados para simplificar o gerenciamento, a configuração e a manutenção de infraestruturas de virtualização baseadas em Proxmox VE ou outro virtualizador bare-metal.
@@ -68,8 +68,8 @@ Siga estes passos para começar a usar os scripts em seu ambiente.
 Clone este repositório para o seu servidor Proxmox VE ou para a máquina que você usará para gerenciar seu ambiente.
 
 ```bash
-git clone https://github.com/hugllaslima/proxmox-ve-automation.git
-cd proxmox-ve-automation
+git clone https://github.com/hugllaslima/proxmox-ve-workspace.git
+cd proxmox-ve-workspace
 ```
 
 ### 2. Explore os Scripts

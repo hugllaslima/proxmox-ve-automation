@@ -1,14 +1,14 @@
 #!/bin/bash
 
-#==============================================================================
+#==================================================================================================
 # Script: backups_usb_external.sh
 # Descrição: Backup automático em dispositivos USB externos
 # Autor: Hugllas Lima
 # Data: $(date +%Y-%m-%d)
 # Versão: 1.0
 # Licença: MIT
-# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
-#==============================================================================
+# Repositório: https://github.com/hugllaslima/proxmox-ve-workspace/tree/main/scripts-backups
+#==================================================================================================
 
 # ETAPAS DO SCRIPT:
 # 1. Detecção do dispositivo USB externo

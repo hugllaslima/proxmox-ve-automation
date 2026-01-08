@@ -7,7 +7,7 @@
 # Data de Criação: 20/10/2023
 # Versão: 3.1
 # Licença: MIT
-# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
+# Repositório: https://github.com/hugllaslima/proxmox-ve-workspace
 # -----------------------------------------------------------------------------
 #
 # Uso:

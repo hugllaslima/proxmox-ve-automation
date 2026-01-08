@@ -11,7 +11,7 @@
 # Data: $(date +%Y-%m-%d)
 # Versão: 1.10 (Correção: Validação robusta da existência do usuário alvo)
 # Licença: MIT
-# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
+# Repositório: https://github.com/hugllaslima/proxmox-ve-workspace
 #==============================================================================
 #
 # ETAPAS DO SCRIPT:

@@ -10,7 +10,7 @@
 # Data de Criação: 25/11/2025
 # Versão: 2.0
 # Licença: GPL-3.0
-# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
+# Repositório: https://github.com/hugllaslima/proxmox-ve-workspace
 # -----------------------------------------------------------------------------
 #
 # Uso:

@@ -1,14 +1,14 @@
 #!/bin/bash
 
-#==============================================================================
+#==================================================================================================
 # Script: install_docker_full.sh
 # Descrição: Instalação completa do Docker e Docker Compose
 # Autor: Hugllas Lima
 # Data: $(date +%Y-%m-%d)
 # Versão: 1.0
 # Licença: MIT
-# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
-#==============================================================================
+# Repositório: https://github.com/hugllaslima/proxmox-ve-workspace/tree/main/scripts-docker
+#================================================================================================== 
 
 # ETAPAS DO SCRIPT:
 # 1. Atualização do sistema

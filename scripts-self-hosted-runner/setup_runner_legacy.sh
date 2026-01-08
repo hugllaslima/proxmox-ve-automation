@@ -9,7 +9,7 @@
 # Data: $(date +%Y-%m-%d)
 # Versão: 1.0
 # Licença: MIT
-# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
+# Repositório: https://github.com/hugllaslima/proxmox-ve-workspace
 #==============================================================================
 
 # ETAPAS DO SCRIPT:

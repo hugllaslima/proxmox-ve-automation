@@ -6,7 +6,7 @@
 # Data: 2025-10-20
 # Versão: 1.6 (Correção do usuário no comentário da chave SSH: usando SUDO_USER)
 # Licença: MIT
-# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
+# Repositório: https://github.com/hugllaslima/proxmox-ve-workspace/tree/main/scripts-ansible
 
 #==============================================================================
 # ETAPAS DO SCRIPT:

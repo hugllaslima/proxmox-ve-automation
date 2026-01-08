@@ -25,7 +25,7 @@
 #
 # Contato:
 #   - https://www.linkedin.com/in/hugllas-r-s-lima/
-#   - https://github.com/hugllaslima/proxmox-ve-automation/tree/main/scripts-k3s-kubernetes
+#   - https://github.com/hugllaslima/proxmox-ve-workspace/tree/main/scripts-k3s-kubernetes-v2
 #
 # Versão:
 #   1.0

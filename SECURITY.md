@@ -20,7 +20,7 @@ Atualmente, oferecemos suporte de segurança para as seguintes versões:
 Se você descobrir uma vulnerabilidade de segurança, **NÃO** abra uma issue pública. Em vez disso:
 
 1. **Envie um email para:** hugllaslima@gmail.com
-2. **Assunto:** `[SECURITY] Vulnerabilidade em proxmox-ve-automation`
+2. **Assunto:** `[SECURITY] Vulnerabilidade em proxmox-ve-workspace`
 3. **Inclua:**
    - Descrição detalhada da vulnerabilidade
    - Passos para reproduzir o problema

@@ -1,14 +1,14 @@
 #!/bin/bash
 
-#==============================================================================
+#==================================================================================================
 # Script: create_user_lxc_2.sh
 # Descrição: Criação e configuração de usuários em containers LXC (Versão 2)
 # Autor: Hugllas Lima
 # Data: $(date +%Y-%m-%d)
 # Versão: 2.0
 # Licença: MIT
-# Repositório: https://github.com/hugllaslima/proxmox-ve-automation
-#==============================================================================
+# Repositório: https://github.com/hugllaslima/proxmox-ve-workspace/tree/main/scripts-container-lxc
+#==================================================================================================
 
 # ETAPAS DO SCRIPT:
 # 1. Atualização e configuração do template
@@ -19,7 +19,7 @@
 # 6. Configurações de segurança
 # 7. Reinicialização do container LXC
 # Uso:
-#   - sudo ./create_user_lxc.sh
+#   - sudo ./create_user_lxc_2.sh
 
 # ============================================================================
 # ETAPA 1: CONFIGURAÇÃO INICIAL DO SISTEMA
