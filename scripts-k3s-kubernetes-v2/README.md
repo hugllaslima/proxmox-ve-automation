@@ -32,7 +32,7 @@ Para entender a decisão, veja um comparativo direto entre as duas abordagens:
     - Para nós únicos, pode usar **SQLite** embutido, tornando-o extremamente leve.
     - Para alta disponibilidade (HA), utiliza **Embedded Etcd** (nativamente), eliminando a necessidade de banco de dados externo. Esta é a abordagem utilizada neste projeto.
 
-Em resumo, o K3s oferece a mesma funcionalidade e segurança do Kubernetes tradicional, mas com uma fração do custo operacional e da complexidade, tornando-o a escolha ideal para este ambiente.
+Em resumo, o K3s disponibiliza a compatibilidade total com as APIs do Kubernetes upstream, suportando recursos nativos como Secrets, Ingress, HPA e Gateway API, além de vir pré-configurado com o Traefik. Sua arquitetura otimizada reduz drasticamente a complexidade operacional, sendo ideal para ambientes de pequeno e médio porte com restrição de recursos.
 
 O cluster resultante é configurado com três nós de controle (control planes) para garantir alta disponibilidade via Etcd embarcado, dois nós de trabalho (workers), um servidor NFS para armazenamento persistente e, por fim, um servidor de gerenciamento.
 
@@ -440,4 +440,3 @@ Mantendo uma rotina de backups adequada, este cluster entregará alta disponibil
 
 - **GitHub:** [@hugllaslima](https://github.com/hugllaslima)
 - **LinkedIn:** [hugllas-lima](https://www.linkedin.com/in/hugllas-lima/)
-
