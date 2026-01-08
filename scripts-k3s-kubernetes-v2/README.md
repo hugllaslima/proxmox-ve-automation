@@ -89,7 +89,11 @@ graph LR
         MetalLB -->|Route| CP3
         
         CP1 --> Worker1[Worker 1]
-        CP2 --> Worker2[Worker 2]
+        CP1 --> Worker2[Worker 2]
+        CP2 --> Worker1
+        CP2 --> Worker2
+        CP3 --> Worker1
+        CP3 --> Worker2
         
         Gateway[Gateway API / Traefik] --> Worker1
         Gateway --> Worker2
