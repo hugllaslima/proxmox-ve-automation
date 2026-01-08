@@ -72,6 +72,7 @@ O diagrama a seguir ilustra visualmente a arquitetura do cluster, destacando a c
 graph LR
     User((User)) -->|SSH/HTTP| MetalLB
     User -->|SSH| Management
+    Management -.->|kubectl/SSH| CP1 & CP2 & CP3
     
     subgraph Management_Net [Rede de Gerenciamento]
         Management[VM: Management]
