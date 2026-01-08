@@ -62,7 +62,7 @@ A arquitetura a seguir é a configuração de referência testada para este proj
 | 6 | `k3s-storage-nfs` | Ubuntu 24.04 LTS | `192.168.10.25/24` | 2c | 4GB | 80GB |
 | 7 | `k3s-management` | Ubuntu 24.04 LTS | `192.168.10.26/24` | 2c | 4GB | 30GB |
 
-Nesta arquitetura, o cluster Kubernetes é configurado com três nós de controle (control planes) para garantir alta disponibilidade via Etcd embarcado, dois nós de trabalho (workers), um servidor NFS para armazenamento persistente e, por fim, um servidor de gerenciamento.
+Neste projeto, o cluster Kubernetes é configurado com três nós de controle (control-planes-1, control-planes-2, control-planes-3) para garantir alta disponibilidade via Etcd embarcado, dois nós de trabalho (workers-1, workers-2), um servidor NFS para armazenamento persistente (k3s-storage-nfs) e, por fim, um servidor de gerenciamento (k3s-management) para facilitar a administração e o monitoramento do cluster.
 
 ### 🗺️ Diagrama da Topologia
 
