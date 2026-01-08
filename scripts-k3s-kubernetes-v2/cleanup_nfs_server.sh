@@ -23,7 +23,7 @@
 #   - https://github.com/hugllaslima/proxmox-ve-workspace/tree/main/scripts-k3s-kubernetes-v2
 #
 # Versão:
-#   1.0
+#   2.0
 #
 # Data:
 #   28/11/2025
