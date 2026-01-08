@@ -34,8 +34,6 @@ Para entender a decisão, veja um comparativo direto entre as duas abordagens:
 
 Em resumo, o K3s disponibiliza a compatibilidade total com as APIs do Kubernetes upstream, suportando recursos nativos como Secrets, Ingress, HPA e Gateway API, além de vir pré-configurado com o Traefik. Sua arquitetura otimizada reduz drasticamente a complexidade operacional, sendo ideal para ambientes de pequeno e médio porte com restrição de recursos.
 
-O cluster resultante é configurado com três nós de controle (control planes) para garantir alta disponibilidade via Etcd embarcado, dois nós de trabalho (workers), um servidor NFS para armazenamento persistente e, por fim, um servidor de gerenciamento.
-
 ## 📋 Planejamento e Pré-requisitos de Rede
 
 Antes de iniciar a instalação, é fundamental planejar sua rede e acessos para garantir que a automação funcione corretamente.
@@ -63,6 +61,8 @@ A arquitetura a seguir é a configuração de referência testada para este proj
 | 5 | `k3s-worker-2` | Ubuntu 24.04 LTS | `192.168.10.24/24` | 4c | 6GB | 40GB |
 | 6 | `k3s-storage-nfs` | Ubuntu 24.04 LTS | `192.168.10.25/24` | 2c | 4GB | 80GB |
 | 7 | `k3s-management` | Ubuntu 24.04 LTS | `192.168.10.26/24` | 2c | 4GB | 30GB |
+
+Nesta arquitetura, o cluster Kubernetes é configurado com três nós de controle (control planes) para garantir alta disponibilidade via Etcd embarcado, dois nós de trabalho (workers), um servidor NFS para armazenamento persistente e, por fim, um servidor de gerenciamento.
 
 ### 🗺️ Diagrama da Topologia
 
