@@ -80,23 +80,26 @@ graph LR
 
     subgraph Cluster_K3s [Cluster K3s HA]
         direction TB
-        CP1[Control Plane 1] <--> CP2[Control Plane 2]
-        CP2 <--> CP3[Control Plane 3]
-        CP3 <--> CP1
         
-        MetalLB -->|Route| CP1
-        MetalLB -->|Route| CP2
-        MetalLB -->|Route| CP3
+        subgraph Control_Plane [Control Plane Layer]
+            direction TB
+            CP1[Control Plane 1] <--> CP2[Control Plane 2]
+            CP2 <--> CP3[Control Plane 3]
+            CP3 <--> CP1
+        end
+
+        subgraph Data_Plane [Worker Layer]
+            direction TB
+            Worker1[Worker 1]
+            Worker2[Worker 2]
+            Gateway[Gateway API / Traefik]
+        end
         
-        CP1 --> Worker1[Worker 1]
-        CP1 --> Worker2[Worker 2]
-        CP2 --> Worker1
-        CP2 --> Worker2
-        CP3 --> Worker1
-        CP3 --> Worker2
+        MetalLB -->|Route| CP1 & CP2 & CP3
         
-        Gateway[Gateway API / Traefik] --> Worker1
-        Gateway --> Worker2
+        CP1 & CP2 & CP3 --> Worker1 & Worker2
+        
+        Gateway --> Worker1 & Worker2
         MetalLB -->|Traffic| Gateway
     end
 
@@ -104,8 +107,7 @@ graph LR
         NFS[Server NFS]
     end
 
-    Worker1 -->|PV Mount| NFS
-    Worker2 -->|PV Mount| NFS
+    Worker1 & Worker2 -->|PV Mount| NFS
 ```
 
 ## ⚙️ Como o Ambiente Funciona?
