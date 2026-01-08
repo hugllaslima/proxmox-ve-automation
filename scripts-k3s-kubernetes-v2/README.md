@@ -66,6 +66,8 @@ Neste projeto, o cluster Kubernetes é configurado com três nós de controle (c
 
 ### 🗺️ Diagrama da Topologia
 
+O diagrama a seguir ilustra visualmente a arquitetura do cluster, destacando a comunicação entre os nós de controle, trabalhadores, servidor de armazenamento e a camada de gerenciamento externo.
+
 ```mermaid
 graph LR
     User((User)) -->|SSH/HTTP| MetalLB
